@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="gcc cross compile (fb6f02ed-15aa-402b-b6e0-cdf17cad22de)">
+    <serverData>
+      <paths name="gcc cross compile (fb6f02ed-15aa-402b-b6e0-cdf17cad22de)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/root/uScope/driver" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-remote" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
