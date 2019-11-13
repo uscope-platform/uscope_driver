@@ -95,3 +95,13 @@ int start_capture(uint32_t n_buffers){
 
     return RESP_OK;
 }
+
+int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value){
+    #ifdef DEBUG
+        printf("WRITE SINGLE PROXIED REGISTER: proxy address %x   register address %x  value %u \n", proxy_address,reg_address, value);
+    #endif
+
+    registers[address_to_index(proxy_address)] = value;
+    registers[address_to_index(proxy_address)+1] = reg_address;
+    return RESP_OK;
+}

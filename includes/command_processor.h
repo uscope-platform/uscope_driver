@@ -14,6 +14,7 @@ response_t *process_command(command_t *command);
 
 uint32_t process_load_bitstream(char *operand);
 uint32_t process_single_write_register(char *operand_1, char *operand_2);
+uint32_t process_proxied_single_write_register(char *operand_1, char *operand_2);
 uint32_t process_single_read_register(char *operand_1, response_t *response);
 uint32_t process_bulk_write_register(char *operand_1, char *operand_2);
 uint32_t process_bulk_read_register(char *operand_1, response_t *response);

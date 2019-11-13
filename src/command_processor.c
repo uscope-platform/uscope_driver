@@ -63,6 +63,17 @@ uint32_t process_start_capture(char *operand){
     return start_capture(n_buffers);
 }
 
+
+uint32_t process_proxied_single_write_register(char *operand_1, char *operand_2){
+    char *addr_sptr;
+    char* proxy_addr_s = strtok_r(operand_1, ",", &addr_sptr);
+    char* reg_addr_s = strtok_r(NULL, ",", &addr_sptr);
+    uint32_t proxy_addr = strtoul(proxy_addr_s,NULL, 0);
+    uint32_t reg_addr = strtoul(reg_addr_s,NULL, 0);
+    uint32_t value = strtoul(operand_2,NULL, 0);
+    return single_proxied_write_register(proxy_addr, reg_addr, value);
+}
+
 response_t *process_command(command_t *command){
 
     response_t *response = malloc(sizeof(response_t));
@@ -91,6 +102,8 @@ response_t *process_command(command_t *command){
         case C_START_CAPTURE:
             response->return_code = process_start_capture(command->operand_1);
             break;
+        case C_PROXIED_WRITE:
+            response->return_code = process_proxied_single_write_register(command->operand_1, command->operand_2);
     }
 
     return response;

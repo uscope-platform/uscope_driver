@@ -33,11 +33,12 @@ int single_read_register(uint32_t address, volatile uint32_t *value);
 int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
 int bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
 int start_capture(uint32_t n_buffers);
+int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
 
 uint32_t address_to_index(uint32_t address);
 
 int regs_fd;
-uint32_t *registers;
+volatile uint32_t *registers;
 
 
 
