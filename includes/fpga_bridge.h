@@ -19,7 +19,7 @@
 #include <errno.h>
 
 #include "commands.h"
-
+#include "scope_handler.h"
 
 #define BASE_ADDR 0x43c00000
 
@@ -34,6 +34,7 @@ int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile ui
 int bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
 int start_capture(uint32_t n_buffers);
 int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
+int read_data(int32_t * read_data);
 
 uint32_t address_to_index(uint32_t address);
 

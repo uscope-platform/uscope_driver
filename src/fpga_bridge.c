@@ -105,3 +105,22 @@ int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, u
     registers[address_to_index(proxy_address)+1] = reg_address;
     return RESP_OK;
 }
+
+int read_data(int32_t * read_data){
+    #ifdef DEBUG
+        printf("READ DATA \n");
+    #endif
+
+
+    int response;
+    if(scope_data_ready) {
+        printf("DATA READY \n");
+        response = RESP_OK;
+    } else{
+        printf("DATA NOT READY \n");
+        response = RESP_DATA_NOT_READY;
+    }
+    memcpy(read_data, scope_data_buffer, 1024* sizeof(int32_t));
+    scope_data_ready = false;
+    return response;
+}

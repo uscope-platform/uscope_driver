@@ -16,9 +16,14 @@
 #define C_BULK_REGISTER_READ 5
 #define C_START_CAPTURE 6
 #define C_PROXIED_WRITE 7
+#define C_READ_DATA 8
 
 #define RESP_OK 1
 #define RESP_ERR_BITSTREAM_NOT_FOUND 2
+#define RESP_DATA_NOT_READY 3
+
+#define RESP_TYPE_INBAND 1
+#define RESP_TYPE_OUTBAND 2
 
 typedef struct {
     uint32_t opcode;
@@ -29,6 +34,7 @@ typedef struct {
 
 typedef struct {
     uint32_t opcode;
+    uint32_t type;
     uint32_t return_code;
     uint32_t *body;
     uint32_t body_size;
