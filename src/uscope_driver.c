@@ -39,8 +39,8 @@ void respond(response_t *response){
 
     } else if (response->type == RESP_TYPE_OUTBAND) {
         sprintf(raw_response, "%u %u", response->opcode, response->return_code);
-        shared_memory[0] = 0xcafebebe;
-        //memcpy((void*) shared_memory, response->body, response->body_size* sizeof(int32_t));
+        //shared_memory[0] = 0xcafebebe;
+        memcpy((void*) shared_memory, response->body, response->body_size* sizeof(int32_t));
 
         redisReply *response_status = redisCommand(reply_channel,"PUBLISH response %s", raw_response);
         free(raw_response);
