@@ -56,7 +56,6 @@ int single_read_register(uint32_t address, volatile uint32_t *value){
     #ifdef DEBUG
         printf("READ SINGLE REGISTER: addr %x \n", address);
     #endif
-    value = malloc(sizeof(uint32_t));
 
     uint32_t int_value = registers[address_to_index(address)];
 

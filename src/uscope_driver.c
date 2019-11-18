@@ -71,7 +71,8 @@ void onCommand(redisAsyncContext *c, void *reply, void *privdata) {
     free_command(command);
 
     respond(response);
-
+    free(response->body);
+    free(response);
 }
 
 
@@ -140,7 +141,6 @@ int setup_main_loop(void){
 }
 
 int main (int argc, char **argv) {
-    printf("here");
     init_fpga_bridge();
     init_scope_handler("/dev/uio0", 1024*4);
 

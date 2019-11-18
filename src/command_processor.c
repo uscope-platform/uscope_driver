@@ -13,7 +13,7 @@ uint32_t process_single_write_register(char *operand_1, char *operand_2){
 
 uint32_t process_single_read_register(char *operand_1, response_t * response){
     uint32_t address = strtoul(operand_1,NULL, 0);
-    response->body = malloc(sizeof(uint32_t));
+    response->body = calloc(1, sizeof(uint32_t));
     response->body_size = 1;
     return single_read_register(address, response->body);
 }
