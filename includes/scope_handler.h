@@ -21,7 +21,7 @@
 #include <fcntl.h>
 
 
-void handle_scope_data(void *args);
+void handle_scope_data(int fd, short what, void *arg);
 void init_scope_handler(char * driver_file, int32_t buffer_size);
 int wait_for_Interrupt(void);
 void handler_read_data(int32_t *data, int size);

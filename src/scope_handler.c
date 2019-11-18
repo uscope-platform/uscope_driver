@@ -1,6 +1,6 @@
 #include "scope_handler.h"
 
-void handle_scope_data(void *args){
+void handle_scope_data(int fd, short what, void *arg){
         wait_for_Interrupt();
         handler_read_data(scope_data_buffer, internal_buffer_size);
         scope_data_ready = true;
@@ -20,8 +20,10 @@ void init_scope_handler(char * driver_file, int32_t buffer_size){
     if(buffer < 0) {
         fprintf(stderr, "Cannot mmap uio device: %s\n",
                 strerror(errno));
-
       }
+
+    uint32_t write_val = 1;
+    write(fd_data, &write_val, sizeof(write_val));
 }
 
 void cleanup_scope_handler(void){
