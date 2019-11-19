@@ -19,14 +19,18 @@ command_t *parse_command(char *received_string){
 
 
 void respond(response_t *response){
-    char *raw_response = malloc(10000* sizeof(char));
 
-    if(response->type == RESP_TYPE_INBAND){
+    char *raw_response = malloc(10000* sizeof(char));
+    if(response->type == RESP_NOT_NEEDED){
+        return;
+    }else if(response->type == RESP_TYPE_INBAND){
         if(response->body_size!=0){
+
             sprintf(raw_response, "%u %u\n", response->opcode, response->return_code);
             for(uint32_t i = 0; i<response->body_size; i++){
                 char result[100];
-                sprintf(result," %u,", response->body[i]);
+                if(i<response->body_size-1) sprintf(result," %u,", response->body[i]);
+                else sprintf(result," %u", response->body[i]);
                 strcat(raw_response, result);
             }
         } else {
@@ -39,7 +43,6 @@ void respond(response_t *response){
 
     } else if (response->type == RESP_TYPE_OUTBAND) {
         sprintf(raw_response, "%u %u", response->opcode, response->return_code);
-        //shared_memory[0] = 0xcafebebe;
         memcpy((void*) shared_memory, response->body, response->body_size* sizeof(int32_t));
 
         redisReply *response_status = redisCommand(reply_channel,"PUBLISH response %s", raw_response);
@@ -67,10 +70,13 @@ void onCommand(redisAsyncContext *c, void *reply, void *privdata) {
         return;
     }
     command_t * command = parse_command(raw_command);
-    response_t * response = process_command(command);
-    free_command(command);
+    response_t *response = malloc(sizeof(response_t));
+    response->body = calloc(1024, sizeof(int32_t));
 
+    process_command(command, response);
     respond(response);
+
+    free_command(command);
     free(response->body);
     free(response);
 }
@@ -118,9 +124,7 @@ void intHandler(int args) {
 int setup_main_loop(void){
     signal(SIGPIPE, SIG_IGN);
     main_loop = event_base_new();
-    printf("here");
     signal(SIGINT, intHandler);
-    printf("here");
     scope_data = event_new(main_loop, fd_data, EV_READ| EV_PERSIST, handle_scope_data,event_self_cbarg());
 
 

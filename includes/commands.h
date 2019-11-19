@@ -17,6 +17,8 @@
 #define C_START_CAPTURE 6
 #define C_PROXIED_WRITE 7
 #define C_READ_DATA 8
+#define C_CHECK_CAPTURE_PROGRESS 9
+
 
 #define RESP_OK 1
 #define RESP_ERR_BITSTREAM_NOT_FOUND 2
@@ -24,6 +26,7 @@
 
 #define RESP_TYPE_INBAND 1
 #define RESP_TYPE_OUTBAND 2
+#define RESP_NOT_NEEDED 3
 
 typedef struct {
     uint32_t opcode;

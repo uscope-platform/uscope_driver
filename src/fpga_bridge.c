@@ -91,7 +91,7 @@ int start_capture(uint32_t n_buffers){
     #ifdef DEBUG
         printf("START CAPTURE: n_buffers %u\n", n_buffers);
     #endif
-
+    start_capture_mode(n_buffers);
     return RESP_OK;
 }
 
@@ -113,13 +113,12 @@ int read_data(int32_t * read_data){
 
     int response;
     if(scope_data_ready) {
-        printf("DATA READY \n");
+        memcpy(read_data, scope_data_buffer, 1024* sizeof(int32_t));
         response = RESP_OK;
     } else{
-        printf("DATA NOT READY \n");
         response = RESP_DATA_NOT_READY;
     }
-    memcpy(read_data, scope_data_buffer, 1024* sizeof(int32_t));
+
     scope_data_ready = false;
     return response;
 }
