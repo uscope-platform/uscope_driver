@@ -25,4 +25,3 @@ target_link_libraries(${CMAKE_PROJECT_NAME} hiredis)
 target_link_libraries(${CMAKE_PROJECT_NAME} event)
 target_link_libraries(${CMAKE_PROJECT_NAME} pthread)
 target_link_libraries(${CMAKE_PROJECT_NAME} rt)
-

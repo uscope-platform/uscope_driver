@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -39,7 +40,7 @@
 #define FATAL do { fprintf(stderr, "Error at line %d, file %s (%d) [%s]\n", \
   __LINE__, __FILE__, errno, strerror(errno)); exit(1); } while(0)
 
-void init_fpga_bridge(void);
+void init_fpga_bridge();
 int load_bitstream(char *bitstream);
 int single_write_register(uint32_t address, uint32_t value);
 int single_read_register(uint32_t address, volatile uint32_t *value);
@@ -52,6 +53,7 @@ int read_data(int32_t * read_data);
 uint32_t address_to_index(uint32_t address);
 
 int regs_fd;
+
 volatile uint32_t *registers;
 
 

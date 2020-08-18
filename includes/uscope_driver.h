@@ -24,7 +24,9 @@
 #include <string.h>
 #include <signal.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <regex.h>
+#include <argp.h>
 #include "event2/event.h"
 #include "hiredis/hiredis.h"
 #include "hiredis/async.h"
@@ -49,6 +51,7 @@ struct event_base *main_loop;
 
 redisContext *reply_channel;
 
+bool debug_mode;
 
 int sh_mem_fd;
 volatile uint32_t *shared_memory;

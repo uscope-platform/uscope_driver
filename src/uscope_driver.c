@@ -181,8 +181,13 @@ int setup_main_loop(void){
 /// \param argv standard C arguments array
 /// \return Program exit value
 int main (int argc, char **argv) {
+    debug_mode = false;
+    if(argc==2){
+        if(strcmp(argv[1],"--debug") == 0) debug_mode=true;
+    }
+
     init_fpga_bridge();
-    init_scope_handler("/dev/uio0", 1024*4);
+    init_scope_handler("/dev/uio0",1024*4);
 
     setup_main_loop();
 

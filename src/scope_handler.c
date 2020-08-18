@@ -17,6 +17,8 @@
 
 #include "scope_handler.h"
 
+extern bool debug_mode;
+
 /// This is a libevent event handler, it is called every time the UIO driver file is readable, meaning new data is ready
 /// and it copies the data from the DMA hardware buffer and appends them to the data list from data_linked_list.c
 /// \param fd
@@ -76,14 +78,20 @@ void init_scope_handler(char * driver_file, int32_t buffer_size){
     internal_buffer_size = buffer_size;
     scope_data_buffer = malloc(internal_buffer_size* sizeof(int32_t));
 
-    //mmap buffer
-    fd_data = open(driver_file, O_RDWR| O_SYNC);
+    if(!debug_mode){
+        //mmap buffer
+        fd_data = open(driver_file, O_RDWR| O_SYNC);
 
-    buffer = (int32_t* ) mmap(NULL, buffer_size*sizeof(uint32_t), PROT_READ, MAP_SHARED, fd_data, 0);
-    if(buffer < 0) {
-        fprintf(stderr, "Cannot mmap uio device: %s\n",
-                strerror(errno));
-      }
+        buffer = (int32_t* ) mmap(NULL, buffer_size*sizeof(uint32_t), PROT_READ, MAP_SHARED, fd_data, 0);
+        if(buffer < 0) {
+            fprintf(stderr, "Cannot mmap uio device: %s\n",
+                    strerror(errno));
+        }
+    } else {
+        fd_data = open("/dev/zero", O_RDWR| O_SYNC);
+        buffer = (int32_t* ) mmap(NULL, buffer_size*sizeof(uint32_t), PROT_READ, MAP_SHARED, fd_data, 0);
+    }
+
 
     uint32_t write_val = 1;
     write(fd_data, &write_val, sizeof(write_val));
