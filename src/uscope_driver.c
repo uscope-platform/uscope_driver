@@ -1,11 +1,28 @@
-//  Hello World server
+// Copyright (C) 2020 Filippo Savi - All Rights Reserved
+
+// This file is part of uscope_driver.
+
+// uscope_driver is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License.
+
+// uscope_driver is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "uscope_driver.h"
 
-void free_command(command_t * command){;
-    free(command);
-}
-
+/// This helper function parses the commands that are received through redis pub-sub messages.
+/// Each command is constructed of three space delimited strings: OPCODE OPERAND_1 and OPERAND_2
+/// the opcode is a simple integer number that defines the type of command, while the two operands are command dependent
+/// data fields.
+/// \param received_string C string that contains the raw command
+/// \return Structure containing the parsed command content
 command_t *parse_command(char *received_string){
     command_t *parsed_command;
     parsed_command = malloc(sizeof(command_t));
@@ -17,9 +34,11 @@ command_t *parse_command(char *received_string){
     return parsed_command;
 }
 
-
+/// This function transmits the response to a command the appropriate command.
+/// Depending on the type of the command, a response could be: not needed, transmitted in band, which is to say on
+/// a different pub-sub channel or transmitted out of band, through a shared memory mapped file.
+/// \param response response to send
 void respond(response_t *response){
-
     char *raw_response = malloc(10000* sizeof(char));
     if(response->type == RESP_NOT_NEEDED){
         return;
@@ -57,6 +76,12 @@ void respond(response_t *response){
 
 }
 
+/// Event handler that gets called when a command from the server is issued.
+/// The handler is tasked with doing the memory management for parsing the command, that is then processed by #process_command
+/// and finally doing the memory management for the response structure.
+/// \param c
+/// \param reply
+/// \param privdata
 void onCommand(redisAsyncContext *c, void *reply, void *privdata) {
     redisReply *r = reply;
     redisReply **rra = r->element;
@@ -76,12 +101,15 @@ void onCommand(redisAsyncContext *c, void *reply, void *privdata) {
     process_command(command, response);
     respond(response);
 
-    free_command(command);
+    free(command);
     free(response->body);
     free(response);
 }
 
-
+/// The function sets up the response communication channel with the uscope_server.
+/// The respone channels are comprised of a redis connection used for internal status communications and a memory mapped file
+/// that is used to share the scope data.
+/// \return 0
 int setup_response_channels(void){
 
     struct timeval timeout = { 1, 500000 }; // 1.5 seconds
@@ -113,14 +141,17 @@ int setup_response_channels(void){
     return 0;
 }
 
-
+/// Handler for SIGINT in order to stop the event loop on CTRL+C
+/// \param args
 void intHandler(int args) {
     event_base_loopbreak(main_loop);
     cleanup_scope_handler();
     exit(0);
 }
 
-
+/// setup_main_loop prepares and run the event loop for the application, needed to effectively handle redis connectivity
+/// with the uscope_server
+/// \return 0
 int setup_main_loop(void){
     signal(SIGPIPE, SIG_IGN);
     main_loop = event_base_new();
@@ -144,6 +175,11 @@ int setup_main_loop(void){
     return 0;
 }
 
+
+/// main is the entry point of the program, as per standard C conventions
+/// \param argc standard C arguments count
+/// \param argv standard C arguments array
+/// \return Program exit value
 int main (int argc, char **argv) {
     init_fpga_bridge();
     init_scope_handler("/dev/uio0", 1024*4);
