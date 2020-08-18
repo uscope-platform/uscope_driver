@@ -146,6 +146,7 @@ int setup_response_channels(void){
 void intHandler(int args) {
     event_base_loopbreak(main_loop);
     cleanup_scope_handler();
+    cleanup_server_connector();
     exit(0);
 }
 
@@ -172,6 +173,7 @@ int setup_main_loop(void){
     redisLibeventAttach(c, main_loop);
     redisAsyncCommand(c, onCommand, NULL, "SUBSCRIBE command");
 
+    init_server_connector(main_loop, 6666);
     return 0;
 }
 
@@ -195,6 +197,7 @@ int main (int argc, char **argv) {
 
     redisReply *response_status = redisCommand(reply_channel,"SELECT 4");
     freeReplyObject(response_status);
+
 
     event_base_dispatch(main_loop);
 

@@ -20,7 +20,7 @@ file(GLOB LIB_SOURCES "src/*.c")
 #
 project (uscope_driver)
 
-add_executable(${CMAKE_PROJECT_NAME} ${LIB_SOURCES} src/scope_handler.c includes/scope_handler.h src/data_linked_list.c includes/data_linked_list.h)
+add_executable(${CMAKE_PROJECT_NAME} ${LIB_SOURCES} src/scope_handler.c includes/scope_handler.h src/data_linked_list.c includes/data_linked_list.h src/server_connector.c includes/server_connector.h)
 target_link_libraries(${CMAKE_PROJECT_NAME} hiredis)
 target_link_libraries(${CMAKE_PROJECT_NAME} event)
 target_link_libraries(${CMAKE_PROJECT_NAME} pthread)

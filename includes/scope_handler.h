@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 
+#include "server_connector.h"
 #include "data_linked_list.h"
 
 #define MODE_RUN 1
