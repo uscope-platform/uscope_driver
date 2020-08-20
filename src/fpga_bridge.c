@@ -40,7 +40,7 @@ void init_fpga_bridge(){
         }
     } else{
         if((regs_fd = open("/dev/zero", O_RDWR | O_SYNC)) == -1) FATAL;
-        registers = (uint32_t*) mmap(0, 4096, PROT_READ |PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
+        registers = (uint32_t*) mmap(0, 4096, PROT_READ |PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1,0);
         if(registers < 0) {
             fprintf(stderr, "Cannot mmap uio device: %s\n",
                     strerror(errno));
@@ -83,8 +83,9 @@ int load_bitstream(char *bitstream){
 int single_write_register(uint32_t address, uint32_t value){
     if(debug_mode) printf("WRITE SINGLE REGISTER: addr %x   value %u \n", address, value);
 
+    int addr = address_to_index(address);
 
-    registers[address_to_index(address)] = value;
+    registers[addr] = value;
     return RESP_OK;
 }
 

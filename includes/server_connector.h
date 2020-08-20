@@ -27,11 +27,18 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <string.h>
+
+#include "commands.h"
+#include "command_processor.h"
 
 void init_server_connector(struct event_base * 	base, int port);
 void cleanup_server_connector(void);
 static void setup_connection(int sockfd, short evtype, void *arg);
-void process_connection(int connection_fd);
+int process_connection(int connection_fd);
+
+void send_response(response_t *response, int connection_fd);
+command_t *parse_raw_command(char *received_string);
 
 struct event connect_event;
 int sockfd;

@@ -40,9 +40,7 @@ command_t *parse_command(char *received_string){
 /// \param response response to send
 void respond(response_t *response){
     char *raw_response = malloc(10000* sizeof(char));
-    if(response->type == RESP_NOT_NEEDED){
-        return;
-    }else if(response->type == RESP_TYPE_INBAND){
+    if(response->type == RESP_TYPE_INBAND){
         if(response->body_size!=0){
 
             sprintf(raw_response, "%u %u\n", response->opcode, response->return_code);

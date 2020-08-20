@@ -144,32 +144,32 @@ void process_command(command_t *command, response_t *response){
     response->return_code = RESP_OK;
     switch(command->opcode){
         case C_NULL_COMMAND:
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             break;
         case C_LOAD_BITSTREAM:
             process_load_bitstream(command->operand_1);
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             break;
         case C_SINGLE_REGISTER_READ:
             response->return_code = process_single_read_register(command->operand_1, response);
             break;
         case C_SINGLE_REGISTER_WRITE:
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             process_single_write_register(command->operand_1, command->operand_2);
             break;
         case C_BULK_REGISTER_READ:
             response->return_code = process_bulk_read_register(command->operand_1, response);
             break;
         case C_BULK_REGISTER_WRITE:
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             process_bulk_write_register(command->operand_1, command->operand_2);
             break;
         case C_START_CAPTURE:
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             process_start_capture(command->operand_1);
             break;
         case C_PROXIED_WRITE:
-            response->type = RESP_NOT_NEEDED;
+            response->type = RESP_OK;
             process_proxied_single_write_register(command->operand_1, command->operand_2);
             break;
         case C_READ_DATA:
