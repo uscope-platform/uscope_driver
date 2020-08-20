@@ -15,77 +15,62 @@
 // You should have received a copy of the GNU General Public License
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "fpga_bridge.h"
+#include "fpga_bridge.hpp"
 
-extern bool debug_mode;
-
-///  Helper function converting byte aligned addresses to array indices
-/// \param address to convert
-/// \return converted address
-uint32_t address_to_index(uint32_t address){
-    return(address - BASE_ADDR)/4;
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size) : scope_handler(driver_file, dma_buffer_size, true) {
+    debug_mode = true;
+    initialize_bridge(true);
 }
 
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug) : scope_handler(driver_file,dma_buffer_size, debug) {
+    debug_mode = debug;
+    initialize_bridge(debug);
 
-/// This function initializes the fpga_bridge, mapping the AXI channels to memory through /dev/mem
-void init_fpga_bridge(){
+}
 
+void fpga_bridge::initialize_bridge(bool debug) {
     volatile uint32_t* return_value;
-    if(!debug_mode){
-        if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1) FATAL;
-        registers = (uint32_t*) mmap(0, 4096, PROT_READ |PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
-        if(registers < 0) {
-            fprintf(stderr, "Cannot mmap uio device: %s\n",
-                    strerror(errno));
-        }
-    } else{
-        if((regs_fd = open("/dev/zero", O_RDWR | O_SYNC)) == -1) FATAL;
-        registers = (uint32_t*) mmap(0, 4096, PROT_READ |PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1,0);
-        if(registers < 0) {
-            fprintf(stderr, "Cannot mmap uio device: %s\n",
-                    strerror(errno));
-        }
+    if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1)
+        std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
+    registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
+    if(registers == MAP_FAILED) {
+        fprintf(stderr, "Cannot mmap uio device: %s\n",
+                strerror(errno));
     }
-
-
 }
 
-/// This function loads a bitstrem by name through the linux kernel fpga_manager interface
+
+
+
+/// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
-int load_bitstream(char *bitstream){
-    if(debug_mode){
+int fpga_bridge::load_bitstream(char *bitstream) {
+    if(debug_mode) {
         printf("LOAD BITSTREAM: %s\n", bitstream);
-        return RESP_OK;
-    } else{
-        system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
-        char filename[100];
-        sprintf(filename, "/lib/firmware/%s", bitstream);
-        struct stat buffer;
-
-        if(stat (filename, &buffer) == 0){
-            char command[100];
-            sprintf(command, "echo %s > /sys/class/fpga_manager/fpga0/firmware", bitstream);
-            system(command);
-            return RESP_OK;
-        } else {
-            printf("ERROR");
-            return RESP_ERR_BITSTREAM_NOT_FOUND;
-        }
     }
+    system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
 
+    std::string filename = "/lib/firmware/" + std::string(bitstream);
+    //struct stat buffer;
 
+    if(std::filesystem::exists(filename)){
+        std::string command = "echo " + std::string(bitstream) + " > /sys/class/fpga_manager/fpga0/firmware";
+        system(command.c_str());
+        return RESP_OK;
+    } else {
+        std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
+        return RESP_ERR_BITSTREAM_NOT_FOUND;
+    }
 }
+
 /// Write to a single register
 /// \param address Address to write to
 /// \param value Value to write
 /// \return #RESP_OK
-int single_write_register(uint32_t address, uint32_t value){
+int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
     if(debug_mode) printf("WRITE SINGLE REGISTER: addr %x   value %u \n", address, value);
-
-    int addr = address_to_index(address);
-
-    registers[addr] = value;
+    registers[address_to_index(address)] = value;
     return RESP_OK;
 }
 
@@ -93,7 +78,8 @@ int single_write_register(uint32_t address, uint32_t value){
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put
 /// \return #RESP_OK
-int single_read_register(uint32_t address, volatile uint32_t *value){
+int fpga_bridge::single_read_register(uint32_t address, volatile uint32_t *value) {
+
     if(debug_mode) printf("READ SINGLE REGISTER: addr %x \n", address);
 
     uint32_t int_value = registers[address_to_index(address)];
@@ -108,7 +94,8 @@ int single_read_register(uint32_t address, volatile uint32_t *value){
 /// \param value Pointer to the array of values to write
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
-int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers){
+int fpga_bridge::bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers) {
+
     if(debug_mode) printf("WRITE BULK REGISTERS\n");
 
     for(uint32_t i = 0; i< n_registers; i++){
@@ -123,9 +110,8 @@ int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile ui
 /// \param value Pointer to the array of values to write
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
-int bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers){
+int fpga_bridge::bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers) {
     if(debug_mode) printf("READ BULK REGISTERS\n");
-
     for(uint32_t i = 0; i< n_registers; i++){
         uint32_t current_addr = address_to_index(address[i]);
         uint32_t int_value = registers[current_addr];
@@ -137,9 +123,8 @@ int bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uin
 ///  Start scope data capture
 /// \param n_buffers Number of buffers to capture
 /// \return #RESP_OK
-int start_capture(uint32_t n_buffers){
+int fpga_bridge::start_capture(uint32_t n_buffers) {
     if(debug_mode) printf("START CAPTURE: n_buffers %u\n", n_buffers);
-
     start_capture_mode(n_buffers);
     return RESP_OK;
 }
@@ -149,10 +134,8 @@ int start_capture(uint32_t n_buffers){
 /// \param reg_address Address of the register to write to
 /// \param value Value to write
 /// \return #RESP_OK
-int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value){
+int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t reg_address, uint32_t value) {
     if(debug_mode) printf("WRITE SINGLE PROXIED REGISTER: proxy address %x   register address %x  value %u \n", proxy_address,reg_address, value);
-
-
     registers[address_to_index(proxy_address)] = value;
     registers[address_to_index(proxy_address)+1] = reg_address;
     return RESP_OK;
@@ -161,14 +144,11 @@ int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, u
 /// Read scope data if ready
 /// \param read_data pointer to the array the data will be put in
 /// \return #RESP_OK if data is ready #RESP_DATA_NOT_READY otherwise
-int read_data(int32_t * read_data){
-
+int fpga_bridge::read_data(uint32_t *read_data) {
     if(debug_mode) printf("READ DATA \n");
-
-
     int response;
-    if(scope_data_ready) {
-        memcpy(read_data, scope_data_buffer, 1024* sizeof(int32_t));
+    if(scope_handler.is_data_ready()) {
+        read_data = scope_handler.read_data().data();
         response = RESP_OK;
     } else{
         response = RESP_DATA_NOT_READY;
@@ -176,4 +156,14 @@ int read_data(int32_t * read_data){
 
     scope_data_ready = false;
     return response;
+    return 0;
 }
+
+///  Helper function converting byte aligned addresses to array indices
+/// \param address to convert
+/// \return converted address
+uint32_t fpga_bridge::address_to_index(uint32_t address) {
+    return(address - BASE_ADDR)/4;
+}
+
+
