@@ -17,8 +17,10 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <poll.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <mutex>
 
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
@@ -33,7 +35,7 @@ public:
     [[nodiscard]] unsigned int check_capture_progress() const;
     bool is_data_ready() const;
     std::vector<uint32_t> read_data();
-    ~scope_thread();
+    void stop_thread();
 private:
     void service_scope();
     void wait_for_Interrupt() const;

@@ -10,27 +10,28 @@
 
 #include <iostream>
 
+#include <netinet/in.h>
 #include <sys/socket.h>
-#include <event.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include "commands.h"
+#include "command_processor.hpp"
 
 class server_connector {
 public:
-    server_connector(struct event_base * 	base, int port);
-    void cleanup_server_connector(void);
-    static void setup_connection(int sockfd, short evtype, void *arg);
-    int process_connection(int connection_fd);
+    server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug);
+    void start_server();
+    void process_connection(int connection_fd);
 
     void send_response(response_t *response, int connection_fd);
     command_t *parse_raw_command(char *received_string);
-
+    void stop_server();
     ~server_connector();
-    struct event connect_event;
     int sockfd;
-
+    command_processor core_processor;
+    std::atomic_bool server_stop_req;
+    struct sockaddr_in servaddr{};
 };
 
 

@@ -2,60 +2,16 @@
 // Created by fils on 20/08/2020.
 //
 
-#include <server_connector.hpp>
-
 #include "server_connector.hpp"
-
-
-
-/// This helper function parses the received commands.
-/// Each command is constructed of three space delimited strings: OPCODE OPERAND_1 and OPERAND_2
-/// the opcode is a simple integer number that defines the type of command, while the two operands are command dependent
-/// data fields.
-/// \param received_string C string that contains the raw command
-/// \return Structure containing the parsed command content
-command_t *parse_raw_command(char *received_string){
-    command_t *parsed_command;
-    parsed_command = (command_t *) malloc(sizeof(command_t));
-    char * saveptr;
-
-    parsed_command->opcode = strtol(strtok_r(received_string, " ", &saveptr), NULL, 0);
-    parsed_command->operand_1 = strtok_r(NULL, " ", &saveptr);
-    parsed_command->operand_2 = strtok_r(NULL, " ", &saveptr);
-    return parsed_command;
-}
-
-
-
-/// Sets a file descriptor for non blocking IO
-/// \param fd file descriptor to set
-/// \return 0 on success -1 otherwise
-static int set_nonblock(int fd)
-{
-    int flags;
-
-    flags = fcntl(fd, F_GETFL);
-    if(flags == -1) {
-        printf("Error getting flags on fd %d", fd);
-        return -1;
-    }
-    flags |= O_NONBLOCK;
-    if(fcntl(fd, F_SETFL, flags)) {
-        printf("Error setting non-blocking I/O on fd %d", fd);
-        return -1;
-    }
-
-    return 0;
-}
 
 
 
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(struct event_base *base, int port) {
-    struct sockaddr_in servaddr;
+server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug) :core_processor(driver_file,dma_buffer_size,debug) {
 
+    server_stop_req = false;
 
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -79,42 +35,30 @@ server_connector::server_connector(struct event_base *base, int port) {
         exit(-1);
     }
 
-    if(set_nonblock(sockfd)){
-        std::cerr << "Error setting listening socket to non-blocking I/O." << std::endl;
-        exit(-1);
-    }
-
-    event_set(&connect_event, sockfd, EV_READ | EV_PERSIST, setup_connection, base);
-    event_base_set(base, &connect_event);
-    if(event_add(&connect_event, NULL)) {
-        printf("Error scheduling connection event on the event loop.\n");
-    }
-
 }
 
-void server_connector::cleanup_server_connector(void) {
 
-}
+void server_connector::start_server() {
 
-void setup_connection(int sockfd, short evtype, void *arg) {
-    struct sockaddr_in remote_addr;
     int connfd;
-    socklen_t addrlen = sizeof(remote_addr);
+    socklen_t addrlen = sizeof(servaddr);
 
-    connfd = accept(sockfd, (struct sockaddr *)&remote_addr, &addrlen);
-    if(connfd < 0) {
-        if(errno != EWOULDBLOCK && errno != EAGAIN) {
-            printf("Error accepting an incoming connection");
+    while (!server_stop_req){
+        connfd = accept(sockfd, (struct sockaddr *)&servaddr, &addrlen);
+        if(connfd < 0) {
+            if(errno != EWOULDBLOCK && errno != EAGAIN) {
+                printf("Error accepting an incoming connection");
+                exit(-1);
+            }
         }
-        exit(-1);
+
+        process_connection(connfd);
+
+        close(connfd);
     }
-
-    process_connection(connfd);
-
-    close(connfd);
 }
 
-int server_connector::process_connection(int connection_fd) {
+void server_connector::process_connection(int connection_fd) {
     uint8_t raw_command_length[8];
     uint64_t command_length = 0;
 
@@ -131,7 +75,7 @@ int server_connector::process_connection(int connection_fd) {
     response_t *response = (response_t*) malloc(sizeof(response_t));
     response->body = (uint32_t*) calloc(1024, sizeof(int32_t));
 
-    process_command(received_command, response);
+    core_processor.process_command(received_command, response);
     send_response(response, connection_fd);
 
     free(received_command);
@@ -163,13 +107,29 @@ void server_connector::send_response(response_t *response, int connection_fd) {
     write(connection_fd, raw_response, response_size);
 }
 
+/// This helper function parses the received commands.
+/// Each command is constructed of three space delimited strings: OPCODE OPERAND_1 and OPERAND_2
+/// the opcode is a simple integer number that defines the type of command, while the two operands are command dependent
+/// data fields.
+/// \param received_string C string that contains the raw command
+/// \return Structure containing the parsed command content
 command_t *server_connector::parse_raw_command(char *received_string) {
-    return nullptr;
+    command_t *parsed_command;
+    parsed_command = (command_t *) malloc(sizeof(command_t));
+    char * saveptr;
+
+    parsed_command->opcode = strtol(strtok_r(received_string, " ", &saveptr), NULL, 0);
+    parsed_command->operand_1 = strtok_r(NULL, " ", &saveptr);
+    parsed_command->operand_2 = strtok_r(NULL, " ", &saveptr);
+    return parsed_command;
 }
 
 server_connector::~server_connector() {
-    if(event_del(&connect_event)) {
-        printf("Error removing connection event from the event loop.\n");
-    }
     close(sockfd);
 }
+
+void server_connector::stop_server() {
+    core_processor.stop_scope();
+    server_stop_req = true;
+}
+

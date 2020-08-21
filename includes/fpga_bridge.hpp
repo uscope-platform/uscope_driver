@@ -34,9 +34,7 @@
 class fpga_bridge {
 
 public:
-    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size);
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug);
-    void initialize_bridge(bool debug);
     int load_bitstream(char *bitstream);
     int single_write_register(uint32_t address, uint32_t value);
     int single_read_register(uint32_t address, volatile uint32_t *value);
@@ -45,7 +43,8 @@ public:
     int start_capture(uint32_t n_buffers);
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(uint32_t * read_data);
-
+    int check_capture_progress();
+    void stop_scope();
     static uint32_t address_to_index(uint32_t address);
 
 private:

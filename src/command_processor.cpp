@@ -16,8 +16,7 @@
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 #include "command_processor.hpp"
 
-command_processor_n::command_processor_n(fpga_bridge bridge) {
-    hw = bridge;
+command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug) : hw(driver_file, dma_buffer_size, debug) {
 }
 
 /// This function, core of the driver operation, is called upon message reception and parsing, acts as a dispatcher,
@@ -25,7 +24,7 @@ command_processor_n::command_processor_n(fpga_bridge bridge) {
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates
 /// the response structure that defines what will be sent back to the server.
 /// \param Command Command received from the uscope_server
-void command_processor_n::process_command(command_t *command, response_t *response) {
+void command_processor::process_command(command_t *command, response_t *response) {
     response->opcode = command->opcode;
     response->body_size = 0;
     response->type = RESP_TYPE_INBAND;
@@ -75,7 +74,7 @@ void command_processor_n::process_command(command_t *command, response_t *respon
 ///
 /// \param Operand bitstream name
 /// \return
-uint32_t command_processor_n::process_load_bitstream(char *operand) {
+uint32_t command_processor::process_load_bitstream(char *operand) {
     return hw.load_bitstream(operand);
 }
 
@@ -83,7 +82,7 @@ uint32_t command_processor_n::process_load_bitstream(char *operand) {
 /// \param operand_1 Register address
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor_n::process_single_write_register(char *operand_1, char *operand_2) {
+uint32_t command_processor::process_single_write_register(char *operand_1, char *operand_2) {
     uint32_t address = strtoul(operand_1,NULL, 0);
     uint32_t value = strtoul(operand_2,NULL, 0);
     return hw.single_write_register(address,value);
@@ -93,7 +92,7 @@ uint32_t command_processor_n::process_single_write_register(char *operand_1, cha
 /// \param operand_1 Comma delimited list of address pairs to write to (comprised of address of the proxy and address to write)
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor_n::process_proxied_single_write_register(char *operand_1, char *operand_2) {
+uint32_t command_processor::process_proxied_single_write_register(char *operand_1, char *operand_2) {
     char *addr_sptr;
     char* proxy_addr_s = strtok_r(operand_1, ",", &addr_sptr);
     char* reg_addr_s = strtok_r(NULL, ",", &addr_sptr);
@@ -107,7 +106,7 @@ uint32_t command_processor_n::process_proxied_single_write_register(char *operan
 /// \param operand_1 Register address
 /// \param response Response object where the read result will be placed
 /// \return Success
-uint32_t command_processor_n::process_single_read_register(char *operand_1, response_t *response) {
+uint32_t command_processor::process_single_read_register(char *operand_1, response_t *response) {
     uint32_t address = strtoul(operand_1,NULL, 0);
     response->body_size = 1;
     return hw.single_read_register(address, response->body);
@@ -117,7 +116,7 @@ uint32_t command_processor_n::process_single_read_register(char *operand_1, resp
 /// \param operand_1 Comma delimited list of addresses to write to
 /// \param operand_2 Comma delimited list of values to write
 /// \return Success
-uint32_t command_processor_n::process_bulk_write_register(char *operand_1, char *operand_2) {
+uint32_t command_processor::process_bulk_write_register(char *operand_1, char *operand_2) {
     uint32_t write_addresses[100];
     uint32_t write_data[100];
     uint32_t array_pointer = 0;
@@ -142,7 +141,7 @@ uint32_t command_processor_n::process_bulk_write_register(char *operand_1, char 
 /// \param operand_1 Comma delimited list of addresses to read from
 /// \param response Pointer to the response structure where the results of the read will be put
 /// \return Success
-uint32_t command_processor_n::process_bulk_read_register(char *operand_1, response_t *response) {
+uint32_t command_processor::process_bulk_read_register(char *operand_1, response_t *response) {
     uint32_t read_addresses[100];
     uint32_t array_pointer = 0;
 
@@ -161,7 +160,7 @@ uint32_t command_processor_n::process_bulk_read_register(char *operand_1, respon
 ///
 /// \param Operand number of buffers to captire
 /// \return Success
-uint32_t command_processor_n::process_start_capture(char *operand) {
+uint32_t command_processor::process_start_capture(char *operand) {
     uint32_t n_buffers = strtoul(operand,NULL, 0);
     return hw.start_capture(n_buffers);
 }
@@ -169,7 +168,7 @@ uint32_t command_processor_n::process_start_capture(char *operand) {
 ///
 /// \param response Pointer to the structure where the data will eventually be put
 /// \return Either success of failure depending on if the data is actually ready
-uint32_t command_processor_n::process_read_data(response_t *response) {
+uint32_t command_processor::process_read_data(response_t *response) {
     int retval = hw.read_data(response->body);
     return retval;
 }
@@ -177,8 +176,12 @@ uint32_t command_processor_n::process_read_data(response_t *response) {
 ///
 /// \param Response pointer to the response_t structure where the result of the check will be put
 /// \return Success
-uint32_t command_processor_n::process_check_capture_progress(response_t *response) {
-    response->body[0] = check_capture_progress();
+uint32_t command_processor::process_check_capture_progress(response_t *response) {
+    response->body[0] = hw.check_capture_progress();
     response->body_size =1;
     return RESP_OK;
+}
+
+void command_processor::stop_scope() {
+    hw.stop_scope();
 }

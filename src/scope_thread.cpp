@@ -28,40 +28,50 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
             std::cerr << "Cannot mmap uio device: " << strerror(errno) <<std::endl;
         }
     } else {
-        fd_data = open("/dev/zero", O_RDWR| O_SYNC);
-        dma_buffer = (int32_t* ) mmap(nullptr, buffer_size*sizeof(uint32_t), PROT_READ, MAP_SHARED, fd_data, 0);
+        dma_buffer = (int32_t* ) mmap(nullptr, buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
 
 
     uint32_t write_val = 1;
     write(fd_data, &write_val, sizeof(write_val));
 
-    scope_service_thread = std::thread(&scope_thread::service_scope,this);
+   scope_service_thread = std::thread(&scope_thread::service_scope,this);
 
 }
 
 void scope_thread::service_scope() {
-    while(!thread_should_exit){
-        wait_for_Interrupt();
-        memcpy(scope_data_buffer, (void *)dma_buffer,internal_buffer_size*sizeof(int32_t));
+    struct pollfd poll_file;
+    poll_file.fd = fd_data;
+    poll_file.events = POLLIN;
+    poll(&poll_file, 1, 0);
+    while(1){
+        if(thread_should_exit) return;
+        if((poll_file.revents&POLLIN) == POLLIN){
+            wait_for_Interrupt();
+            memcpy(scope_data_buffer, (void *)dma_buffer,internal_buffer_size*sizeof(int32_t));
 
-        if(scope_mode==SCOPE_MODE_CAPTURE){
+            if(scope_mode==SCOPE_MODE_CAPTURE){
 
-            captured_data.insert(captured_data.end(), scope_data_buffer,scope_data_buffer+internal_buffer_size);
-            n_buffers_left--;
+                captured_data.insert(captured_data.end(), scope_data_buffer,scope_data_buffer+internal_buffer_size);
+                n_buffers_left--;
+            }
+            scope_data_ready = true;
+        } else{
+            usleep(100);
         }
-        scope_data_ready = true;
+
     }
 
 }
 
-scope_thread::~scope_thread() {
-    munmap((void*)dma_buffer, internal_buffer_size* sizeof(uint32_t));
-    close(fd_data);
+void scope_thread::stop_thread() {
     thread_should_exit = true;
     scope_service_thread.join();
+    munmap((void*)dma_buffer, internal_buffer_size* sizeof(uint32_t));
+    close(fd_data);
     free(scope_data_buffer);
 }
+
 
 /// Wait for data to be ready to be read. This is signaled through an hardware interrupt. Since a UIO driver is
 /// used the interrupt is waited upon with a read to the driver file

@@ -17,30 +17,28 @@
 
 #include "fpga_bridge.hpp"
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size) : scope_handler(driver_file, dma_buffer_size, true) {
-    debug_mode = true;
-    initialize_bridge(true);
-}
 
 fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug) : scope_handler(driver_file,dma_buffer_size, debug) {
     debug_mode = debug;
-    initialize_bridge(debug);
-
-}
-
-void fpga_bridge::initialize_bridge(bool debug) {
-    volatile uint32_t* return_value;
-    if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1)
-        std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
-    registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
-    if(registers == MAP_FAILED) {
-        fprintf(stderr, "Cannot mmap uio device: %s\n",
-                strerror(errno));
+    std::string file_path;
+    if(!debug){
+        volatile uint32_t* return_value;
+        if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1)
+            std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
+        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
+        if(registers == MAP_FAILED) {
+            fprintf(stderr, "Cannot mmap /dev/mem: %s\n",
+                    strerror(errno));
+        }
+    } else {
+        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+        if(registers == MAP_FAILED) {
+            fprintf(stderr, "Cannot create /dev/mem emulator anonymous mapping: %s\n",
+                    strerror(errno));
+        }
     }
+
 }
-
-
-
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
@@ -125,7 +123,7 @@ int fpga_bridge::bulk_read_register(uint32_t *address, volatile uint32_t *value,
 /// \return #RESP_OK
 int fpga_bridge::start_capture(uint32_t n_buffers) {
     if(debug_mode) printf("START CAPTURE: n_buffers %u\n", n_buffers);
-    start_capture_mode(n_buffers);
+    scope_handler.start_capture(n_buffers);
     return RESP_OK;
 }
 
@@ -154,16 +152,25 @@ int fpga_bridge::read_data(uint32_t *read_data) {
         response = RESP_DATA_NOT_READY;
     }
 
-    scope_data_ready = false;
     return response;
     return 0;
 }
+
+
 
 ///  Helper function converting byte aligned addresses to array indices
 /// \param address to convert
 /// \return converted address
 uint32_t fpga_bridge::address_to_index(uint32_t address) {
     return(address - BASE_ADDR)/4;
+}
+
+int fpga_bridge::check_capture_progress() {
+    return scope_handler.check_capture_progress();
+}
+
+void fpga_bridge::stop_scope() {
+    scope_handler.stop_thread();
 }
 
 

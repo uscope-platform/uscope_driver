@@ -18,13 +18,14 @@
 #include "uscope_driver.h"
 
 
+server_connector *connector;
+
 /// Handler for SIGINT in order to stop the event loop on CTRL+C
 /// \param args
 void intHandler(int args) {
-    event_base_loopbreak(main_loop);
+    connector->stop_server();
     exit(0);
 }
-
 
 
 /// main is the entry point of the program, as per standard C conventions
@@ -32,24 +33,21 @@ void intHandler(int args) {
 /// \param argv standard C arguments array
 /// \return Program exit value
 int main (int argc, char **argv) {
+
     debug_mode = false;
 
     if(argc==2){
-        if(strcmp(argv[1],"--debug") == 0) debug_mode=true;
+        if(strcmp(argv[1],"--debug") == 0) debug_mode = true;
     }
+
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, intHandler);
+
     std::string scope_driver_file = "/dev/uio0";
     unsigned int scope_buffer_size = 1024*4;
 
-    command_processor_n processor(fpga_bridge(scope_driver_file, scope_buffer_size, debug_mode));
 
-
-    signal(SIGPIPE, SIG_IGN);
-    main_loop = event_base_new();
-    signal(SIGINT, intHandler);
-
-    server_connector connector(main_loop, 6666);
-
-    event_base_dispatch(main_loop);
-
+    connector = new server_connector(6666, scope_driver_file, scope_buffer_size, debug_mode);
+    connector->start_server();
     return 0;
 }

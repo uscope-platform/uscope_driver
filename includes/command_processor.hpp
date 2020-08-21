@@ -20,9 +20,10 @@
 
 #include "fpga_bridge.hpp"
 
-class command_processor_n {
+class command_processor {
 public:
-    explicit command_processor_n(fpga_bridge bridge);
+    explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug);
+    void stop_scope();
     void process_command(command_t *command, response_t * response);
 
 private:
