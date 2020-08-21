@@ -47,7 +47,7 @@ void server_connector::start_server() {
         connfd = accept(sockfd, (struct sockaddr *)&servaddr, &addrlen);
         if(connfd < 0) {
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
-                printf("Error accepting an incoming connection");
+                std::cerr <<"Error accepting an incoming connection" <<std::endl;
                 exit(-1);
             }
         }
@@ -72,39 +72,34 @@ void server_connector::process_connection(int connection_fd) {
 
     command_t *received_command = parse_raw_command(command);
 
-    response_t *response = (response_t*) malloc(sizeof(response_t));
-    response->body = (uint32_t*) calloc(1024, sizeof(int32_t));
+    response resp = core_processor.process_command(received_command);
 
-    core_processor.process_command(received_command, response);
-    send_response(response, connection_fd);
+    send_response(resp, connection_fd);
 
     free(received_command);
-    free(response->body);
-    free(response);
-
 }
 
-void server_connector::send_response(response_t *response, int connection_fd) {
-    char *raw_response = (char*) malloc(10000* sizeof(char));
-    if(response->body_size!=0){
-
-        sprintf(raw_response, "%u %u\n", response->opcode, response->return_code);
-        for(uint32_t i = 0; i<response->body_size; i++){
-            char result[100];
-            if(i<response->body_size-1) sprintf(result," %u,", response->body[i]);
-            else sprintf(result," %u", response->body[i]);
-            strcat(raw_response, result);
+void server_connector::send_response(response &resp, int connection_fd) {
+    std::ostringstream response_stream;
+    response_stream << resp.opcode <<" " << resp.return_code;
+    if(!resp.body.empty()){
+        response_stream << " ";
+        for(auto &item: resp.body){
+            response_stream << item << ", ";
         }
-    } else {
-        sprintf(raw_response, "%u %u", response->opcode, response->return_code);
+    }
+    std::string response_string = response_stream.str();
+    if(!resp.body.empty()) {
+        response_string.pop_back();
+        response_string.pop_back();
     }
 
-    uint64_t response_size = 10000*sizeof(char);
+    uint64_t response_size = response_string.size();
     char* raw_response_size = (char *) &response_size;
 
     write(connection_fd, raw_response_size, sizeof(uint64_t));
 
-    write(connection_fd, raw_response, response_size);
+    write(connection_fd, response_string.c_str(), response_string.size());
 }
 
 /// This helper function parses the received commands.

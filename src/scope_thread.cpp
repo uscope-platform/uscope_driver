@@ -27,15 +27,13 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
         if(dma_buffer == MAP_FAILED) {
             std::cerr << "Cannot mmap uio device: " << strerror(errno) <<std::endl;
         }
+        scope_service_thread = std::thread(&scope_thread::service_scope,this);
     } else {
         dma_buffer = (int32_t* ) mmap(nullptr, buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
 
-
     uint32_t write_val = 1;
     write(fd_data, &write_val, sizeof(write_val));
-
-   scope_service_thread = std::thread(&scope_thread::service_scope,this);
 
 }
 
@@ -48,10 +46,9 @@ void scope_thread::service_scope() {
         if(thread_should_exit) return;
         if((poll_file.revents&POLLIN) == POLLIN){
             wait_for_Interrupt();
-            memcpy(scope_data_buffer, (void *)dma_buffer,internal_buffer_size*sizeof(int32_t));
+            std::copy(scope_data_buffer, scope_data_buffer+internal_buffer_size*sizeof(int32_t), dma_buffer);
 
             if(scope_mode==SCOPE_MODE_CAPTURE){
-
                 captured_data.insert(captured_data.end(), scope_data_buffer,scope_data_buffer+internal_buffer_size);
                 n_buffers_left--;
             }
@@ -100,14 +97,19 @@ bool scope_thread::is_data_ready() const {
     return scope_data_ready;
 }
 
-std::vector <uint32_t> scope_thread::read_data() {
-    std::vector<uint32_t> return_val;
-
-    if(!scope_data_ready) return return_val;
-    if(scope_mode==SCOPE_MODE_CAPTURE){
-        captured_data.clear();
+void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
+    if(debug_mode){
+        for (int i = 0; i< 1024; i++){
+            data_vector.insert(data_vector.begin(), rand()%1000
+            );
+        }
+    } else{
+        if(!scope_data_ready) return;
+        if(scope_mode==SCOPE_MODE_CAPTURE){
+            captured_data.clear();
+        }
+        data_vector.insert(data_vector.begin(), captured_data.begin(), captured_data.end());
+        scope_data_ready = false;
     }
-    return_val = captured_data;
-    scope_data_ready = false;
-    return captured_data;
+
 }

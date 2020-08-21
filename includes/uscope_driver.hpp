@@ -19,9 +19,9 @@
 #define USCOPE_DIR_USCOPE_DRIVER_H
 
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
+
+
 #include <csignal>
 #include <cstdint>
 #include <regex.h>
@@ -32,7 +32,7 @@
 #include <sys/mman.h>
 
 
-#include "commands.h"
+#include "commands.hpp"
 
 
 #include "command_processor.hpp"

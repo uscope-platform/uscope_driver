@@ -19,23 +19,24 @@
 
 
 #include "fpga_bridge.hpp"
+#include "response.hpp"
 
 class command_processor {
 public:
     explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug);
     void stop_scope();
-    void process_command(command_t *command, response_t * response);
+    response process_command(command_t *command);
 
 private:
     uint32_t process_load_bitstream(char *operand);
     uint32_t process_single_write_register(char *operand_1, char *operand_2);
     uint32_t process_proxied_single_write_register(char *operand_1, char *operand_2);
-    uint32_t process_single_read_register(char *operand_1, response_t *response);
+    uint32_t process_single_read_register(char *operand_1, response &resp);
     uint32_t process_bulk_write_register(char *operand_1, char *operand_2);
-    uint32_t process_bulk_read_register(char *operand_1, response_t *response);
+    uint32_t process_bulk_read_register(char *operand_1, response &resp);
     uint32_t process_start_capture(char *operand);
-    uint32_t process_read_data(response_t *response);
-    uint32_t process_check_capture_progress(response_t *response);
+    uint32_t process_read_data(response &resp);
+    uint32_t process_check_capture_progress(response &resp);
 
     fpga_bridge hw;
 };

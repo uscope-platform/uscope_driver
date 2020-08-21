@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "uscope_driver.h"
+#include "uscope_driver.hpp"
 
 
 server_connector *connector;

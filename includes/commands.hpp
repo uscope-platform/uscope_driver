@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef USCOPE_DRIVER_COMMANDS_H
-#define USCOPE_DRIVER_COMMANDS_H
+#ifndef USCOPE_DRIVER_COMMANDS_HHPP
+#define USCOPE_DRIVER_COMMANDS_HHPP
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -77,12 +77,6 @@
 /// No new data to be read
 #define RESP_DATA_NOT_READY 3
 
-/// The response for the command is transmitted through the pub/sub channel
-#define RESP_TYPE_INBAND 1
-/// The response is transmitted through shared files.
-#define RESP_TYPE_OUTBAND 2
-/// The command does not need a response
-#define RESP_NOT_NEEDED 3
 
 /// This structure is used to represent a parsed command
 typedef struct {
@@ -91,14 +85,5 @@ typedef struct {
     char *operand_2; /// second command specific data field
 } command_t;
 
-/// This structure contains a response to a command
-typedef struct {
-    uint32_t opcode; /// opcode of the command
-    uint32_t type;  /// type of the response
-    uint32_t return_code; /// command completion code
-    uint32_t *body; /// optional body of the response
-    uint32_t body_size; /// size of the response body
-} response_t;
 
-
-#endif //USCOPE_DRIVER_COMMANDS_H
+#endif //USCOPE_DRIVER_COMMANDS_HHPP

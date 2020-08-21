@@ -17,6 +17,7 @@
 #ifndef USCOPE_DRIVER_FPGA_BRIDGE_HPP
 #define USCOPE_DRIVER_FPGA_BRIDGE_HPP
 
+#include <cstring>
 
 #include <string>
 #include <iostream>
@@ -25,7 +26,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "commands.h"
+#include "commands.hpp"
 
 #include "scope_thread.hpp"
 
@@ -37,13 +38,13 @@ public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug);
     int load_bitstream(char *bitstream);
     int single_write_register(uint32_t address, uint32_t value);
-    int single_read_register(uint32_t address, volatile uint32_t *value);
+    int single_read_register(uint32_t address, std::vector<uint32_t> value);
     int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
-    int bulk_read_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
+    int bulk_read_register(uint32_t *address, std::vector<uint32_t> value, volatile uint32_t n_registers);
     int start_capture(uint32_t n_buffers);
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
-    int read_data(uint32_t * read_data);
-    int check_capture_progress();
+    int read_data(std::vector<uint32_t> &read_data);
+    unsigned int check_capture_progress();
     void stop_scope();
     static uint32_t address_to_index(uint32_t address);
 

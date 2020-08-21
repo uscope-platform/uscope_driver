@@ -33,8 +33,8 @@ public:
     scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
-    bool is_data_ready() const;
-    std::vector<uint32_t> read_data();
+    [[nodiscard]] bool is_data_ready() const;
+    void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
 private:
     void service_scope();

@@ -6,7 +6,7 @@
 #define USCOPE_DRIVER_SERVER_HANDLER_HPP
 
 #include <cstdint>
-#include <cstring>
+
 
 #include <iostream>
 
@@ -15,8 +15,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "commands.h"
+#include "commands.hpp"
 #include "command_processor.hpp"
+#include "response.hpp"
 
 class server_connector {
 public:
@@ -24,7 +25,7 @@ public:
     void start_server();
     void process_connection(int connection_fd);
 
-    void send_response(response_t *response, int connection_fd);
+    void send_response(response &resp, int connection_fd);
     command_t *parse_raw_command(char *received_string);
     void stop_server();
     ~server_connector();

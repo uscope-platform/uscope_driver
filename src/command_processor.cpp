@@ -24,50 +24,41 @@ command_processor::command_processor(const std::string &driver_file, unsigned in
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates
 /// the response structure that defines what will be sent back to the server.
 /// \param Command Command received from the uscope_server
-void command_processor::process_command(command_t *command, response_t *response) {
-    response->opcode = command->opcode;
-    response->body_size = 0;
-    response->type = RESP_TYPE_INBAND;
-    response->return_code = RESP_OK;
+response command_processor::process_command(command_t *command) {
+    response resp;
+    resp.opcode = command->opcode;
     switch(command->opcode){
         case C_NULL_COMMAND:
-            response->type = RESP_OK;
             break;
         case C_LOAD_BITSTREAM:
-            process_load_bitstream(command->operand_1);
-            response->type = RESP_OK;
+            resp.return_code = process_load_bitstream(command->operand_1);
             break;
         case C_SINGLE_REGISTER_READ:
-            response->return_code = process_single_read_register(command->operand_1, response);
+            resp.return_code = process_single_read_register(command->operand_1, resp);
             break;
         case C_SINGLE_REGISTER_WRITE:
-            response->type = RESP_OK;
-            process_single_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_single_write_register(command->operand_1, command->operand_2);
             break;
         case C_BULK_REGISTER_READ:
-            response->return_code = process_bulk_read_register(command->operand_1, response);
+            resp.return_code =  process_bulk_read_register(command->operand_1, resp);
             break;
         case C_BULK_REGISTER_WRITE:
-            response->type = RESP_OK;
-            process_bulk_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_bulk_write_register(command->operand_1, command->operand_2);
             break;
         case C_START_CAPTURE:
-            response->type = RESP_OK;
-            process_start_capture(command->operand_1);
+            resp.return_code = process_start_capture(command->operand_1);
             break;
         case C_PROXIED_WRITE:
-            response->type = RESP_OK;
-            process_proxied_single_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_proxied_single_write_register(command->operand_1, command->operand_2);
             break;
         case C_READ_DATA:
-            response->body_size = 1024;
-            response->type = RESP_TYPE_OUTBAND;
-            process_read_data(response);
+            resp.return_code = process_read_data(resp);
             break;
         case C_CHECK_CAPTURE_PROGRESS:
-            response->return_code = process_check_capture_progress(response);
+            resp.return_code = process_check_capture_progress(resp);
             break;
     }
+    return resp;
 }
 
 
@@ -106,10 +97,9 @@ uint32_t command_processor::process_proxied_single_write_register(char *operand_
 /// \param operand_1 Register address
 /// \param response Response object where the read result will be placed
 /// \return Success
-uint32_t command_processor::process_single_read_register(char *operand_1, response_t *response) {
-    uint32_t address = strtoul(operand_1,NULL, 0);
-    response->body_size = 1;
-    return hw.single_read_register(address, response->body);
+uint32_t command_processor::process_single_read_register(char *operand_1, response &resp) {
+    uint32_t address = strtoul(operand_1,nullptr, 0);
+    return hw.single_read_register(address, resp.body);
 }
 
 ///
@@ -141,7 +131,7 @@ uint32_t command_processor::process_bulk_write_register(char *operand_1, char *o
 /// \param operand_1 Comma delimited list of addresses to read from
 /// \param response Pointer to the response structure where the results of the read will be put
 /// \return Success
-uint32_t command_processor::process_bulk_read_register(char *operand_1, response_t *response) {
+uint32_t command_processor::process_bulk_read_register(char *operand_1, response &resp) {
     uint32_t read_addresses[100];
     uint32_t array_pointer = 0;
 
@@ -153,8 +143,7 @@ uint32_t command_processor::process_bulk_read_register(char *operand_1, response
         array_pointer++;
         addr_tok = strtok_r(NULL, ",", &addr_sptr);
     }
-    response->body_size = array_pointer+1;
-    return hw.bulk_read_register(read_addresses, response->body, array_pointer+1);
+    return hw.bulk_read_register(read_addresses, resp.body, array_pointer+1);
 }
 
 ///
@@ -168,17 +157,15 @@ uint32_t command_processor::process_start_capture(char *operand) {
 ///
 /// \param response Pointer to the structure where the data will eventually be put
 /// \return Either success of failure depending on if the data is actually ready
-uint32_t command_processor::process_read_data(response_t *response) {
-    int retval = hw.read_data(response->body);
-    return retval;
+uint32_t command_processor::process_read_data(response &resp) {
+    return  hw.read_data(resp.body);
 }
 
 ///
 /// \param Response pointer to the response_t structure where the result of the check will be put
 /// \return Success
-uint32_t command_processor::process_check_capture_progress(response_t *response) {
-    response->body[0] = hw.check_capture_progress();
-    response->body_size =1;
+uint32_t command_processor::process_check_capture_progress(response &resp) {
+    resp.body.push_back(hw.check_capture_progress());
     return RESP_OK;
 }
 
