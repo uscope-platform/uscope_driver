@@ -22,7 +22,7 @@ file(GLOB INC_SOURCES "includes/*.h*")
 #
 project (uscope_driver)
 
-add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp src/response.cpp includes/response.hpp)
+add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp includes/response.hpp includes/command.hpp)
 target_link_libraries(uscope_driver event)
 target_link_libraries(uscope_driver pthread)
 target_link_libraries(uscope_driver rt)

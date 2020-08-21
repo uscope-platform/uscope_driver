@@ -22,7 +22,6 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
     debug_mode = debug;
     std::string file_path;
     if(!debug){
-        volatile uint32_t* return_value;
         if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1){
             std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
             exit(1);
@@ -45,17 +44,17 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
-int fpga_bridge::load_bitstream(char *bitstream) {
+int fpga_bridge::load_bitstream(const std::string& bitstream) {
     if(debug_mode) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
 
     system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
 
-    std::string filename = "/lib/firmware/" + std::string(bitstream);
+    std::string filename = "/lib/firmware/" + bitstream;
     //struct stat buffer;
 
     if(std::filesystem::exists(filename)){
-        std::string command = "echo " + std::string(bitstream) + " > /sys/class/fpga_manager/fpga0/firmware";
+        std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
         system(command.c_str());
         return RESP_OK;
     } else {
@@ -78,11 +77,15 @@ int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put
 /// \return #RESP_OK
-int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> value) {
+int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &value) {
+    uint32_t int_value;
 
-    if(debug_mode) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
-
-    uint32_t int_value = registers[address_to_index(address)];
+    if(debug_mode) {
+        std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
+        int_value = rand() % 32767;
+    } else{
+        int_value = registers[address_to_index(address)];
+    }
 
     value.push_back(int_value);
 
@@ -94,13 +97,14 @@ int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> v
 /// \param value Pointer to the array of values to write
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
-int fpga_bridge::bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers) {
+int fpga_bridge::bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
     if(debug_mode) std::cout << "WRITE BULK REGISTERS"<<std::endl;
 
-    for(uint32_t i = 0; i< n_registers; i++){
+    for(int i=0;i< address.size(); i++){
         uint32_t current_addr = address_to_index(address[i]);
         registers[current_addr] = value[i];
     }
+
     return RESP_OK;
 }
 
@@ -109,11 +113,11 @@ int fpga_bridge::bulk_write_register(uint32_t *address, volatile uint32_t *value
 /// \param value Pointer to the array of values to write
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
-int fpga_bridge::bulk_read_register(uint32_t *address, std::vector<uint32_t> value, volatile uint32_t n_registers) {
+int fpga_bridge::bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
     if(debug_mode) std::cout << "READ BULK REGISTERS"<<std::endl;
 
-    for(uint32_t i = 0; i< n_registers; i++){
-        uint32_t current_addr = address_to_index(address[i]);
+    for(unsigned int addr : address){
+        uint32_t current_addr = address_to_index(addr);
         uint32_t int_value = registers[current_addr];
         value.push_back(int_value);
     }

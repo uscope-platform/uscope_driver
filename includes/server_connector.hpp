@@ -14,10 +14,12 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sstream>
 
 #include "commands.hpp"
 #include "command_processor.hpp"
 #include "response.hpp"
+
 
 class server_connector {
 public:
@@ -25,8 +27,8 @@ public:
     void start_server();
     void process_connection(int connection_fd);
 
-    void send_response(response &resp, int connection_fd);
-    command_t *parse_raw_command(char *received_string);
+    static void send_response(response &resp, int connection_fd);
+    static command parse_raw_command(const std::string& received_str);
     void stop_server();
     ~server_connector();
     int sockfd;

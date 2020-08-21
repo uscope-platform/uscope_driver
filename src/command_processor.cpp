@@ -24,32 +24,32 @@ command_processor::command_processor(const std::string &driver_file, unsigned in
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates
 /// the response structure that defines what will be sent back to the server.
 /// \param Command Command received from the uscope_server
-response command_processor::process_command(command_t *command) {
+response command_processor::process_command(const command& c) {
     response resp;
-    resp.opcode = command->opcode;
-    switch(command->opcode){
+    resp.opcode = c.opcode;
+    switch(c.opcode){
         case C_NULL_COMMAND:
             break;
         case C_LOAD_BITSTREAM:
-            resp.return_code = process_load_bitstream(command->operand_1);
+            resp.return_code = process_load_bitstream(c.operand_1);
             break;
         case C_SINGLE_REGISTER_READ:
-            resp.return_code = process_single_read_register(command->operand_1, resp);
+            resp.return_code = process_single_read_register(c.operand_1, resp);
             break;
         case C_SINGLE_REGISTER_WRITE:
-            resp.return_code = process_single_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_single_write_register(c.operand_1, c.operand_2);
             break;
         case C_BULK_REGISTER_READ:
-            resp.return_code =  process_bulk_read_register(command->operand_1, resp);
+            resp.return_code =  process_bulk_read_register(c.operand_1, resp);
             break;
         case C_BULK_REGISTER_WRITE:
-            resp.return_code = process_bulk_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_bulk_write_register(c.operand_1, c.operand_2);
             break;
         case C_START_CAPTURE:
-            resp.return_code = process_start_capture(command->operand_1);
+            resp.return_code = process_start_capture(c.operand_1);
             break;
         case C_PROXIED_WRITE:
-            resp.return_code = process_proxied_single_write_register(command->operand_1, command->operand_2);
+            resp.return_code = process_proxied_single_write_register(c.operand_1, c.operand_2);
             break;
         case C_READ_DATA:
             resp.return_code = process_read_data(resp);
@@ -65,17 +65,17 @@ response command_processor::process_command(command_t *command) {
 ///
 /// \param Operand bitstream name
 /// \return
-uint32_t command_processor::process_load_bitstream(char *operand) {
-    return hw.load_bitstream(operand);
+uint32_t command_processor::process_load_bitstream(const std::string& bitstream_name) {
+    return hw.load_bitstream(bitstream_name);
 }
 
 ///
 /// \param operand_1 Register address
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor::process_single_write_register(char *operand_1, char *operand_2) {
-    uint32_t address = strtoul(operand_1,NULL, 0);
-    uint32_t value = strtoul(operand_2,NULL, 0);
+uint32_t command_processor::process_single_write_register(const std::string& operand_1, const std::string& operand_2) {
+    uint32_t address = std::stoul(operand_1, nullptr, 0);
+    uint32_t value = std::stoul(operand_2, nullptr, 0);
     return hw.single_write_register(address,value);
 }
 
@@ -83,13 +83,15 @@ uint32_t command_processor::process_single_write_register(char *operand_1, char 
 /// \param operand_1 Comma delimited list of address pairs to write to (comprised of address of the proxy and address to write)
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor::process_proxied_single_write_register(char *operand_1, char *operand_2) {
-    char *addr_sptr;
-    char* proxy_addr_s = strtok_r(operand_1, ",", &addr_sptr);
-    char* reg_addr_s = strtok_r(NULL, ",", &addr_sptr);
-    uint32_t proxy_addr = strtoul(proxy_addr_s,NULL, 0);
-    uint32_t reg_addr = strtoul(reg_addr_s,NULL, 0);
-    uint32_t value = strtoul(operand_2,NULL, 0);
+uint32_t command_processor::process_proxied_single_write_register(const std::string& operand_1, const std::string& operand_2) {
+
+    std::string proxy_addr_s = operand_1.substr(0, operand_1.find(','));
+    std::string reg_addr_s =  operand_1.substr(operand_1.find(',')+1, operand_1.length());
+
+
+    uint32_t proxy_addr = std::stoul(proxy_addr_s, nullptr, 0);
+    uint32_t reg_addr = std::stoul(reg_addr_s,nullptr , 0);
+    uint32_t value = std::stoul(operand_2,nullptr , 0);
     return hw.single_proxied_write_register(proxy_addr, reg_addr, value);
 }
 
@@ -97,8 +99,8 @@ uint32_t command_processor::process_proxied_single_write_register(char *operand_
 /// \param operand_1 Register address
 /// \param response Response object where the read result will be placed
 /// \return Success
-uint32_t command_processor::process_single_read_register(char *operand_1, response &resp) {
-    uint32_t address = strtoul(operand_1,nullptr, 0);
+uint32_t command_processor::process_single_read_register(const std::string& operand_1, response &resp) {
+    uint32_t address = std::stoul(operand_1, nullptr, 0);
     return hw.single_read_register(address, resp.body);
 }
 
@@ -106,51 +108,46 @@ uint32_t command_processor::process_single_read_register(char *operand_1, respon
 /// \param operand_1 Comma delimited list of addresses to write to
 /// \param operand_2 Comma delimited list of values to write
 /// \return Success
-uint32_t command_processor::process_bulk_write_register(char *operand_1, char *operand_2) {
-    uint32_t write_addresses[100];
-    uint32_t write_data[100];
-    uint32_t array_pointer = 0;
+uint32_t command_processor::process_bulk_write_register(const std::string& operand_1, const std::string& operand_2) {
+    std::vector<uint32_t> write_addresses, write_data;
 
-    char *addr_sptr, *val_sptr;
-    char* addr_tok = strtok_r(operand_1, ",", &addr_sptr);
-    char* val_tok = strtok_r(operand_2, ",", &val_sptr);
-
-    while (addr_tok != NULL){
-        write_addresses[array_pointer] = strtoul(addr_tok, NULL, 0);
-        write_data[array_pointer] = strtoul(val_tok, NULL, 0);
-        array_pointer++;
-
-        addr_tok = strtok_r(NULL, ",", &addr_sptr);
-        val_tok = strtok_r(NULL, ",", &val_sptr);
+    std::istringstream iss(operand_1);
+    std::string token;
+    while (std::getline(iss, token, ','))
+    {
+        write_addresses.push_back(std::stoul(token, nullptr, 0));
     }
 
-    return hw.bulk_write_register(write_addresses, write_data, array_pointer+1);
+    iss.str(operand_2);
+    while (std::getline(iss, token, ','))
+    {
+        write_data.push_back(std::stoul(token, nullptr, 0));
+    }
+
+    return hw.bulk_write_register(write_addresses, write_data);
 }
 
 ///
 /// \param operand_1 Comma delimited list of addresses to read from
 /// \param response Pointer to the response structure where the results of the read will be put
 /// \return Success
-uint32_t command_processor::process_bulk_read_register(char *operand_1, response &resp) {
-    uint32_t read_addresses[100];
-    uint32_t array_pointer = 0;
+uint32_t command_processor::process_bulk_read_register(const std::string& operand_1, response &resp) {
+    std::vector<uint32_t> read_adresses;
 
-    char *addr_sptr;
-    char* addr_tok = strtok_r(operand_1, ",", &addr_sptr);
-
-    while (addr_tok != NULL){
-        read_addresses[array_pointer] = strtoul(addr_tok, NULL, 0);
-        array_pointer++;
-        addr_tok = strtok_r(NULL, ",", &addr_sptr);
+    std::istringstream iss(operand_1);
+    std::string token;
+    while (std::getline(iss, token, ','))
+    {
+        read_adresses.push_back(std::stoul(token, nullptr, 0));
     }
-    return hw.bulk_read_register(read_addresses, resp.body, array_pointer+1);
+    return hw.bulk_read_register(read_adresses, resp.body);
 }
 
 ///
 /// \param Operand number of buffers to captire
 /// \return Success
-uint32_t command_processor::process_start_capture(char *operand) {
-    uint32_t n_buffers = strtoul(operand,NULL, 0);
+uint32_t command_processor::process_start_capture(const std::string& operand) {
+    uint32_t n_buffers = std::stoul(operand, nullptr, 0);
     return hw.start_capture(n_buffers);
 }
 

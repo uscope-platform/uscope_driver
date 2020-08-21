@@ -78,12 +78,7 @@
 #define RESP_DATA_NOT_READY 3
 
 
-/// This structure is used to represent a parsed command
-typedef struct {
-    uint32_t opcode; /// opcode that indicates what type of command has been sent
-    char *operand_1; /// first command specific data field
-    char *operand_2; /// second command specific data field
-} command_t;
+
 
 
 #endif //USCOPE_DRIVER_COMMANDS_HHPP

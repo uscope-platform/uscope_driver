@@ -36,11 +36,11 @@ class fpga_bridge {
 
 public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug);
-    int load_bitstream(char *bitstream);
+    int load_bitstream(const std::string& bitstream);
     int single_write_register(uint32_t address, uint32_t value);
-    int single_read_register(uint32_t address, std::vector<uint32_t> value);
-    int bulk_write_register(uint32_t *address, volatile uint32_t *value, volatile uint32_t n_registers);
-    int bulk_read_register(uint32_t *address, std::vector<uint32_t> value, volatile uint32_t n_registers);
+    int single_read_register(uint32_t address, std::vector<uint32_t> &value);
+    int bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
+    int bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
     int start_capture(uint32_t n_buffers);
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(std::vector<uint32_t> &read_data);

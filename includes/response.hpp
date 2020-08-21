@@ -11,10 +11,9 @@
 
 class response {
 public:
-    response();
-    uint32_t opcode; /// opcode of the command
-    uint32_t return_code; /// command completion code
-    std::vector<uint32_t> body; /// optional body of the response
+    uint32_t opcode = C_NULL_COMMAND; /// opcode of the command
+    uint32_t return_code = RESP_OK; /// command completion code
+    std::vector<uint32_t> body = {}; /// optional body of the response
 
 };
 

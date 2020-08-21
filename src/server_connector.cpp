@@ -67,16 +67,16 @@ void server_connector::process_connection(int connection_fd) {
     command_length = (uint64_t) *raw_command_length;
 
     // Get command string
-    char *command = (char*) calloc(command_length, sizeof(char)+1);
-    read(connection_fd, command, command_length);
 
-    command_t *received_command = parse_raw_command(command);
+    std::string command_str(command_length+1, 0);
+    read(connection_fd, &command_str[0], command_length);
 
-    response resp = core_processor.process_command(received_command);
+    command c = parse_raw_command(const_cast<char *>(command_str.c_str()));
+
+    response resp = core_processor.process_command(c);
 
     send_response(resp, connection_fd);
 
-    free(received_command);
 }
 
 void server_connector::send_response(response &resp, int connection_fd) {
@@ -108,14 +108,15 @@ void server_connector::send_response(response &resp, int connection_fd) {
 /// data fields.
 /// \param received_string C string that contains the raw command
 /// \return Structure containing the parsed command content
-command_t *server_connector::parse_raw_command(char *received_string) {
-    command_t *parsed_command;
-    parsed_command = (command_t *) malloc(sizeof(command_t));
-    char * saveptr;
+command server_connector::parse_raw_command(const std::string& received_str) {
+    command parsed_command;
+    std::istringstream rec_stream(received_str);
+    std::string opcode;
+    rec_stream >> opcode;
+    parsed_command.opcode =  strtol(opcode.c_str(), nullptr, 0);
+    rec_stream >> parsed_command.operand_1;
+    rec_stream >> parsed_command.operand_2;
 
-    parsed_command->opcode = strtol(strtok_r(received_string, " ", &saveptr), NULL, 0);
-    parsed_command->operand_1 = strtok_r(NULL, " ", &saveptr);
-    parsed_command->operand_2 = strtok_r(NULL, " ", &saveptr);
     return parsed_command;
 }
 
