@@ -16,7 +16,7 @@
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
 #include "command_processor.hpp"
 
-command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug) : hw(driver_file, dma_buffer_size, debug) {
+command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log) : hw(driver_file, dma_buffer_size, debug, log) {
 }
 
 /// This function, core of the driver operation, is called upon message reception and parsing, acts as a dispatcher,

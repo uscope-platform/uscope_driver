@@ -18,8 +18,9 @@
 #include "fpga_bridge.hpp"
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug) : scope_handler(driver_file,dma_buffer_size, debug) {
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log) : scope_handler(driver_file,dma_buffer_size, debug) {
     debug_mode = debug;
+    log_enabled = log;
     std::string file_path;
     if(!debug){
         if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1){
@@ -45,7 +46,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 int fpga_bridge::load_bitstream(const std::string& bitstream) {
-    if(debug_mode) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
+    if(log_enabled) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
 
     system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
@@ -68,7 +69,7 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 /// \param value Value to write
 /// \return #RESP_OK
 int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
-    if(debug_mode) std::cout << "WRITE SINGLE REGISTER: addr "<< std::hex<< address <<"   value "<< std::dec<< value<<std::endl;
+    if(log_enabled) std::cout << "WRITE SINGLE REGISTER: addr "<< std::hex<< address <<"   value "<< std::dec<< value<<std::endl;
     registers[address_to_index(address)] = value;
     return RESP_OK;
 }
@@ -81,7 +82,7 @@ int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &
     uint32_t int_value;
 
     if(debug_mode) {
-        std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
+        if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
         int_value = rand() % 32767;
     } else{
         int_value = registers[address_to_index(address)];
@@ -98,7 +99,7 @@ int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
 int fpga_bridge::bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
-    if(debug_mode) std::cout << "WRITE BULK REGISTERS"<<std::endl;
+    if(log_enabled) std::cout << "WRITE BULK REGISTERS"<<std::endl;
 
     for(int i=0;i< address.size(); i++){
         uint32_t current_addr = address_to_index(address[i]);
@@ -114,7 +115,7 @@ int fpga_bridge::bulk_write_register(std::vector<uint32_t> address, std::vector<
 /// \param n_registers Number of registers to write
 /// \return #RESP_OK
 int fpga_bridge::bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
-    if(debug_mode) std::cout << "READ BULK REGISTERS"<<std::endl;
+    if(log_enabled) std::cout << "READ BULK REGISTERS"<<std::endl;
 
     for(unsigned int addr : address){
         uint32_t current_addr = address_to_index(addr);
@@ -128,7 +129,7 @@ int fpga_bridge::bulk_read_register(std::vector<uint32_t> address, std::vector<u
 /// \param n_buffers Number of buffers to capture
 /// \return #RESP_OK
 int fpga_bridge::start_capture(uint32_t n_buffers) {
-    if(debug_mode) std::cout << "START CAPTURE: n_buffers "<< n_buffers<<std::endl;
+    if(log_enabled) std::cout << "START CAPTURE: n_buffers "<< n_buffers<<std::endl;
     scope_handler.start_capture(n_buffers);
     return RESP_OK;
 }
@@ -139,7 +140,7 @@ int fpga_bridge::start_capture(uint32_t n_buffers) {
 /// \param value Value to write
 /// \return #RESP_OK
 int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t reg_address, uint32_t value) {
-    if(debug_mode)
+    if(log_enabled)
         std::cout << "WRITE SINGLE PROXIED REGISTER: proxy address "<< std::hex << proxy_address<<"   register address "<< std::hex <<reg_address<<"  value "<<std::dec<<value<<std::endl;
     registers[address_to_index(proxy_address)] = value;
     registers[address_to_index(proxy_address)+1] = reg_address;
@@ -151,7 +152,7 @@ int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t 
 /// \return #RESP_OK if data is ready #RESP_DATA_NOT_READY otherwise
 int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
     if(debug_mode){
-        std::cout << "READ DATA" << std::endl;
+        if(log_enabled) std::cout << "READ DATA" << std::endl;
         scope_handler.read_data(read_data);
         return RESP_OK;
     }

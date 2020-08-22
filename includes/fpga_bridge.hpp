@@ -35,7 +35,7 @@
 class fpga_bridge {
 
 public:
-    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug);
+    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log);
     int load_bitstream(const std::string& bitstream);
     int single_write_register(uint32_t address, uint32_t value);
     int single_read_register(uint32_t address, std::vector<uint32_t> &value);
@@ -51,6 +51,7 @@ public:
 private:
     int regs_fd;
     bool debug_mode;
+    bool log_enabled;
     volatile uint32_t *registers;
     scope_thread scope_handler;
 };

@@ -9,7 +9,7 @@
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug) :core_processor(driver_file,dma_buffer_size,debug) {
+server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log) :core_processor(driver_file,dma_buffer_size,debug,log) {
 
     server_stop_req = false;
 

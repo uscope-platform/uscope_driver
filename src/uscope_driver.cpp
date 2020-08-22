@@ -36,9 +36,16 @@ int main (int argc, char **argv) {
 
     debug_mode = false;
 
-    if(argc==2){
-        if(strcmp(argv[1],"--debug") == 0) debug_mode = true;
-    }
+    CLI::App app{"Low level Driver for the uScope interface system"};
+
+    bool emulate_hw;
+    bool log_command;
+
+    app.add_flag("--debug", emulate_hw, "Emulate hardware for debug on regular processors");
+    app.add_flag("--log", log_command, "Log the received commands on the standard output");
+
+    CLI11_PARSE(app, argc, argv);
+
 
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, intHandler);
@@ -47,7 +54,7 @@ int main (int argc, char **argv) {
     unsigned int scope_buffer_size = 1024*4;
 
 
-    connector = new server_connector(6666, scope_driver_file, scope_buffer_size, debug_mode);
+    connector = new server_connector(6666, scope_driver_file, scope_buffer_size, emulate_hw,log_command);
     connector->start_server();
     return 0;
 }
