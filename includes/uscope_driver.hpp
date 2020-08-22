@@ -26,7 +26,6 @@
 #include <cstdint>
 #include <regex.h>
 #include <argp.h>
-#include "event2/event.h"
 
 #include <unistd.h>
 #include <sys/mman.h>
