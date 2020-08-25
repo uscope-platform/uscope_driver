@@ -51,6 +51,7 @@ int main (int argc, char **argv) {
     signal(SIGINT, intHandler);
     signal(SIGTERM,intHandler);
     signal(SIGKILL,intHandler);
+
     std::string scope_driver_file = "/dev/uio0";
     unsigned int scope_buffer_size = 1024*4;
 

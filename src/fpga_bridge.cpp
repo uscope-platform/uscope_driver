@@ -48,19 +48,22 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 int fpga_bridge::load_bitstream(const std::string& bitstream) {
     if(log_enabled) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
+    if(!debug_mode){
+        system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
 
-    system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
+        std::string filename = "/lib/firmware/" + bitstream;
+        //struct stat buffer;
 
-    std::string filename = "/lib/firmware/" + bitstream;
-    //struct stat buffer;
-
-    if(std::filesystem::exists(filename)){
-        std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
-        system(command.c_str());
+        if(std::filesystem::exists(filename)){
+            std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
+            system(command.c_str());
+            return RESP_OK;
+        } else {
+            std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
+            return RESP_ERR_BITSTREAM_NOT_FOUND;
+        }
+    } else{
         return RESP_OK;
-    } else {
-        std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
-        return RESP_ERR_BITSTREAM_NOT_FOUND;
     }
 }
 
