@@ -30,6 +30,8 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     scope_mode = SCOPE_MODE_RUN;
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
+
+
     debug_mode = debug;
 
     if(!debug_mode){
@@ -59,8 +61,7 @@ void scope_thread::service_scope() {
         if(thread_should_exit) return;
         if((poll_file.revents&POLLIN) == POLLIN){
             wait_for_Interrupt();
-            if(multichannel_mode) shunt_data_mc(dma_buffer);
-            else shunt_data_sc(dma_buffer);
+            shunt_data(dma_buffer);
         } else{
             usleep(100);
         }
@@ -69,17 +70,7 @@ void scope_thread::service_scope() {
 
 }
 
-void scope_thread::shunt_data_sc(volatile int32_t * buffer_in) {
-    std::copy(sc_scope_data_buffer.begin(), sc_scope_data_buffer.begin() + internal_buffer_size * sizeof(int32_t), buffer_in);
-
-    if(scope_mode==SCOPE_MODE_CAPTURE){
-        captured_data.insert(captured_data.end(), sc_scope_data_buffer.begin(), sc_scope_data_buffer.begin() + internal_buffer_size);
-        n_buffers_left--;
-    }
-    scope_data_ready = true;
-}
-
-void scope_thread::shunt_data_mc(volatile int32_t * buffer_in) {
+void scope_thread::shunt_data(volatile int32_t * buffer_in) {
 
     std::copy(mc_scope_data_buffer[acquired_channels].begin(), mc_scope_data_buffer[acquired_channels].begin() + internal_buffer_size * sizeof(int32_t), buffer_in);
 
@@ -93,21 +84,14 @@ void scope_thread::shunt_data_mc(volatile int32_t * buffer_in) {
 }
 
 void scope_thread::enable_channel(int channel) {
-    if(n_channels== 0) multichannel_mode = false;
-    else multichannel_mode = true;
     acquired_channels = 0;
     n_channels++;
     sc_scope_data_buffer.clear();
-    for(auto &item:mc_scope_data_buffer){
-        item.reserve(internal_buffer_size);
-    }
     channel_status[channel] = true;
 }
 
 void scope_thread::disable_channel(int channel) {
     n_channels--;
-    if(n_channels== 1) multichannel_mode = false;
-    else multichannel_mode = true;
     channel_status[channel] = false;
 }
 
@@ -148,11 +132,15 @@ bool scope_thread::is_data_ready() const {
 
 void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
     if(debug_mode){
-        if(multichannel_mode){
-            std::vector<uint32_t> data = emulate_scope_data();
-
-        } else {
-            data_vector = emulate_scope_data();
+        std::vector<uint32_t> data = emulate_scope_data();
+        int progress[6] = {0};
+        for(int i = 0; i< internal_buffer_size*n_channels; i++){
+            int channel_idx = i%n_channels;
+            mc_scope_data_buffer[channel_idx][progress[channel_idx]] = data[i];
+            progress[channel_idx]++;
+        }
+        for(int i = 0; i<n_channels; i++){
+            data_vector.insert(data_vector.end(),mc_scope_data_buffer[i].begin(), mc_scope_data_buffer[i].end());
         }
     } else{
         if(!scope_data_ready) return;
@@ -164,15 +152,15 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
     }
 }
 
-std::vector<uint32_t> scope_thread::emulate_scope_data() {
+std::vector<uint32_t> scope_thread::emulate_scope_data() const {
     std::vector<uint32_t> data;
+    data.reserve(internal_buffer_size*n_channels);
     // obtain a seed from the system clock:
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::minstd_rand0 g1 (seed);
-    if(multichannel_mode){
-        for(int i = 0; i< 1024*n_channels; i++) data.push_back(g1()%1000+1000*i%6);
-    } else {
-        for(int i = 0; i< 1024; i++) data.push_back(g1()%1000);
+
+// like rnd3, but force distribution across negative numbers as well
+    for(int i = 0; i< internal_buffer_size*n_channels; i++) {
+        data[i] = std::rand()%1000+1000*(i%n_channels);
     }
+
     return data;
 }

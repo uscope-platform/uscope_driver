@@ -93,26 +93,20 @@ void server_connector::process_connection(int connection_fd) {
 }
 
 void server_connector::send_response(response &resp, int connection_fd) {
-    std::ostringstream response_stream;
-    response_stream << resp.opcode <<" " << resp.return_code;
-    if(!resp.body.empty()){
-        response_stream << " ";
-        for(auto &item: resp.body){
-            response_stream << item << ", ";
-        }
+
+    uint16_t body_present;
+    if(!resp.body.empty()) body_present = 1;
+    else body_present = 0;
+
+
+    uint16_t raw_response_header[3] = {resp.opcode, resp.return_code,body_present};
+    send(connection_fd, &raw_response_header[0],3*sizeof(uint16_t), 0);
+    if(body_present){
+        uint64_t response_size = resp.body.size()*sizeof(uint32_t);
+        char* raw_response_size = (char *) &response_size;
+        write(connection_fd, raw_response_size, sizeof(uint64_t));
+        send(connection_fd,&resp.body[0], response_size,0);
     }
-    std::string response_string = response_stream.str();
-    if(!resp.body.empty()) {
-        response_string.pop_back();
-        response_string.pop_back();
-    }
-
-    uint64_t response_size = response_string.size();
-    char* raw_response_size = (char *) &response_size;
-
-    write(connection_fd, raw_response_size, sizeof(uint64_t));
-
-    write(connection_fd, response_string.c_str(), response_string.size());
 }
 
 /// This helper function parses the received commands.

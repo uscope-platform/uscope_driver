@@ -11,8 +11,8 @@
 
 class response {
 public:
-    uint32_t opcode = C_NULL_COMMAND; /// opcode of the command
-    uint32_t return_code = RESP_OK; /// command completion code
+    uint16_t opcode = C_NULL_COMMAND; /// opcode of the command
+    uint16_t return_code = RESP_OK; /// command completion code
     std::vector<uint32_t> body = {}; /// optional body of the response
 
 };

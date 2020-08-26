@@ -57,8 +57,8 @@ public:
 private:
     void service_scope();
     void shunt_data_sc(volatile int32_t * buffer_in);
-    void shunt_data_mc(volatile int32_t * buffer_in);
-    std::vector<uint32_t > emulate_scope_data();
+    void shunt_data(volatile int32_t * buffer_in);
+    std::vector<uint32_t > emulate_scope_data() const;
     void wait_for_Interrupt() const;
 
     bool writeback_done;
@@ -77,7 +77,7 @@ private:
     bool multichannel_mode = false;
     int n_channels = 0;
     int acquired_channels = 0;
-    std::array<std::vector<uint32_t>, N_CHANNELS> mc_scope_data_buffer;
+    std::array<std::array<uint32_t, 1024>, N_CHANNELS> mc_scope_data_buffer; //TODO: make internal array dynamic
     bool channel_status[6] = {false, false, false, false, false, false};
 
 };

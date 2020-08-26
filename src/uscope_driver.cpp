@@ -53,7 +53,7 @@ int main (int argc, char **argv) {
     signal(SIGKILL,intHandler);
 
     std::string scope_driver_file = "/dev/uio0";
-    unsigned int scope_buffer_size = 1024*4;
+    unsigned int scope_buffer_size = 1024;
 
 
     connector = new server_connector(6666, scope_driver_file, scope_buffer_size, emulate_hw,log_command);
