@@ -23,9 +23,12 @@
 
 #include <cstring>
 
+#include <random>
+#include <functional>
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <chrono>
 
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -38,7 +41,7 @@
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
 
-
+#define N_CHANNELS 6
 
 class scope_thread {
 
@@ -49,15 +52,20 @@ public:
     [[nodiscard]] bool is_data_ready() const;
     void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
+    void enable_channel(int channel);
+    void disable_channel(int channel);
 private:
     void service_scope();
+    void shunt_data_sc(volatile int32_t * buffer_in);
+    void shunt_data_mc(volatile int32_t * buffer_in);
+    std::vector<uint32_t > emulate_scope_data();
     void wait_for_Interrupt() const;
 
     bool writeback_done;
     int scope_mode;
     int internal_buffer_size;
     unsigned int n_buffers_left;
-    int32_t *scope_data_buffer;
+    std::vector<uint32_t> sc_scope_data_buffer;
     bool debug_mode;
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
@@ -65,6 +73,13 @@ private:
     std::vector<uint32_t> captured_data;
     std::thread scope_service_thread;
     bool thread_should_exit;
+    //MULTICHANNEL SUPPORT
+    bool multichannel_mode = false;
+    int n_channels = 0;
+    int acquired_channels = 0;
+    std::array<std::vector<uint32_t>, N_CHANNELS> mc_scope_data_buffer;
+    bool channel_status[6] = {false, false, false, false, false, false};
+
 };
 
 

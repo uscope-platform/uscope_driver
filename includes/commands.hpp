@@ -70,6 +70,16 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_CHECK_CAPTURE_PROGRESS 9
 
+/// Enables a scope channel
+/// FORMAT: C_ENABLE_CHANNEL channel_number
+/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
+#define C_ENABLE_CHANNEL 10
+
+/// Disables a scope channel
+/// FORMAT: C_DISABLE_CHANNEL channel_number
+/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
+#define C_DISABLE_CHANNEL 11
+
 /// This response is issued when the command action has been performed successfully
 #define RESP_OK 1
 /// The bitstream file specified for the load bitstream command was not found

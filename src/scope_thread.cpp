@@ -22,13 +22,14 @@
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
 scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug) {
+    multichannel_mode = false;
     writeback_done = true;
     thread_should_exit = false;
     n_buffers_left = 0;
     scope_data_ready = false;
     scope_mode = SCOPE_MODE_RUN;
     internal_buffer_size = buffer_size;
-    scope_data_buffer = (int32_t *) malloc(internal_buffer_size* sizeof(int32_t));
+    sc_scope_data_buffer.reserve(internal_buffer_size);
     debug_mode = debug;
 
     if(!debug_mode){
@@ -58,13 +59,8 @@ void scope_thread::service_scope() {
         if(thread_should_exit) return;
         if((poll_file.revents&POLLIN) == POLLIN){
             wait_for_Interrupt();
-            std::copy(scope_data_buffer, scope_data_buffer+internal_buffer_size*sizeof(int32_t), dma_buffer);
-
-            if(scope_mode==SCOPE_MODE_CAPTURE){
-                captured_data.insert(captured_data.end(), scope_data_buffer,scope_data_buffer+internal_buffer_size);
-                n_buffers_left--;
-            }
-            scope_data_ready = true;
+            if(multichannel_mode) shunt_data_mc(dma_buffer);
+            else shunt_data_sc(dma_buffer);
         } else{
             usleep(100);
         }
@@ -73,12 +69,53 @@ void scope_thread::service_scope() {
 
 }
 
+void scope_thread::shunt_data_sc(volatile int32_t * buffer_in) {
+    std::copy(sc_scope_data_buffer.begin(), sc_scope_data_buffer.begin() + internal_buffer_size * sizeof(int32_t), buffer_in);
+
+    if(scope_mode==SCOPE_MODE_CAPTURE){
+        captured_data.insert(captured_data.end(), sc_scope_data_buffer.begin(), sc_scope_data_buffer.begin() + internal_buffer_size);
+        n_buffers_left--;
+    }
+    scope_data_ready = true;
+}
+
+void scope_thread::shunt_data_mc(volatile int32_t * buffer_in) {
+
+    std::copy(mc_scope_data_buffer[acquired_channels].begin(), mc_scope_data_buffer[acquired_channels].begin() + internal_buffer_size * sizeof(int32_t), buffer_in);
+
+    acquired_channels++;
+    
+    if(acquired_channels==n_channels){
+        acquired_channels = 0;
+        scope_data_ready = true;
+    }
+
+}
+
+void scope_thread::enable_channel(int channel) {
+    if(n_channels== 0) multichannel_mode = false;
+    else multichannel_mode = true;
+    acquired_channels = 0;
+    n_channels++;
+    sc_scope_data_buffer.clear();
+    for(auto &item:mc_scope_data_buffer){
+        item.reserve(internal_buffer_size);
+    }
+    channel_status[channel] = true;
+}
+
+void scope_thread::disable_channel(int channel) {
+    n_channels--;
+    if(n_channels== 1) multichannel_mode = false;
+    else multichannel_mode = true;
+    channel_status[channel] = false;
+}
+
 void scope_thread::stop_thread() {
     thread_should_exit = true;
     scope_service_thread.join();
     munmap((void*)dma_buffer, internal_buffer_size* sizeof(uint32_t));
     close(fd_data);
-    free(scope_data_buffer);
 }
 
 
@@ -111,9 +148,11 @@ bool scope_thread::is_data_ready() const {
 
 void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
     if(debug_mode){
-        for (int i = 0; i< 1024; i++){
-            data_vector.insert(data_vector.begin(), rand()%1000
-            );
+        if(multichannel_mode){
+            std::vector<uint32_t> data = emulate_scope_data();
+
+        } else {
+            data_vector = emulate_scope_data();
         }
     } else{
         if(!scope_data_ready) return;
@@ -123,5 +162,17 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
         data_vector.insert(data_vector.begin(), captured_data.begin(), captured_data.end());
         scope_data_ready = false;
     }
+}
 
+std::vector<uint32_t> scope_thread::emulate_scope_data() {
+    std::vector<uint32_t> data;
+    // obtain a seed from the system clock:
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::minstd_rand0 g1 (seed);
+    if(multichannel_mode){
+        for(int i = 0; i< 1024*n_channels; i++) data.push_back(g1()%1000+1000*i%6);
+    } else {
+        for(int i = 0; i< 1024; i++) data.push_back(g1()%1000);
+    }
+    return data;
 }
