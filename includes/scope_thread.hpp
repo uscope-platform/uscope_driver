@@ -52,13 +52,13 @@ public:
     [[nodiscard]] bool is_data_ready() const;
     void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
-    void enable_channel(int channel);
-    void disable_channel(int channel);
+    void set_channel_status(std::vector<bool> status);
+
 private:
     void service_scope();
-    void shunt_data_sc(volatile int32_t * buffer_in);
+
     void shunt_data(volatile int32_t * buffer_in);
-    std::vector<uint32_t > emulate_scope_data() const;
+    [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
     void wait_for_Interrupt() const;
 
     bool writeback_done;

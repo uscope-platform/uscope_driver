@@ -57,11 +57,8 @@ response command_processor::process_command(const command& c) {
         case C_CHECK_CAPTURE_PROGRESS:
             resp.return_code = process_check_capture_progress(resp);
             break;
-        case C_ENABLE_CHANNEL:
-            resp.return_code = process_enable_channel(c.operand_1);
-            break;
-        case C_DISABLE_CHANNEL:
-            resp.return_code = process_disable_channel(c.operand_1);
+        case C_SET_CHANNEL_STATUS:
+            resp.return_code = process_set_channel_status(c.operand_1);
             break;
     }
     return resp;
@@ -172,18 +169,19 @@ uint32_t command_processor::process_check_capture_progress(response &resp) {
     return RESP_OK;
 }
 
+uint32_t command_processor::process_set_channel_status(const std::string &operand) {
+    int ch_idx = 0;
+    std::istringstream iss(operand);
+    std::string token;
+    std::vector<bool> status_vector;
+    while (std::getline(iss, token, ',')) {
+        uint32_t channel_status = std::stoul(token, nullptr, 10);
+        status_vector.push_back(channel_status==1);
+    }
+    hw.set_channel_status(status_vector);
+    return 0;
+}
+
 void command_processor::stop_scope() {
     hw.stop_scope();
-}
-
-uint32_t command_processor::process_enable_channel(const std::string &operand) {
-    uint32_t channel = std::stoul(operand, nullptr, 10);
-    hw.enable_channel(channel);
-    return 0;
-}
-
-uint32_t command_processor::process_disable_channel(const std::string &operand) {
-    uint32_t channel = std::stoul(operand, nullptr, 10);
-    hw.disable_channel(channel);
-    return 0;
 }

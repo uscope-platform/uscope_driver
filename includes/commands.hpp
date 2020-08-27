@@ -70,15 +70,12 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_CHECK_CAPTURE_PROGRESS 9
 
-/// Enables a scope channel
-/// FORMAT: C_ENABLE_CHANNEL channel_number
+/// Set status for all channels, in the format for the channels 1 is enabled and 0 is disabled
+/// FORMAT: C_SET_CHANNEL_STATUS ch1_status ch2_status ch3_status
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_ENABLE_CHANNEL 10
+#define C_SET_CHANNEL_STATUS 10
 
-/// Disables a scope channel
-/// FORMAT: C_DISABLE_CHANNEL channel_number
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_DISABLE_CHANNEL 11
+
 
 /// This response is issued when the command action has been performed successfully
 #define RESP_OK 1

@@ -83,16 +83,15 @@ void scope_thread::shunt_data(volatile int32_t * buffer_in) {
 
 }
 
-void scope_thread::enable_channel(int channel) {
+void scope_thread::set_channel_status(std::vector<bool> status) {
     acquired_channels = 0;
-    n_channels++;
-    sc_scope_data_buffer.clear();
-    channel_status[channel] = true;
-}
+    n_channels = 0;
+    for(int i = 0; i< status.size(); i++){
+        channel_status[i] = status[i];
+        n_channels++;
+    }
 
-void scope_thread::disable_channel(int channel) {
-    n_channels--;
-    channel_status[channel] = false;
+
 }
 
 void scope_thread::stop_thread() {
@@ -153,11 +152,14 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
 }
 
 std::vector<uint32_t> scope_thread::emulate_scope_data() const {
-    std::vector<uint32_t> data;
-    data.reserve(internal_buffer_size*n_channels);
-    // obtain a seed from the system clock:
 
-// like rnd3, but force distribution across negative numbers as well
+
+    std::vector<uint32_t> data;
+
+    data.reserve(internal_buffer_size*n_channels);
+
+
+
     for(int i = 0; i< internal_buffer_size*n_channels; i++) {
         data[i] = std::rand()%1000+1000*(i%n_channels);
     }

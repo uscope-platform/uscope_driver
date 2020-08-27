@@ -188,13 +188,9 @@ void fpga_bridge::stop_scope() {
     scope_handler.stop_thread();
 }
 
-int fpga_bridge::enable_channel(uint32_t channel) {
-    scope_handler.enable_channel(channel);
-    return 0;
-}
 
-int fpga_bridge::disable_channel(uint32_t channel) {
-    scope_handler.disable_channel(channel);
+int fpga_bridge::set_channel_status(std::vector<bool> status) {
+    scope_handler.set_channel_status(status);
     return 0;
 }
 

@@ -44,8 +44,7 @@ public:
     int start_capture(uint32_t n_buffers);
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(std::vector<uint32_t> &read_data);
-    int enable_channel(uint32_t channel);
-    int disable_channel(uint32_t channel);
+    int set_channel_status(std::vector<bool> status);
 
     unsigned int check_capture_progress();
     void stop_scope();
