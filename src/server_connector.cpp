@@ -24,6 +24,10 @@
 /// \param port port over which to listen
 server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log) :core_processor(driver_file,dma_buffer_size,debug,log) {
 
+    if(log){
+        std::cout << "server_connector initialization started"<< std::endl;
+    }
+
     server_stop_req = false;
 
     // socket create and verification
@@ -46,6 +50,10 @@ server_connector::server_connector(int port, const std::string &driver_file, uns
     if(listen(sockfd, 2)) {
         std::cerr << "Error listening to listening socket" << std::endl;
         exit(-1);
+    }
+
+    if(log){
+        std::cout << "server_connector initialization ended"<< std::endl;
     }
 
 }

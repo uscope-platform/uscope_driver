@@ -46,7 +46,7 @@
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug);
+    scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug, bool log);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     [[nodiscard]] bool is_data_ready() const;
@@ -67,6 +67,7 @@ private:
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
     bool debug_mode;
+    bool log_enabled;
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor

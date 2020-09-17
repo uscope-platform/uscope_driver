@@ -21,7 +21,12 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug) {
+scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug, bool log) {
+
+    if(log){
+        std::cout << "scope_thread initialization started"<< std::endl;
+    }
+
     multichannel_mode = false;
     writeback_done = true;
     thread_should_exit = false;
@@ -31,7 +36,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
 
-
+    log_enabled = log;
     debug_mode = debug;
 
     if(!debug_mode){
@@ -43,6 +48,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
             std::cerr << "Cannot mmap uio device: " << strerror(errno) <<std::endl;
         }
         scope_service_thread = std::thread(&scope_thread::service_scope,this);
+
     } else {
         dma_buffer = (int32_t* ) mmap(nullptr, buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
@@ -50,9 +56,16 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     uint32_t write_val = 1;
     write(fd_data, &write_val, sizeof(write_val));
 
+    if(log){
+        std::cout << "scope_thread initialization ended"<< std::endl;
+    }
 }
 
 void scope_thread::service_scope() {
+    if(log_enabled){
+        std::cout << "scope_thread::service_scope started"<< std::endl;
+    }
+
     struct pollfd poll_file;
     poll_file.fd = fd_data;
     poll_file.events = POLLIN;
@@ -67,7 +80,9 @@ void scope_thread::service_scope() {
         }
 
     }
-
+    if(log_enabled){
+        std::cout << "scope_thread::service_scope stopped"<< std::endl;
+    }
 }
 
 void scope_thread::shunt_data(volatile int32_t * buffer_in) {
@@ -153,12 +168,9 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
 
 std::vector<uint32_t> scope_thread::emulate_scope_data() const {
 
-
     std::vector<uint32_t> data;
 
     data.reserve(internal_buffer_size*n_channels);
-
-
 
     for(int i = 0; i< internal_buffer_size*n_channels; i++) {
         data[i] = std::rand()%1000+1000*(i%n_channels);
