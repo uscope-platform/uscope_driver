@@ -89,7 +89,9 @@ void scope_thread::service_scope() {
         }
 
     }
-
+    if(log_enabled){
+        std::cout << "scope_thread::service_scope stopped"<< std::endl;
+    }
 }
 
 void scope_thread::shunt_data(volatile int32_t * buffer_in) {
