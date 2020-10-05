@@ -10,4 +10,4 @@ COPY includes ./includes
 COPY CMakeLists.txt ./CMakeLists.txt
 RUN cmake ./
 RUN cmake --build .
-CMD ["/driver/uscope_driver", "--debug"]
+CMD ["/driver/uscope_driver", "--log"]

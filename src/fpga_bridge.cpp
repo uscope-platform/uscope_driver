@@ -18,7 +18,12 @@
 #include "fpga_bridge.hpp"
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log) : scope_handler(driver_file,dma_buffer_size, debug) {
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log) : scope_handler(driver_file,dma_buffer_size, debug, log) {
+
+    if(log){
+        std::cout << "fpga_bridge initialization started"<< std::endl;
+    }
+
     debug_mode = debug;
     log_enabled = log;
     std::string file_path;
@@ -40,6 +45,9 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         }
     }
 
+    if(log){
+        std::cout << "fpga_bridge initialization started"<< std::endl;
+    }
 }
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
@@ -53,9 +61,12 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 
         std::string filename = "/lib/firmware/" + bitstream;
         //struct stat buffer;
-
+        if(log_enabled) std::cout << filename << std::endl;
+        
         if(std::filesystem::exists(filename)){
             std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
+            if(log_enabled) std::cout << command << std::endl;
+
             system(command.c_str());
             return RESP_OK;
         } else {
@@ -166,9 +177,7 @@ int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
     } else{
         response = RESP_DATA_NOT_READY;
     }
-
     return response;
-    return 0;
 }
 
 
@@ -193,5 +202,6 @@ int fpga_bridge::set_channel_status(std::vector<bool> status) {
     scope_handler.set_channel_status(status);
     return 0;
 }
+
 
 

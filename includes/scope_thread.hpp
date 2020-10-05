@@ -43,20 +43,35 @@
 
 #define N_CHANNELS 6
 
+
+#define GET_CHANNEL(NUMBER) (NUMBER >> 24) & 0xff
+
+static uint32_t sign_extend(uint32_t value, uint32_t bits) {
+    uint32_t sign = (1 << (bits - 1)) & value;
+    uint32_t mask = ((~0U) >> (bits - 1)) << (bits - 1);
+    if (sign != 0)
+        value |= mask;
+    else
+        value &= ~mask;
+    return value;
+} 
+
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug);
+    scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug, bool log);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
-    [[nodiscard]] bool is_data_ready() const;
+    [[nodiscard]] bool is_data_ready();
     void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
     void set_channel_status(std::vector<bool> status);
 
 private:
     void service_scope();
-
+    std::mutex data_ready_mutex;
+    void read_data_hw(std::vector<uint32_t> &data_vector);
+    void read_data_debug(std::vector<uint32_t> &data_vector);
     void shunt_data(volatile int32_t * buffer_in);
     [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
     void wait_for_Interrupt() const;
@@ -67,6 +82,7 @@ private:
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
     bool debug_mode;
+    bool log_enabled;
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
@@ -77,10 +93,12 @@ private:
     bool multichannel_mode = false;
     int n_channels = 0;
     int acquired_channels = 0;
-    std::array<std::array<uint32_t, 1024>, N_CHANNELS> mc_scope_data_buffer; //TODO: make internal array dynamic
+    std::vector<uint32_t> data_holding_buffer;
+    std::vector<uint32_t> mc_scope_data_buffer[6]; //TODO: make internal array dynamic
     bool channel_status[6] = {false, false, false, false, false, false};
 
 };
 
 
 #endif //USCOPE_DRIVER_SCOPE_THREAD_HPP
+

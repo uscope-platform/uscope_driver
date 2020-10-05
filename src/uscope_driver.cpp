@@ -38,8 +38,8 @@ int main (int argc, char **argv) {
 
     CLI::App app{"Low level Driver for the uScope interface system"};
 
-    bool emulate_hw;
-    bool log_command;
+    bool emulate_hw = false;
+    bool log_command = false;
 
     app.add_flag("--debug", emulate_hw, "Emulate hardware for debug on regular processors");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
@@ -54,6 +54,9 @@ int main (int argc, char **argv) {
 
     std::string scope_driver_file = "/dev/uio0";
     unsigned int scope_buffer_size = 1024;
+
+    std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
+    std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
 
     connector = new server_connector(6666, scope_driver_file, scope_buffer_size, emulate_hw,log_command);

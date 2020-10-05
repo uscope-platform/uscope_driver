@@ -40,15 +40,17 @@ public:
     void start_server();
     void process_connection(int connection_fd);
 
-    static void send_response(response &resp, int connection_fd);
+    void send_response(response &resp, int connection_fd);
     static command parse_raw_command(const std::string& received_str);
     void stop_server();
     ~server_connector();
     int sockfd;
     command_processor core_processor;
+    bool logging;
     std::atomic_bool server_stop_req;
     struct sockaddr_in servaddr{};
 };
 
 
 #endif //USCOPE_DRIVER_SERVER_HANDLER_HPP
+
