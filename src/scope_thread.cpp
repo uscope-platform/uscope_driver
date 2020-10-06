@@ -38,6 +38,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
+    mc_data_buffer = {};
 
     log_enabled = log;
     debug_mode = debug;
@@ -89,25 +90,23 @@ void scope_thread::service_scope() {
         }
 
     }
-    if(log_enabled){
-        std::cout << "scope_thread::service_scope stopped"<< std::endl;
-    }
+
 }
 
 void scope_thread::shunt_data(volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
+    int channel_offset = 0;
     for(int i = 0; i<6*internal_buffer_size; i++){
-        int channel = GET_CHANNEL(dma_buffer[i]);
+        if(i%6==0) channel_offset++;
+        int channel_base = GET_CHANNEL(dma_buffer[i]);
         int ch_data = sign_extend(dma_buffer[i] & 0xffffff, 24);
-        
-        mc_scope_data_buffer[channel].push_back(ch_data);
+        mc_data_buffer[channel_base*internal_buffer_size+channel_offset] = ch_data;
     }
-    
-    for(int i = 0; i<n_channels; i++){
-        captured_data.insert(captured_data.end(),mc_scope_data_buffer[i].begin(), mc_scope_data_buffer[i].end());
-        mc_scope_data_buffer[i].clear();
-    }      
+
+    data_ready_mutex.lock();
+    captured_data = mc_data_buffer;
     scope_data_ready = true;
+    data_ready_mutex.unlock();
 }
 
 void scope_thread::set_channel_status(std::vector<bool> status) {
@@ -141,7 +140,6 @@ void scope_thread::start_capture(unsigned int n_buffers) {
     n_buffers_left = n_buffers;
     scope_mode = SCOPE_MODE_CAPTURE;
     scope_data_ready = false;
-    captured_data.clear();
 }
 
 /// This function returns the number of data buffers left to capture
@@ -185,10 +183,11 @@ void scope_thread::read_data_hw(std::vector<uint32_t> &data_vector) {
     if(!scope_data_ready) {
         return;
     };
-    
+
+    data_ready_mutex.lock();
     data_vector.insert(data_vector.begin(), captured_data.begin(), captured_data.end());
-    captured_data.clear();
     scope_data_ready = false;
+    data_ready_mutex.unlock();
 }
 
 std::vector<uint32_t> scope_thread::emulate_scope_data() const {
