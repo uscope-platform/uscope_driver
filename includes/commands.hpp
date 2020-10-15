@@ -75,6 +75,11 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_SET_CHANNEL_STATUS 10
 
+/// Load a program into the specified fCore instance memory
+/// FORMAT: C_APPLY_PROGRAM fCore_address program_instruction_1, program_instruction_2, ...
+/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
+#define C_APPLY_PROGRAM 11
+
 
 
 /// This response is issued when the command action has been performed successfully
@@ -89,3 +94,4 @@
 
 
 #endif //USCOPE_DRIVER_COMMANDS_HHPP
+

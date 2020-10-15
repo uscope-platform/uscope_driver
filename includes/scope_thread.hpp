@@ -54,7 +54,7 @@ static uint32_t sign_extend(uint32_t value, uint32_t bits) {
     else
         value &= ~mask;
     return value;
-} 
+}
 
 class scope_thread {
 
@@ -86,7 +86,7 @@ private:
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
-    std::vector<uint32_t> captured_data;
+    std::array<uint32_t, 6*1024> captured_data;
     std::thread scope_service_thread;
     bool thread_should_exit;
     //MULTICHANNEL SUPPORT
@@ -94,6 +94,7 @@ private:
     int n_channels = 0;
     int acquired_channels = 0;
     std::vector<uint32_t> data_holding_buffer;
+    std::array<uint32_t, 6*1024> mc_data_buffer;
     std::vector<uint32_t> mc_scope_data_buffer[6]; //TODO: make internal array dynamic
     bool channel_status[6] = {false, false, false, false, false, false};
 
@@ -101,4 +102,5 @@ private:
 
 
 #endif //USCOPE_DRIVER_SCOPE_THREAD_HPP
+
 
