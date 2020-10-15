@@ -49,7 +49,8 @@ public:
 
     unsigned int check_capture_progress();
     void stop_scope();
-    static uint32_t address_to_index(uint32_t address);
+    static uint32_t register_address_to_index(uint32_t address);
+    static uint32_t fcore_address_to_index(uint32_t address);
 
 private:
     int devmem_fd;

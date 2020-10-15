@@ -90,7 +90,7 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 /// \return #RESP_OK
 int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
     if(log_enabled) std::cout << "WRITE SINGLE REGISTER: addr "<< std::hex<< address <<"   value "<< std::dec<< value<<std::endl;
-    registers[address_to_index(address)] = value;
+    registers[register_address_to_index(address)] = value;
     return RESP_OK;
 }
 
@@ -105,7 +105,7 @@ int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &
         if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
         int_value = rand() % 32767;
     } else{
-        int_value = registers[address_to_index(address)];
+        int_value = registers[register_address_to_index(address)];
     }
 
     value.push_back(int_value);
@@ -122,7 +122,7 @@ int fpga_bridge::bulk_write_register(std::vector<uint32_t> address, std::vector<
     if(log_enabled) std::cout << "WRITE BULK REGISTERS"<<std::endl;
 
     for(int i=0;i< address.size(); i++){
-        uint32_t current_addr = address_to_index(address[i]);
+        uint32_t current_addr = register_address_to_index(address[i]);
         registers[current_addr] = value[i];
     }
 
@@ -138,7 +138,7 @@ int fpga_bridge::bulk_read_register(std::vector<uint32_t> address, std::vector<u
     if(log_enabled) std::cout << "READ BULK REGISTERS"<<std::endl;
 
     for(unsigned int addr : address){
-        uint32_t current_addr = address_to_index(addr);
+        uint32_t current_addr = register_address_to_index(addr);
         uint32_t int_value = registers[current_addr];
         value.push_back(int_value);
     }
@@ -162,8 +162,8 @@ int fpga_bridge::start_capture(uint32_t n_buffers) {
 int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t reg_address, uint32_t value) {
     if(log_enabled)
         std::cout << "WRITE SINGLE PROXIED REGISTER: proxy address "<< std::hex << proxy_address<<"   register address "<< std::hex <<reg_address<<"  value "<<std::dec<<value<<std::endl;
-    registers[address_to_index(proxy_address)] = value;
-    registers[address_to_index(proxy_address)+1] = reg_address;
+    registers[register_address_to_index(proxy_address)] = value;
+    registers[register_address_to_index(proxy_address) + 1] = reg_address;
     return RESP_OK;
 }
 
@@ -186,12 +186,17 @@ int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
     return response;
 }
 
-
+///  Helper function converting byte aligned addresses to array indices
+/// \param address to convert
+/// \return converted address
+uint32_t fpga_bridge::fcore_address_to_index(uint32_t address) {
+    return (address - FCORE_BASE_ADDR) / 4;
+}
 
 ///  Helper function converting byte aligned addresses to array indices
 /// \param address to convert
 /// \return converted address
-uint32_t fpga_bridge::address_to_index(uint32_t address) {
+uint32_t fpga_bridge::register_address_to_index(uint32_t address) {
     return (address - REGISTERS_BASE_ADDR) / 4;
 }
 
@@ -212,8 +217,8 @@ int fpga_bridge::set_channel_status(std::vector<bool> status) {
 int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << address << " program: ";
     for(auto&item:program){
-        std::cout<< item<< ", <";
+        fCore[fcore_address_to_index(address)] = item;
+
     }
-    std::cout<< std::endl;
     return 0;
 }
