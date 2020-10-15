@@ -60,6 +60,9 @@ response command_processor::process_command(const command& c) {
         case C_SET_CHANNEL_STATUS:
             resp.return_code = process_set_channel_status(c.operand_1);
             break;
+        case C_APPLY_PROGRAM:
+            resp.return_code = process_apply_program(c.operand_1, c.operand_2);
+            break;
     }
     return resp;
 }
@@ -169,6 +172,9 @@ uint32_t command_processor::process_check_capture_progress(response &resp) {
     return RESP_OK;
 }
 
+///
+/// \param operand Comma delimited list of channel, status  pairs
+/// \return success
 uint32_t command_processor::process_set_channel_status(const std::string &operand) {
     int ch_idx = 0;
     std::istringstream iss(operand);
@@ -182,6 +188,27 @@ uint32_t command_processor::process_set_channel_status(const std::string &operan
     return 0;
 }
 
+///
+/// \param operand_1 address of the fCore Instance to program
+/// \param operand_2 comma delimited list of instructions in the program
+/// \return Success
+uint32_t command_processor::process_apply_program(const std::string &operand_1, const std::string &operand_2) {
+
+    uint32_t address = std::stoul(operand_1,nullptr , 0);
+
+    std::istringstream iss(operand_2);
+    std::string token;
+    std::vector<uint32_t> program;
+    while (std::getline(iss, token, ',')) {
+        uint32_t instruction = std::stoul(token, nullptr, 0);
+        program.push_back(instruction);
+    }
+
+    return hw.apply_program(address, program);
+}
+
+
 void command_processor::stop_scope() {
     hw.stop_scope();
 }
+

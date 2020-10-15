@@ -14,92 +14,50 @@
 
 // You should have received a copy of the GNU General Public License
 // along with uscope_driver.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef USCOPE_DRIVER_SCOPE_THREAD_HPP
-#define USCOPE_DRIVER_SCOPE_THREAD_HPP
-
-#include <string>
-#include <iostream>
+#ifndef USCOPE_DRIVER_FPGA_BRIDGE_HPP
+#define USCOPE_DRIVER_FPGA_BRIDGE_HPP
 
 #include <cstring>
 
-#include <random>
-#include <functional>
-#include <vector>
-#include <thread>
-#include <atomic>
-#include <chrono>
+#include <string>
+#include <iostream>
+#include <filesystem>
 
 #include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <poll.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <mutex>
 
-#define SCOPE_MODE_RUN 1
-#define SCOPE_MODE_CAPTURE 2
+#include "commands.hpp"
 
-#define N_CHANNELS 6
+#include "scope_thread.hpp"
 
+#define BASE_ADDR 0x43c00000
 
-#define GET_CHANNEL(NUMBER) (NUMBER >> 24) & 0xff
-
-static uint32_t sign_extend(uint32_t value, uint32_t bits) {
-    uint32_t sign = (1 << (bits - 1)) & value;
-    uint32_t mask = ((~0U) >> (bits - 1)) << (bits - 1);
-    if (sign != 0)
-        value |= mask;
-    else
-        value &= ~mask;
-    return value;
-}
-
-class scope_thread {
+class fpga_bridge {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug, bool log);
-    void start_capture(unsigned int n_buffers);
-    [[nodiscard]] unsigned int check_capture_progress() const;
-    [[nodiscard]] bool is_data_ready();
-    void read_data(std::vector<uint32_t> &data_vector);
-    void stop_thread();
-    void set_channel_status(std::vector<bool> status);
+    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log);
+    int load_bitstream(const std::string& bitstream);
+    int single_write_register(uint32_t address, uint32_t value);
+    int single_read_register(uint32_t address, std::vector<uint32_t> &value);
+    int bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
+    int bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
+    int start_capture(uint32_t n_buffers);
+    int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
+    int read_data(std::vector<uint32_t> &read_data);
+    int set_channel_status(std::vector<bool> status);
+    int apply_program(uint32_t address, std::vector<uint32_t> program);
+
+    unsigned int check_capture_progress();
+    void stop_scope();
+    static uint32_t address_to_index(uint32_t address);
 
 private:
-    void service_scope();
-    std::mutex data_ready_mutex;
-    void read_data_hw(std::vector<uint32_t> &data_vector);
-    void read_data_debug(std::vector<uint32_t> &data_vector);
-    void shunt_data(volatile int32_t * buffer_in);
-    [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
-    void wait_for_Interrupt() const;
-
-    bool writeback_done;
-    int scope_mode;
-    int internal_buffer_size;
-    unsigned int n_buffers_left;
-    std::vector<uint32_t> sc_scope_data_buffer;
+    int regs_fd;
     bool debug_mode;
     bool log_enabled;
-    std::atomic_bool scope_data_ready;
-    volatile int32_t* dma_buffer;  ///mmapped buffer
-    volatile uint32_t fd_data; /// Scope driver file descriptor
-    std::array<uint32_t, 6*1024> captured_data;
-    std::thread scope_service_thread;
-    bool thread_should_exit;
-    //MULTICHANNEL SUPPORT
-    bool multichannel_mode = false;
-    int n_channels = 0;
-    int acquired_channels = 0;
-    std::vector<uint32_t> data_holding_buffer;
-    std::array<uint32_t, 6*1024> mc_data_buffer;
-    std::vector<uint32_t> mc_scope_data_buffer[6]; //TODO: make internal array dynamic
-    bool channel_status[6] = {false, false, false, false, false, false};
-
+    volatile uint32_t *registers;
+    scope_thread scope_handler;
 };
 
 
-#endif //USCOPE_DRIVER_SCOPE_THREAD_HPP
-
+#endif //USCOPE_DRIVER_FPGA_BRIDGE_HPP

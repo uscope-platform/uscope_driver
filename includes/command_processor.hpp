@@ -17,6 +17,7 @@
 #ifndef USCOPE_DRIVER_COMMAND_PROCESSOR_HPP
 #define USCOPE_DRIVER_COMMAND_PROCESSOR_HPP
 
+#include <sstream>
 
 #include "fpga_bridge.hpp"
 #include "response.hpp"
@@ -39,6 +40,7 @@ private:
     uint32_t process_read_data(response &resp);
     uint32_t process_check_capture_progress(response &resp);
     uint32_t process_set_channel_status(const std::string& operand);
+    uint32_t process_apply_program(const std::string& operand_1, const std::string& operand_2);
 
     fpga_bridge hw;
 };
