@@ -1,4 +1,3 @@
-// Copyright (C) 2020 Filippo Savi - All Rights Reserved
 
 // This file is part of uscope_driver.
 
