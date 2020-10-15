@@ -211,5 +211,3 @@ uint32_t command_processor::process_apply_program(const std::string &operand_1, 
 void command_processor::stop_scope() {
     hw.stop_scope();
 }
-
-

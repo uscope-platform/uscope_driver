@@ -102,7 +102,7 @@ void scope_thread::shunt_data(volatile int32_t * buffer_in) {
         int ch_data = sign_extend(dma_buffer[i] & 0xffffff, 24);
         mc_data_buffer[channel_base*internal_buffer_size+channel_offset] = ch_data;
     }
-    
+
     data_ready_mutex.lock();
     captured_data = mc_data_buffer;
     scope_data_ready = true;

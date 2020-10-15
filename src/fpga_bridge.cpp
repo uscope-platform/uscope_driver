@@ -28,15 +28,22 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
     log_enabled = log;
     std::string file_path;
     if(!debug){
-        if((regs_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1){
+        if((devmem_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1){
             std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
             exit(1);
         }
-        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, regs_fd, BASE_ADDR);
+        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, devmem_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap /dev/mem: "<< strerror(errno) << std::endl;
             exit(1);
         }
+
+        fCore = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, devmem_fd, FCORE_BASE_ADDR);
+        if(registers == MAP_FAILED) {
+            std::cerr << "Cannot mmap /dev/mem: "<< strerror(errno) << std::endl;
+            exit(1);
+        }
+
     } else {
         registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
         if(registers == MAP_FAILED) {
@@ -186,7 +193,7 @@ int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
 /// \param address to convert
 /// \return converted address
 uint32_t fpga_bridge::address_to_index(uint32_t address) {
-    return(address - BASE_ADDR)/4;
+    return (address - REGISTERS_BASE_ADDR) / 4;
 }
 
 unsigned int fpga_bridge::check_capture_progress() {
@@ -211,7 +218,3 @@ int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) 
     std::cout<< std::endl;
     return 0;
 }
-
-
-
-

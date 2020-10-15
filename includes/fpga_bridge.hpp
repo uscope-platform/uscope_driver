@@ -30,7 +30,8 @@
 
 #include "scope_thread.hpp"
 
-#define BASE_ADDR 0x43c00000
+#define REGISTERS_BASE_ADDR 0x43c00000
+#define FCORE_BASE_ADDR 0x83c00000
 
 class fpga_bridge {
 
@@ -52,10 +53,13 @@ public:
     static uint32_t address_to_index(uint32_t address);
 
 private:
-    int regs_fd;
+    int devmem_fd;
+    volatile uint32_t *registers;
+
     bool debug_mode;
     bool log_enabled;
-    volatile uint32_t *registers;
+    volatile uint32_t *fCore;
+
     scope_thread scope_handler;
 };
 
