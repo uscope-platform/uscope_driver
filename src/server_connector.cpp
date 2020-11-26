@@ -79,19 +79,40 @@ void server_connector::start_server() {
     }
 }
 
-void server_connector::process_connection(int connection_fd) {
-    uint8_t raw_command_length[8];
-    uint64_t command_length = 0;
 
-    // Get length of the command string
-    read(connection_fd,&raw_command_length, sizeof(raw_command_length));
-    command_length = (uint64_t) *raw_command_length;
+void server_connector::process_connection(int connection_fd) {
+    
+    uint64_t command_length = 0;
+    
+    std::string length_str(10, 0);
+
+    ssize_t rec = 0;
+    do {
+        int result = recv(connection_fd, &length_str[rec], sizeof(length_str) - rec, 0);
+        rec += result;
+    }
+    while (rec < 10);
+
+    command_length = std::stoul(length_str, nullptr, 10);
+
+
+    std::string dummy_resp = "ok";
+    send(connection_fd, &dummy_resp[0], 2, 0);
 
     // Get command string
 
     std::string command_str(command_length+1, 0);
-    read(connection_fd, &command_str[0], command_length);
 
+    rec = 0;
+    do {
+        int result = recv(connection_fd, &command_str[rec], 2*sizeof(command_str), 0);
+        rec += result;
+        std::cout<<command_str<<std::endl;
+        std::cout<<"read"<< result << "bytes, for a total of "<<rec<<"bytes" <<std::endl;
+    }
+    while (rec < command_length);
+
+    std::cout<< command_str<<std::endl;
     command c = parse_raw_command(const_cast<char *>(command_str.c_str()));
 
     response resp = core_processor.process_command(c);
