@@ -107,12 +107,9 @@ void server_connector::process_connection(int connection_fd) {
     do {
         int result = recv(connection_fd, &command_str[rec], 2*sizeof(command_str), 0);
         rec += result;
-        std::cout<<command_str<<std::endl;
-        std::cout<<"read"<< result << "bytes, for a total of "<<rec<<"bytes" <<std::endl;
     }
     while (rec < command_length);
 
-    std::cout<< command_str<<std::endl;
     command c = parse_raw_command(const_cast<char *>(command_str.c_str()));
 
     response resp = core_processor.process_command(c);

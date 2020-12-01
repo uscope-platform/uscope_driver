@@ -82,7 +82,7 @@ private:
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
     std::array<uint32_t, 6*1024> captured_data;
-    //MULTICHANNEL SUPPORT=
+    //MULTICHANNEL SUPPORT
     int n_channels = 0;
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffermc_data_buffer;
