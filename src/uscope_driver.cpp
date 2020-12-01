@@ -52,7 +52,7 @@ int main (int argc, char **argv) {
     signal(SIGTERM,intHandler);
     signal(SIGKILL,intHandler);
 
-    std::string scope_driver_file = "/dev/uio0";
+    std::string scope_driver_file = "/dev/uCube_dev_0";
     unsigned int scope_buffer_size = 1024;
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;

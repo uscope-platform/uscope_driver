@@ -72,9 +72,8 @@ private:
     std::mutex data_ready_mutex;
     void read_data_hw(std::vector<uint32_t> &data_vector);
     void read_data_debug(std::vector<uint32_t> &data_vector);
-    void shunt_data(volatile int32_t * buffer_in);
+    void shunt_data(const volatile int32_t * buffer_in);
     [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
-    void wait_for_Interrupt() const;
 
     bool writeback_done;
     int scope_mode;

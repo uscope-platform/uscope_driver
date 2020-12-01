@@ -47,18 +47,11 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
 
-        dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_SHARED, fd_data, 0);
-        if(dma_buffer == MAP_FAILED) {
-            std::cerr << "Cannot mmap uio device: " << strerror(errno) <<std::endl;
-        }
         scope_service_thread = std::thread(&scope_thread::service_scope,this);
 
     } else {
         dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
-
-    uint32_t write_val = 1;
-    write(fd_data, &write_val, sizeof(write_val));
 
     if(log){
         std::cout << "scope_thread initialization ended"<< std::endl;
@@ -81,7 +74,7 @@ void scope_thread::service_scope() {
         int ret = poll(&fds, 1, 500);
 
         if(ret >= 1){
-            wait_for_Interrupt();
+            read(fd_data, (void *) dma_buffer, 1024 * sizeof(unsigned int));
             shunt_data(dma_buffer);
         }else if (ret < 0){
             perror("poll()");
@@ -93,13 +86,13 @@ void scope_thread::service_scope() {
 
 }
 
-void scope_thread::shunt_data(volatile int32_t * buffer_in) {
+void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
     int channel_offset = 0;
     for(int i = 0; i<6*internal_buffer_size; i++){
         if(i%6==0) channel_offset++;
-        int channel_base = GET_CHANNEL(dma_buffer[i]);
-        int ch_data = sign_extend(dma_buffer[i] & 0xffffff, 24);
+        int channel_base = GET_CHANNEL(buffer_in[i]);
+        int ch_data = sign_extend(buffer_in[i] & 0xffffff, 24);
         mc_data_buffer[channel_base*internal_buffer_size+channel_offset] = ch_data;
     }
 
@@ -123,17 +116,6 @@ void scope_thread::stop_thread() {
     scope_service_thread.join();
     munmap((void*)dma_buffer, 6*internal_buffer_size* sizeof(uint32_t));
     close(fd_data);
-}
-
-
-/// Wait for data to be ready to be read. This is signaled through an hardware interrupt. Since a UIO driver is
-/// used the interrupt is waited upon with a read to the driver file
-/// \return 0
-void scope_thread::wait_for_Interrupt() const {
-    uint32_t read_val;
-    uint32_t write_val = 1;
-    read(fd_data, &read_val, sizeof(read_val));
-    write(fd_data, &write_val, sizeof(write_val));
 }
 
 void scope_thread::start_capture(unsigned int n_buffers) {
