@@ -68,15 +68,11 @@ public:
     void set_channel_status(std::vector<bool> status);
 
 private:
-    void service_scope();
-    std::mutex data_ready_mutex;
     void read_data_hw(std::vector<uint32_t> &data_vector);
     void read_data_debug(std::vector<uint32_t> &data_vector);
     void shunt_data(const volatile int32_t * buffer_in);
     [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
 
-    bool writeback_done;
-    int scope_mode;
     int internal_buffer_size;
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
@@ -86,14 +82,10 @@ private:
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
     std::array<uint32_t, 6*1024> captured_data;
-    std::thread scope_service_thread;
-    bool thread_should_exit;
-    //MULTICHANNEL SUPPORT
-    bool multichannel_mode = false;
+    //MULTICHANNEL SUPPORT=
     int n_channels = 0;
-    int acquired_channels = 0;
     std::vector<uint32_t> data_holding_buffer;
-    std::array<uint32_t, 6*1024> mc_data_buffer;
+    std::array<uint32_t, 6*1024> mc_data_buffermc_data_buffer;
     std::vector<uint32_t> mc_scope_data_buffer[6]; //TODO: make internal array dynamic
     bool channel_status[6] = {false, false, false, false, false, false};
 

@@ -29,26 +29,17 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
         std::cout << "scope_thread initialization started"<< std::endl;
     }
     int max_channels = 6;
-    multichannel_mode = false;
-    writeback_done = true;
-    thread_should_exit = false;
     n_buffers_left = 0;
     scope_data_ready = false;
-    scope_mode = SCOPE_MODE_RUN;
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
-    mc_data_buffer = {};
 
     log_enabled = log;
     debug_mode = debug;
-    acquired_channels = 0;
     if(!debug_mode){
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
-
-        scope_service_thread = std::thread(&scope_thread::service_scope,this);
-
     } else {
         dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
@@ -58,33 +49,6 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     }
 }
 
-void scope_thread::service_scope() {
-    if(log_enabled){
-        std::cout << "scope_thread::service_scope started"<< std::endl;
-    }
-
-    struct pollfd fds = {
-            .fd = 0,
-            .events = POLLIN,
-    };
-    fds.fd = fd_data;
-
-    while(true){
-        if(thread_should_exit) return;
-        int ret = poll(&fds, 1, 500);
-
-        if(ret >= 1){
-            read(fd_data, (void *) dma_buffer, 1024 * sizeof(unsigned int));
-            shunt_data(dma_buffer);
-        }else if (ret < 0){
-            perror("poll()");
-            close(fd_data);
-            exit(EXIT_FAILURE);
-        }
-
-    }
-
-}
 
 void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
@@ -93,17 +57,11 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
         if(i%6==0) channel_offset++;
         int channel_base = GET_CHANNEL(buffer_in[i]);
         int ch_data = sign_extend(buffer_in[i] & 0xffffff, 24);
-        mc_data_buffer[channel_base*internal_buffer_size+channel_offset] = ch_data;
+        captured_data[channel_base*internal_buffer_size+channel_offset] = ch_data;
     }
-
-    data_ready_mutex.lock();
-    captured_data = mc_data_buffer;
-    scope_data_ready = true;
-    data_ready_mutex.unlock();
 }
 
 void scope_thread::set_channel_status(std::vector<bool> status) {
-    acquired_channels = 0;
     n_channels = 0;
     for(int i = 0; i< status.size(); i++){
         channel_status[i] = status[i];
@@ -112,15 +70,14 @@ void scope_thread::set_channel_status(std::vector<bool> status) {
 }
 
 void scope_thread::stop_thread() {
-    thread_should_exit = true;
-    scope_service_thread.join();
-    munmap((void*)dma_buffer, 6*internal_buffer_size* sizeof(uint32_t));
+    if(debug_mode) {
+        munmap((void *) dma_buffer, 6 * internal_buffer_size * sizeof(uint32_t));
+    }
     close(fd_data);
 }
 
 void scope_thread::start_capture(unsigned int n_buffers) {
     n_buffers_left = n_buffers;
-    scope_mode = SCOPE_MODE_CAPTURE;
     scope_data_ready = false;
 }
 
@@ -162,14 +119,9 @@ void scope_thread::read_data_debug(std::vector<uint32_t> &data_vector) {
 }
 
 void scope_thread::read_data_hw(std::vector<uint32_t> &data_vector) {
-    if(!scope_data_ready) {
-        return;
-    };
-
-    data_ready_mutex.lock();
+    read(fd_data, (void *) dma_buffer, 1024 * sizeof(unsigned int));
+    shunt_data(dma_buffer);
     data_vector.insert(data_vector.begin(), captured_data.begin(), captured_data.end());
-    scope_data_ready = false;
-    data_ready_mutex.unlock();
 }
 
 std::vector<uint32_t> scope_thread::emulate_scope_data() const {
