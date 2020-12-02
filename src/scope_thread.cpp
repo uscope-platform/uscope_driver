@@ -95,9 +95,9 @@ bool scope_thread::is_data_ready() {
 }
 
 void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
-    if(log_enabled){
-        std::cout << "scope_thread::read_data start"<< std::endl;
-    }
+    //if(log_enabled){
+    //    std::cout << "scope_thread::read_data start"<< std::endl;
+    //}
     if(debug_mode){
         read_data_debug(data_vector);
     } else{
