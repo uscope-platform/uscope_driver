@@ -34,12 +34,14 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
-
+    ch_data = {};
     log_enabled = log;
     debug_mode = debug;
+
     if(!debug_mode){
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
+        dma_buffer = (int32_t* ) malloc(buffer_size*sizeof(int32_t));
     } else {
         dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
@@ -53,11 +55,10 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
 void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
     int channel_offset = 0;
-    for(int i = 0; i<6*internal_buffer_size; i++){
-        if(i%6==0) channel_offset++;
+    for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
-        int ch_data = sign_extend(buffer_in[i] & 0xffffff, 24);
-        captured_data[channel_base*internal_buffer_size+channel_offset] = ch_data;
+        uint32_t raw_data = sign_extend(buffer_in[i] & 0x3fff, 14);
+        ch_data[channel_base].push_back(raw_data);
     }
 }
 
@@ -119,9 +120,14 @@ void scope_thread::read_data_debug(std::vector<uint32_t> &data_vector) {
 }
 
 void scope_thread::read_data_hw(std::vector<uint32_t> &data_vector) {
-    read(fd_data, (void *) dma_buffer, 1024 * sizeof(unsigned int));
+    read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
+    for(int i = 0; i<6; i++){
+        ch_data[i].clear();
+    }
     shunt_data(dma_buffer);
-    data_vector.insert(data_vector.begin(), captured_data.begin(), captured_data.end());
+    for(int i = 0; i< 6; i++){
+        data_vector.insert(data_vector.end(), ch_data[i].begin(), ch_data[i].end());
+    }
 }
 
 std::vector<uint32_t> scope_thread::emulate_scope_data() const {

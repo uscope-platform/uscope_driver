@@ -175,15 +175,9 @@ int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
         if(log_enabled) std::cout << "READ DATA" << std::endl;
         scope_handler.read_data(read_data);
         return RESP_OK;
-    }
-    int response;
-    if(scope_handler.is_data_ready()) {
-        scope_handler.read_data(read_data);
-        response = RESP_OK;
-    } else{
-        response = RESP_DATA_NOT_READY;
-    }
-    return response;
+    }  
+    scope_handler.read_data(read_data);
+    return RESP_OK;
 }
 
 ///  Helper function converting byte aligned addresses to array indices
