@@ -210,8 +210,9 @@ int fpga_bridge::set_channel_status(std::vector<bool> status) {
 
 int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << address << " program_size: "<<program.size()<<std::endl;
-    memcpy((void*) fCore, program.data(), program.size()*sizeof(uint32_t));
-
+    if(!debug_mode) {
+        memcpy((void *) fCore, program.data(), program.size() * sizeof(uint32_t));
+    }
 
     return 0;
 }
