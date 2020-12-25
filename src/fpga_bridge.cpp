@@ -202,12 +202,6 @@ void fpga_bridge::stop_scope() {
     scope_handler.stop_thread();
 }
 
-
-int fpga_bridge::set_channel_status(std::vector<bool> status) {
-    scope_handler.set_channel_status(status);
-    return 0;
-}
-
 int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << address << " program_size: "<<program.size()<<std::endl;
     if(!debug_mode) {

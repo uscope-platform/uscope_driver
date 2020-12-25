@@ -39,7 +39,6 @@ private:
     uint32_t process_start_capture(const std::string& operand);
     uint32_t process_read_data(response &resp);
     uint32_t process_check_capture_progress(response &resp);
-    uint32_t process_set_channel_status(const std::string& operand);
     uint32_t process_apply_program(const std::string& operand_1, const std::string& operand_2);
 
     fpga_bridge hw;

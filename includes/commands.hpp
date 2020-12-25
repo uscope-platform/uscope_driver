@@ -70,10 +70,6 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_CHECK_CAPTURE_PROGRESS 9
 
-/// Set status for all channels, in the format for the channels 1 is enabled and 0 is disabled
-/// FORMAT: C_SET_CHANNEL_STATUS ch1_status ch2_status ch3_status
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_SET_CHANNEL_STATUS 10
 
 /// Load a program into the specified fCore instance memory
 /// FORMAT: C_APPLY_PROGRAM fCore_address program_instruction_1, program_instruction_2, ...
@@ -86,8 +82,7 @@
 #define RESP_OK 1
 /// The bitstream file specified for the load bitstream command was not found
 #define RESP_ERR_BITSTREAM_NOT_FOUND 2
-/// No new data to be read
-#define RESP_DATA_NOT_READY 3
+
 
 
 

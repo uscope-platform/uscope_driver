@@ -51,25 +51,6 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     }
 }
 
-
-void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
-    std::vector<uint32_t> tmp_data;
-    int channel_offset = 0;
-    for(int i = 0; i<internal_buffer_size; i++){
-        int channel_base = GET_CHANNEL(buffer_in[i]);
-        uint32_t raw_data = sign_extend(buffer_in[i] & 0x3fff, 14);
-        ch_data[channel_base].push_back(raw_data);
-    }
-}
-
-void scope_thread::set_channel_status(std::vector<bool> status) {
-    n_channels = 0;
-    for(int i = 0; i< status.size(); i++){
-        channel_status[i] = status[i];
-        n_channels++;
-    }
-}
-
 void scope_thread::stop_thread() {
     if(debug_mode) {
         munmap((void *) dma_buffer, 6 * internal_buffer_size * sizeof(uint32_t));
@@ -107,38 +88,37 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
 
 
 void scope_thread::read_data_debug(std::vector<uint32_t> &data_vector) {
-    std::vector<uint32_t> data = emulate_scope_data();
-    int progress[6] = {0};
-    for(int i = 0; i< internal_buffer_size*n_channels; i++){
-        int channel_idx = i%n_channels;
-        mc_scope_data_buffer[channel_idx][progress[channel_idx]] = data[i];
-        progress[channel_idx]++;
+    for(auto & i : mc_scope_data_buffer){
+        i.clear();
     }
-    for(int i = 0; i<n_channels; i++){
-        data_vector.insert(data_vector.end(),mc_scope_data_buffer[i].begin(), mc_scope_data_buffer[i].end());
+    for(int i = 0; i<6; i++){
+        for(int j= 0; j<internal_buffer_size/6; j++){
+            mc_scope_data_buffer[i].push_back(std::rand()%1000+1000*(i%6));
+        }
+    }
+    for(auto & i : mc_scope_data_buffer){
+        data_vector.insert(data_vector.end(),i.begin(), i.end());
     }
 }
 
 void scope_thread::read_data_hw(std::vector<uint32_t> &data_vector) {
-    read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
     for(int i = 0; i<6; i++){
         ch_data[i].clear();
     }
+    read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
     shunt_data(dma_buffer);
     for(int i = 0; i< 6; i++){
         data_vector.insert(data_vector.end(), ch_data[i].begin(), ch_data[i].end());
     }
 }
 
-std::vector<uint32_t> scope_thread::emulate_scope_data() const {
 
-    std::vector<uint32_t> data;
-
-    data.reserve(internal_buffer_size*n_channels);
-
-    for(int i = 0; i< internal_buffer_size*n_channels; i++) {
-        data[i] = std::rand()%1000+1000*(i%n_channels);
+void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
+    std::vector<uint32_t> tmp_data;
+    for(int i = 0; i<internal_buffer_size; i++){
+        int channel_base = GET_CHANNEL(buffer_in[i]);
+        uint32_t raw_data = sign_extend(buffer_in[i] & 0x3fff, 14);
+        ch_data[channel_base].push_back(raw_data);
     }
-
-    return data;
 }
+

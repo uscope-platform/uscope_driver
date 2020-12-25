@@ -65,7 +65,6 @@ public:
     [[nodiscard]] bool is_data_ready();
     void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
-    void set_channel_status(std::vector<bool> status);
 
 private:
     void read_data_hw(std::vector<uint32_t> &data_vector);
@@ -84,11 +83,9 @@ private:
     std::array<uint32_t, 6*1024> captured_data;
     std::array<std::vector<uint32_t>, 6> ch_data;
     //MULTICHANNEL SUPPORT
-    int n_channels = 0;
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffer;
     std::vector<uint32_t> mc_scope_data_buffer[6]; //TODO: make internal array dynamic
-    bool channel_status[6] = {false, false, false, false, false, false};
 
 };
 
