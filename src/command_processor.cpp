@@ -60,6 +60,9 @@ response command_processor::process_command(const command& c) {
         case C_APPLY_PROGRAM:
             resp.return_code = process_apply_program(c.operand_1, c.operand_2);
             break;
+        case C_SET_CHANNEL_WIDTHS:
+            resp.return_code = process_set_widths(c.operand_1);
+            break;
     }
     return resp;
 }
@@ -186,6 +189,23 @@ uint32_t command_processor::process_apply_program(const std::string &operand_1, 
     }
 
     return hw.apply_program(address, program);
+}
+
+
+///
+/// \param operand_2 comma delimited list of channel widths
+/// \return Success
+uint32_t command_processor::process_set_widths(const std::string &operand_1) {
+
+    std::istringstream iss(operand_1);
+    std::string token;
+    std::vector<uint32_t> widths;
+    while (std::getline(iss, token, ',')) {
+        uint32_t w = std::stoul(token, nullptr, 0);
+        widths.push_back(w);
+    }
+    hw.set_channel_widths(widths);
+    return 0;
 }
 
 

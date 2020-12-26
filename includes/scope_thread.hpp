@@ -65,13 +65,14 @@ public:
     [[nodiscard]] bool is_data_ready();
     void read_data(std::vector<uint32_t> &data_vector);
     void stop_thread();
+    int set_channel_widths( std::vector<uint32_t> widths);
 
 private:
     void read_data_hw(std::vector<uint32_t> &data_vector);
     void read_data_debug(std::vector<uint32_t> &data_vector);
     void shunt_data(const volatile int32_t * buffer_in);
-    [[nodiscard]] std::vector<uint32_t > emulate_scope_data() const;
 
+    std::vector<uint32_t> channel_sizes;
     int internal_buffer_size;
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;

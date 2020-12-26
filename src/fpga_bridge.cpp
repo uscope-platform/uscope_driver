@@ -100,9 +100,8 @@ int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
 /// \return #RESP_OK
 int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &value) {
     uint32_t int_value;
-
+    if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
     if(debug_mode) {
-        if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
         int_value = rand() % 32767;
     } else{
         int_value = registers[register_address_to_index(address)];
@@ -198,15 +197,31 @@ unsigned int fpga_bridge::check_capture_progress() {
     return scope_handler.check_capture_progress();
 }
 
+/// Set the channel widths for sign extension
+/// \param widths list of channel widths
+/// \return #RESP_OK
 void fpga_bridge::stop_scope() {
     scope_handler.stop_thread();
 }
 
+/// Load a program into the specified fCore instance through the AXI bus
+/// \param address Address of the fCore instance
+/// \param program Vector with the instructions of the program to load
+/// \return #RESP_OK
 int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << address << " program_size: "<<program.size()<<std::endl;
     if(!debug_mode) {
         memcpy((void *) fCore, program.data(), program.size() * sizeof(uint32_t));
     }
-
     return 0;
+}
+
+/// Set the channel widths for sign extension
+/// \param widths list of channel widths
+/// \return #RESP_OK
+int fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
+    if(log_enabled)
+        std::cout << "SET_CHANNEL_WIDTHS: proxy address "<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
+    scope_handler.set_channel_widths(widths);
+    return RESP_OK;
 }

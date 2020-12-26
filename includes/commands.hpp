@@ -71,6 +71,13 @@
 #define C_CHECK_CAPTURE_PROGRESS 9
 
 
+/// Check how many buffers are there left to capture
+/// FORMAT: C_SET_CHANNEL_WIDTHS ch_1_width,ch2_width,...
+/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
+#define C_SET_CHANNEL_WIDTHS 10
+
+
+
 /// Load a program into the specified fCore instance memory
 /// FORMAT: C_APPLY_PROGRAM fCore_address program_instruction_1, program_instruction_2, ...
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND

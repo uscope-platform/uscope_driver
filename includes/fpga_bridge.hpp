@@ -45,6 +45,7 @@ public:
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(std::vector<uint32_t> &read_data);
     int apply_program(uint32_t address, std::vector<uint32_t> program);
+    int set_channel_widths( std::vector<uint32_t> widths);
 
     unsigned int check_capture_progress();
     void stop_scope();
