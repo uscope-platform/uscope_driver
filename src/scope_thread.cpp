@@ -117,7 +117,14 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
-        uint32_t raw_data = sign_extend(buffer_in[i] & ((1<<channel_sizes[channel_base])-1), channel_sizes[channel_base]);
+        int sample_size = channel_sizes[channel_base];
+        uint32_t raw_data;
+        if(sample_size>100){
+            sample_size = sample_size-100;
+            raw_data = buffer_in[i] & ((1<<sample_size)-1);
+        } else {
+            raw_data = sign_extend(buffer_in[i] & ((1<<sample_size)-1), sample_size);
+        }
         ch_data[channel_base].push_back(raw_data);
     }
 }
