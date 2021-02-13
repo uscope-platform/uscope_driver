@@ -53,7 +53,8 @@ public:
     static uint32_t fcore_address_to_index(uint32_t address);
 
 private:
-    int devmem_fd;
+    int registers_fd, fcore_fd;
+    
     volatile uint32_t *registers;
 
     bool debug_mode;

@@ -27,17 +27,22 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
     log_enabled = log;
     std::string file_path;
     if(!debug){
-        if((devmem_fd = open("/dev/mem", O_RDWR | O_SYNC)) == -1){
+        if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
             std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
             exit(1);
         }
-        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, devmem_fd, REGISTERS_BASE_ADDR);
+        if((fcore_fd = open("/dev/uscope_BUS_1", O_RDWR | O_SYNC)) == -1){
+            std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
+            exit(1);
+        }
+
+        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap /dev/mem: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
-        fCore = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, devmem_fd, FCORE_BASE_ADDR);
+        fCore = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, FCORE_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap /dev/mem: "<< strerror(errno) << std::endl;
             exit(1);
