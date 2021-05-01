@@ -56,10 +56,11 @@ private:
     int registers_fd, fcore_fd;
     
     volatile uint32_t *registers;
+    volatile uint32_t *fCore;
 
     bool debug_mode;
     bool log_enabled;
-    volatile uint32_t *fCore;
+
 
     scope_thread scope_handler;
 };
