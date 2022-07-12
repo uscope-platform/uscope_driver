@@ -25,8 +25,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "commands.hpp"
+#include "json.hpp"
 
+#include "commands.hpp"
 #include "scope_thread.hpp"
 
 #define REGISTERS_BASE_ADDR 0x43c00000
@@ -37,7 +38,7 @@ class fpga_bridge {
 public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log);
     int load_bitstream(const std::string& bitstream);
-    int single_write_register(uint32_t address, uint32_t value);
+    int single_write_register(const std::string& write_obj);
     int single_read_register(uint32_t address, std::vector<uint32_t> &value);
     int bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
     int bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value);

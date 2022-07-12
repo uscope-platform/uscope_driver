@@ -92,11 +92,35 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 /// \param address Address to write to
 /// \param value Value to write
 /// \return #RESP_OK
-int fpga_bridge::single_write_register(uint32_t address, uint32_t value) {
-    if(log_enabled) std::cout << "WRITE SINGLE REGISTER: addr "<< std::hex<< address <<"   value "<< std::dec<< value<<std::endl;
-    registers[register_address_to_index(address)] = value;
+int fpga_bridge::single_write_register(const std::string& write_obj_s) {
+    nlohmann::json write_obj;
+    write_obj = nlohmann::json::parse(write_obj_s);
+    if(write_obj["type"] == "direct"){
+        if(log_enabled) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+        registers[register_address_to_index(write_obj["address"])] = write_obj["value"];
+    } else if(write_obj["type"] == "proxied") {
+        if(write_obj["proxy_type"] == "rtcu"){
+            uint32_t proxy_addr = write_obj["proxy_address"];
+            if(log_enabled) std::cout << "WRITE SINGLE REGISTER (RTCU PROXIED) : proxy_addr "<< std::hex<< write_obj<<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+
+            registers[register_address_to_index(proxy_addr)] = write_obj["value"];
+            registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
+        } else if(write_obj["proxy_type"] == "axis_const"){
+            if(log_enabled) std::cout << "WRITE SINGLE REGISTER (AXIS PROXIED) : proxy_addr "<< std::hex<< write_obj["proxy_address"] <<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+            uint32_t proxy_addr = write_obj["proxy_address"];
+            registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
+            registers[register_address_to_index(proxy_addr)] = write_obj["value"];
+        }
+    } else {
+        throw std::runtime_error("ERROR: Unrecognised register write type");
+    }
+
     return RESP_OK;
 }
+
+
+
+
 
 /// Read a single register
 /// \param address Address of the register to read

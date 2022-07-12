@@ -35,13 +35,10 @@ response command_processor::process_command(const command& c) {
             resp.return_code = process_single_read_register(c.operand_1, resp);
             break;
         case C_SINGLE_REGISTER_WRITE:
-            resp.return_code = process_single_write_register(c.operand_1, c.operand_2);
+            resp.return_code = process_single_write_register(c.operand_1);
             break;
         case C_BULK_REGISTER_READ:
             resp.return_code =  process_bulk_read_register(c.operand_1, resp);
-            break;
-        case C_BULK_REGISTER_WRITE:
-            resp.return_code = process_bulk_write_register(c.operand_1, c.operand_2);
             break;
         case C_START_CAPTURE:
             resp.return_code = process_start_capture(c.operand_1);
@@ -77,10 +74,8 @@ uint32_t command_processor::process_load_bitstream(const std::string& bitstream_
 /// \param operand_1 Register address
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor::process_single_write_register(const std::string& operand_1, const std::string& operand_2) {
-    uint32_t address = std::stoul(operand_1, nullptr, 0);
-    uint32_t value = std::stoul(operand_2, nullptr, 0);
-    return hw.single_write_register(address,value);
+uint32_t command_processor::process_single_write_register(const std::string& operand_1) {
+    return hw.single_write_register(operand_1);
 }
 
 ///
@@ -104,31 +99,9 @@ uint32_t command_processor::process_proxied_single_write_register(const std::str
 /// \param response Response object where the read result will be placed
 /// \return Success
 uint32_t command_processor::process_single_read_register(const std::string& operand_1, response &resp) {
+
     uint32_t address = std::stoul(operand_1, nullptr, 0);
     return hw.single_read_register(address, resp.body);
-}
-
-///
-/// \param operand_1 Comma delimited list of addresses to write to
-/// \param operand_2 Comma delimited list of values to write
-/// \return Success
-uint32_t command_processor::process_bulk_write_register(const std::string& operand_1, const std::string& operand_2) {
-    std::vector<uint32_t> write_addresses, write_data;
-
-    std::istringstream iss(operand_1);
-    std::string token;
-    while (std::getline(iss, token, ','))
-    {
-        write_addresses.push_back(std::stoul(token, nullptr, 0));
-    }
-
-    iss.str(operand_2);
-    while (std::getline(iss, token, ','))
-    {
-        write_data.push_back(std::stoul(token, nullptr, 0));
-    }
-
-    return hw.bulk_write_register(write_addresses, write_data);
 }
 
 ///

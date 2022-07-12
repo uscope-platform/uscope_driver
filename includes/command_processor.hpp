@@ -29,10 +29,9 @@ public:
 
 private:
     uint32_t process_load_bitstream(const std::string& bitstream_name);
-    uint32_t process_single_write_register(const std::string& operand_1, const std::string& operand_2);
+    uint32_t process_single_write_register(const std::string& operand_1);
     uint32_t process_proxied_single_write_register(const std::string& operand_1, const std::string& operand_2);
     uint32_t process_single_read_register(const std::string& operand_1, response &resp);
-    uint32_t process_bulk_write_register(const std::string& operand_1, const std::string& operand_2);
     uint32_t process_bulk_read_register(const std::string& operand_1, response &resp);
     uint32_t process_start_capture(const std::string& operand);
     uint32_t process_read_data(response &resp);
