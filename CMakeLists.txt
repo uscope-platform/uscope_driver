@@ -3,6 +3,12 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set (CMAKE_CXX_STANDARD 17)
 
+
+option(LOGGING_LEVEL "Configure how verbose is the command line logging (1 for standard 2 for verbose)" 1)
+
+add_compile_definitions(LOGGING_LEVEL=${LOGGING_LEVEL})
+
+
 #
 # Common settings
 #

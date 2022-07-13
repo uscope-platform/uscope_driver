@@ -15,6 +15,7 @@
 #include "command_processor.hpp"
 
 command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log) : hw(driver_file, dma_buffer_size, debug, log) {
+    logging_enabled = log;
 }
 
 /// This function, core of the driver operation, is called upon message reception and parsing, acts as a dispatcher,
@@ -24,7 +25,13 @@ command_processor::command_processor(const std::string &driver_file, unsigned in
 /// \param Command Command received from the uscope_server
 response command_processor::process_command(const command& c) {
     response resp;
+
     resp.opcode = c.opcode;
+    if(logging_enabled && LOGGING_LEVEL==2){
+        std::cout << "Received command: " << command_map[c.opcode] << std::endl;
+    }
+
+
     switch(c.opcode){
         case C_NULL_COMMAND:
             break;

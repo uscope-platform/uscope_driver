@@ -97,12 +97,12 @@ int fpga_bridge::single_write_register(const std::string& write_obj_s) {
     write_obj = nlohmann::json::parse(write_obj_s);
     if(write_obj["type"] == "direct"){
         if(log_enabled) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+        
         registers[register_address_to_index(write_obj["address"])] = write_obj["value"];
     } else if(write_obj["type"] == "proxied") {
         if(write_obj["proxy_type"] == "rtcu"){
             uint32_t proxy_addr = write_obj["proxy_address"];
             if(log_enabled) std::cout << "WRITE SINGLE REGISTER (RTCU PROXIED) : proxy_addr "<< std::hex<< write_obj<<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
-
             registers[register_address_to_index(proxy_addr)] = write_obj["value"];
             registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
         } else if(write_obj["proxy_type"] == "axis_const"){
@@ -117,7 +117,6 @@ int fpga_bridge::single_write_register(const std::string& write_obj_s) {
 
     return RESP_OK;
 }
-
 
 
 

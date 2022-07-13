@@ -19,7 +19,6 @@
 
 #include "fpga_bridge.hpp"
 #include "response.hpp"
-#include "command.hpp"
 
 class command_processor {
 public:
@@ -40,6 +39,7 @@ private:
     uint32_t process_set_widths(const std::string &operand_1);
 
     fpga_bridge hw;
+    bool logging_enabled;
 };
 
 

@@ -27,7 +27,8 @@
 
 #include "json.hpp"
 
-#include "commands.hpp"
+#include "command.hpp"
+#include "response.hpp"
 #include "scope_thread.hpp"
 
 #define REGISTERS_BASE_ADDR 0x43c00000

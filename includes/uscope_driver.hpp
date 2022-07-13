@@ -28,13 +28,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-
-#include "commands.hpp"
-
-
-#include "command_processor.hpp"
-
-#include "fpga_bridge.hpp"
 #include "server_connector.hpp"
 
 #ifdef __cplusplus

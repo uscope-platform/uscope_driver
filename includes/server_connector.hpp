@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <sstream>
 
-#include "commands.hpp"
 #include "command_processor.hpp"
 #include "response.hpp"
 

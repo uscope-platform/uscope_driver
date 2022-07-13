@@ -18,11 +18,20 @@
 
 #include <cstdint>
 #include <vector>
-#include "commands.hpp"
+
+#define RESP_NULL_COMMAND 0;
+
+/// This response is issued when the command action has been performed successfully
+#define RESP_OK 1
+/// The bitstream file specified for the load bitstream command was not found
+#define RESP_ERR_BITSTREAM_NOT_FOUND 2
+
+
+
 
 class response {
 public:
-    uint16_t opcode = C_NULL_COMMAND; /// opcode of the command
+    uint16_t opcode = RESP_NULL_COMMAND; /// opcode of the command
     uint16_t return_code = RESP_OK; /// command completion code
     std::vector<uint32_t> body = {}; /// optional body of the response
 
