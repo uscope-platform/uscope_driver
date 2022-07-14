@@ -27,10 +27,11 @@ response command_processor::process_command(const command& c) {
     response resp;
 
     resp.opcode = c.opcode;
-    if(logging_enabled && LOGGING_LEVEL==2){
+#ifdef VERBOSE_LOGGING
+    if(logging_enabled){
         std::cout << "Received command: " << command_map[c.opcode] << std::endl;
     }
-
+#endif
 
     switch(c.opcode){
         case C_NULL_COMMAND:

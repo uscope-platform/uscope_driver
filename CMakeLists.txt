@@ -4,9 +4,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set (CMAKE_CXX_STANDARD 17)
 
 
-option(LOGGING_LEVEL "Configure how verbose is the command line logging (1 for standard 2 for verbose)" 1)
+option(VERBOSE_LOGGING "Configure how verbose is the command line logging (1 for standard 2 for verbose)" OFF)
 
-add_compile_definitions(LOGGING_LEVEL=${LOGGING_LEVEL})
+if(${VERBOSE_LOGGING})
+    add_compile_definitions(VERBOSE_LOGGING)
+endif(${VERBOSE_LOGGING})
 
 
 #
