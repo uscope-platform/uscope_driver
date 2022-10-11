@@ -22,16 +22,18 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         std::cout << "fpga_bridge initialization started"<< std::endl;
     }
 
+    signal(SIGSEGV,sigsegv_handler);
+    signal(SIGBUS,sigbus_handler);
     debug_mode = debug;
     log_enabled = log;
     std::string file_path;
     if(!debug){
         if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
-            std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
+            std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
             exit(1);
         }
         if((fcore_fd = open("/dev/uscope_BUS_1", O_RDWR | O_SYNC)) == -1){
-            std::cerr << "Error at line "<< __LINE__ <<", file "<< __FILE__ << " ("<<errno<<") [" << strerror(errno)<<"]" <<std::endl;
+            std::cerr << "error while mapping the fcore rom bus (M_GP1)" <<std::endl;
             exit(1);
         }
 
@@ -251,4 +253,12 @@ int fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
         std::cout << "SET_CHANNEL_WIDTHS: proxy address "<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
     scope_handler.set_channel_widths(widths);
     return RESP_OK;
+}
+
+void sigsegv_handler(int dummy) {
+    std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
+}
+
+void sigbus_handler(int dummy) {
+    std::cerr << "ERROR:A bus error happened while writing to an mmapped region" <<std::endl;
 }

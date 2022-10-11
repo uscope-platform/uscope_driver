@@ -17,6 +17,7 @@
 #define USCOPE_DRIVER_FPGA_BRIDGE_HPP
 
 #include <cstring>
+#include <csignal>
 
 #include <string>
 #include <iostream>
@@ -34,8 +35,10 @@
 #define REGISTERS_BASE_ADDR 0x43c00000
 #define FCORE_BASE_ADDR 0x83c00000
 
-class fpga_bridge {
+void sigsegv_handler(int dummy);
+void sigbus_handler(int dummy);
 
+class fpga_bridge {
 public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log);
     int load_bitstream(const std::string& bitstream);
