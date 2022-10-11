@@ -16,6 +16,17 @@
 #include "fpga_bridge.hpp"
 
 
+void sigsegv_handler(int dummy) {
+    std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
+    exit(-1);
+}
+
+void sigbus_handler(int dummy) {
+    std::cerr << "ERROR:A bus error happened while writing to an mmapped region" <<std::endl;
+    exit(-1);
+}
+
+
 fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log) : scope_handler(driver_file,dma_buffer_size, debug, log) {
 
     if(log){
@@ -37,13 +48,13 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
             exit(1);
         }
 
-        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
+        registers = (uint32_t*) mmap(nullptr, 8*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
-        fCore = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, FCORE_BASE_ADDR);
+        fCore = (uint32_t*) mmap(nullptr, 16*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, FCORE_BASE_ADDR);
         if(fCore == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
             exit(1);
@@ -253,12 +264,4 @@ int fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
         std::cout << "SET_CHANNEL_WIDTHS: proxy address "<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
     scope_handler.set_channel_widths(widths);
     return RESP_OK;
-}
-
-void sigsegv_handler(int dummy) {
-    std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
-}
-
-void sigbus_handler(int dummy) {
-    std::cerr << "ERROR:A bus error happened while writing to an mmapped region" <<std::endl;
 }
