@@ -33,12 +33,13 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         std::cout << "fpga_bridge initialization started"<< std::endl;
     }
 
+    signal(SIGSEGV,sigsegv_handler);
+    signal(SIGBUS,sigbus_handler);
+
     debug_mode = debug;
     log_enabled = log;
     std::string file_path;
     if(!debug){
-        signal(SIGSEGV,sigsegv_handler);
-        signal(SIGBUS,sigbus_handler);
         if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
             std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
             exit(1);
@@ -61,7 +62,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         }
 
     } else {
-        registers = (uint32_t*) mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+        registers = (uint32_t*) mmap(nullptr, 8*4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot create /dev/mem emulator anonymous mapping: "<< strerror(errno) << std::endl;
             exit(1);
