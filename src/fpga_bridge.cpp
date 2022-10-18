@@ -210,7 +210,7 @@ int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t 
 /// Read scope data if ready
 /// \param read_data pointer to the array the data will be put in
 /// \return #RESP_OK if data is ready #RESP_DATA_NOT_READY otherwise
-int fpga_bridge::read_data(std::vector<uint32_t> &read_data) {
+int fpga_bridge::read_data(std::vector<float> &read_data) {
     if(debug_mode){
         if(log_enabled) std::cout << "READ DATA" << std::endl;
         scope_handler.read_data(read_data);

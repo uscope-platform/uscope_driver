@@ -73,7 +73,7 @@ bool scope_thread::is_data_ready() {
 
 }
 
-void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
+void scope_thread::read_data(std::vector<float> &data_vector) {
     //if(log_enabled){
     //    std::cout << "scope_thread::read_data start"<< std::endl;
     //}
@@ -85,7 +85,7 @@ void scope_thread::read_data(std::vector<uint32_t> &data_vector) {
 }
 
 
-void scope_thread::read_data_debug(std::vector<uint32_t> &data_vector) {
+void scope_thread::read_data_debug(std::vector<float> &data_vector) {
     for(auto & i : mc_scope_data_buffer){
         i.clear();
     }
@@ -99,7 +99,7 @@ void scope_thread::read_data_debug(std::vector<uint32_t> &data_vector) {
     }
 }
 
-void scope_thread::read_data_hw(std::vector<uint32_t> &data_vector) {
+void scope_thread::read_data_hw(std::vector<float> &data_vector) {
     for(int i = 0; i<6; i++){
         ch_data[i].clear();
     }
@@ -127,9 +127,10 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     }
 }
 
-int scope_thread::set_channel_widths(std::vector<uint32_t> widths) {
-
+void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
     channel_sizes = widths;
-    return 0;
 }
 
+void scope_thread::set_scaling_factors(std::vector<float> &sf) {
+    scaling_factors = sf;
+}

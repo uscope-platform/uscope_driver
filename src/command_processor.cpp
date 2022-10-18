@@ -140,7 +140,10 @@ uint32_t command_processor::process_start_capture(const std::string& operand) {
 /// \param response Pointer to the structure where the data will eventually be put
 /// \return Either success of failure depending on if the data is actually ready
 uint32_t command_processor::process_read_data(response &resp) {
-    return  hw.read_data(resp.body);
+    std::vector<float> flt_data;
+    int ret = hw.read_data(flt_data);
+    std::copy(flt_data.begin(), flt_data.end(), resp.body.begin());
+    return  ret;
 }
 
 ///

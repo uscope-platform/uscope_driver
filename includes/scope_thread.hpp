@@ -61,16 +61,18 @@ public:
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     [[nodiscard]] bool is_data_ready();
-    void read_data(std::vector<uint32_t> &data_vector);
+    void read_data(std::vector<float> &data_vector);
     void stop_thread();
-    int set_channel_widths( std::vector<uint32_t> widths);
+    void set_channel_widths(std::vector<uint32_t> &widths);
+    void set_scaling_factors(std::vector<float> &sf);
 
 private:
-    void read_data_hw(std::vector<uint32_t> &data_vector);
-    void read_data_debug(std::vector<uint32_t> &data_vector);
+    void read_data_hw(std::vector<float> &data_vector);
+    void read_data_debug(std::vector<float> &data_vector);
     void shunt_data(const volatile int32_t * buffer_in);
 
     std::vector<uint32_t> channel_sizes;
+    std::vector<float> scaling_factors;
     int internal_buffer_size;
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
@@ -80,7 +82,7 @@ private:
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
     std::array<uint32_t, 6*1024> captured_data;
-    std::array<std::vector<uint32_t>, 6> ch_data;
+    std::array<std::vector<float>, 6> ch_data;
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffer;
