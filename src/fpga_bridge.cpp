@@ -251,10 +251,11 @@ void fpga_bridge::stop_scope() {
 /// \return #RESP_OK
 int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << std::hex << address << " program_size: "<< std::dec << program.size()<<std::endl;
-    uint32_t offset = address - FCORE_BASE_ADDR;
+    uint32_t offset = (address - FCORE_BASE_ADDR)/4;
 
     if(!debug_mode) {
-        memcpy((void *) (fCore+offset/4), program.data(), program.size() * sizeof(uint32_t));
+        for(int i = 0; i< program.size(); i++)
+            fCore[i+offset] = program[i];
     }
     return 0;
 }
