@@ -213,8 +213,6 @@ int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t 
 int fpga_bridge::read_data(std::vector<float> &read_data) {
     if(debug_mode){
         if(log_enabled) std::cout << "READ DATA" << std::endl;
-        scope_handler.read_data(read_data);
-        return RESP_OK;
     }  
     scope_handler.read_data(read_data);
     return RESP_OK;
@@ -265,7 +263,19 @@ int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) 
 /// \return #RESP_OK
 int fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
     if(log_enabled)
-        std::cout << "SET_CHANNEL_WIDTHS: proxy address "<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
+        std::cout << "SET_CHANNEL_WIDTHS:"<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
     scope_handler.set_channel_widths(widths);
+    return RESP_OK;
+}
+
+int fpga_bridge::set_scaling_factors(std::vector<float> sfs) {
+    if(log_enabled){
+        std::cout << "SET_SCALING_FACTORS: ";
+        for(auto &s:sfs){
+            std::cout << std::to_string(sfs[0]) << " ";
+        }
+        std::cout << std::endl;
+    }
+    scope_handler.set_scaling_factors(sfs);
     return RESP_OK;
 }

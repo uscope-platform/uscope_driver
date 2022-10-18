@@ -66,6 +66,9 @@ response command_processor::process_command(const command& c) {
         case C_SET_CHANNEL_WIDTHS:
             resp.return_code = process_set_widths(c.operand_1);
             break;
+        case C_SET_SCALING_FACTORS:
+            resp.return_code = process_set_scaling_factors(c.operand_1);
+            break;
     }
     return resp;
 }
@@ -142,7 +145,7 @@ uint32_t command_processor::process_start_capture(const std::string& operand) {
 uint32_t command_processor::process_read_data(response &resp) {
     std::vector<float> flt_data;
     int ret = hw.read_data(flt_data);
-    std::copy(flt_data.begin(), flt_data.end(), resp.body.begin());
+    std::copy(flt_data.begin(), flt_data.end(), std::back_inserter(resp.body));
     return  ret;
 }
 
@@ -187,6 +190,18 @@ uint32_t command_processor::process_set_widths(const std::string &operand_1) {
         widths.push_back(w);
     }
     hw.set_channel_widths(widths);
+    return 0;
+}
+
+uint32_t command_processor::process_set_scaling_factors(const std::string &operand_1) {
+    std::istringstream iss(operand_1);
+    std::string token;
+    std::vector<float> sfs;
+    while (std::getline(iss, token, ',')) {
+        float w = std::stof(token);
+        sfs.push_back(w);
+    }
+    hw.set_scaling_factors(sfs);
     return 0;
 }
 

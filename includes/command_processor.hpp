@@ -37,6 +37,7 @@ private:
     uint32_t process_check_capture_progress(response &resp);
     uint32_t process_apply_program(const std::string& operand_1, const std::string& operand_2);
     uint32_t process_set_widths(const std::string &operand_1);
+    uint32_t process_set_scaling_factors(const std::string &operand_1);
 
     fpga_bridge hw;
     bool logging_enabled;

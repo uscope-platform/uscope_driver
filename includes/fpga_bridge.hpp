@@ -51,6 +51,7 @@ public:
     int read_data(std::vector<float> &read_data);
     int apply_program(uint32_t address, std::vector<uint32_t> program);
     int set_channel_widths( std::vector<uint32_t> widths);
+    int set_scaling_factors( std::vector<float> sfs);
 
     unsigned int check_capture_progress();
     void stop_scope();

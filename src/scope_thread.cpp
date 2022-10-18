@@ -86,12 +86,15 @@ void scope_thread::read_data(std::vector<float> &data_vector) {
 
 
 void scope_thread::read_data_debug(std::vector<float> &data_vector) {
+    std::vector<float> mc_scope_data_buffer[6];
     for(auto & i : mc_scope_data_buffer){
         i.clear();
     }
     for(int i = 0; i<6; i++){
         for(int j= 0; j<internal_buffer_size/6; j++){
-            mc_scope_data_buffer[i].push_back(std::rand()%1000+1000*(i%6));
+            float sample = std::rand()%1000+1000*(i%6);
+            float scaled_sample = sample*scaling_factors[i];
+            mc_scope_data_buffer[i].push_back(scaled_sample);
         }
     }
     for(auto & i : mc_scope_data_buffer){
@@ -117,13 +120,13 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
         int channel_base = GET_CHANNEL(buffer_in[i]);
         int sample_size = channel_sizes[channel_base];
         uint32_t raw_data;
-        if(sample_size>100){
+        if(sample_size>100){ // USE CHANNELS > 100 to signal signedness
             sample_size = sample_size-100;
             raw_data = buffer_in[i] & ((1<<sample_size)-1);
         } else {
             raw_data = sign_extend(buffer_in[i] & ((1<<sample_size)-1), sample_size);
         }
-        ch_data[channel_base].push_back(raw_data);
+        ch_data[channel_base].push_back(raw_data*scaling_factors[channel_base]);
     }
 }
 

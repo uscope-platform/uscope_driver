@@ -70,11 +70,10 @@
 #define C_CHECK_CAPTURE_PROGRESS 9
 
 
-/// Check how many buffers are there left to capture
+/// Set the size of each channel in bits
 /// FORMAT: C_SET_CHANNEL_WIDTHS ch_1_width,ch2_width,...
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_SET_CHANNEL_WIDTHS 10
-
 
 
 /// Load a program into the specified fCore instance memory
@@ -82,6 +81,11 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_APPLY_PROGRAM 11
 
+
+/// Set the size of each channel in bits
+/// FORMAT: C_SET_SCALING_FACTORS ch_1_sf,ch_1_sf,...
+/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
+#define C_SET_SCALING_FACTORS 12
 
 
 
@@ -104,7 +108,10 @@ static std::unordered_map<uint32_t , std::string> command_map = {
         {8, "C_READ_DATA"},
         {9, "C_CHECK_CAPTURE_PROGRESS"},
         {10, "C_SET_CHANNEL_WIDTHS"},
-        {11, "C_APPLY_PROGRAM"}
+        {11, "C_APPLY_PROGRAM"},
+        {11, "C_APPLY_PROGRAM"},
+        {12, "C_SET_SCALING_FACTORS"}
+
 };
 
 
