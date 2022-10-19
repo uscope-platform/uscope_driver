@@ -40,7 +40,7 @@ void sigbus_handler(int dummy);
 
 class fpga_bridge {
 public:
-    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log);
+    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     int load_bitstream(const std::string& bitstream);
     int single_write_register(const std::string& write_obj);
     int single_read_register(uint32_t address, std::vector<uint32_t> &value);

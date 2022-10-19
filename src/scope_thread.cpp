@@ -19,8 +19,8 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool debug, bool log) {
-    std::cout<< "scope_thread debug mode: "<< std::boolalpha <<debug;
+scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool es, bool log) {
+    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control;
     std::cout<< "scope_thread logging: "<< std::boolalpha <<log;
 
     if(log){
@@ -34,9 +34,10 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
     ch_data = {};
     log_enabled = log;
-    debug_mode = debug;
+    debug_mode = emulate_control;
+    emulate_scope = es;
 
-    if(!debug_mode){
+    if(!debug_mode | emulate_scope){
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
         dma_buffer = (int32_t* ) malloc(buffer_size*sizeof(int32_t));
@@ -50,7 +51,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
 }
 
 void scope_thread::stop_thread() {
-    if(debug_mode) {
+    if(debug_mode & !emulate_scope) {
         munmap((void *) dma_buffer, 6 * internal_buffer_size * sizeof(uint32_t));
     }
     close(fd_data);
@@ -77,7 +78,7 @@ void scope_thread::read_data(std::vector<float> &data_vector) {
     //if(log_enabled){
     //    std::cout << "scope_thread::read_data start"<< std::endl;
     //}
-    if(debug_mode){
+    if(debug_mode & !emulate_scope){
         read_data_debug(data_vector);
     } else{
         read_data_hw(data_vector);
@@ -90,9 +91,17 @@ void scope_thread::read_data_debug(std::vector<float> &data_vector) {
     for(auto & i : mc_scope_data_buffer){
         i.clear();
     }
+    std::vector<float> tb;
+    tb.push_back(0);
+    for(int j= 0; j<internal_buffer_size/6-1; j++){
+        tb.push_back(tb.back()+(float)1/10e3);
+    }
+    std::array<float,6> phases = {0, M_PI/3, 2*M_PI/3, M_PI, 3*M_PI/3, 5*M_PI/3};
+
     for(int i = 0; i<6; i++){
         for(int j= 0; j<internal_buffer_size/6; j++){
-            float sample = std::rand()%1000+1000*(i%6);
+            //float sample = std::rand()%1000+1000*(i%6);
+            float sample = 4000.0*sin(2*M_PI*50*tb[j]+phases[i]);
             float scaled_sample = sample*scaling_factors[i];
             mc_scope_data_buffer[i].push_back(scaled_sample);
         }
@@ -118,17 +127,24 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<uint32_t> tmp_data;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
-        int sample_size = channel_sizes[channel_base];
-        uint32_t raw_data;
-        if(sample_size>100){ // USE CHANNELS > 100 to signal signedness
-            sample_size = sample_size-100;
-            raw_data = buffer_in[i] & ((1<<sample_size)-1);
-        } else {
-            raw_data = sign_extend(buffer_in[i] & ((1<<sample_size)-1), sample_size);
-        }
-        auto signed_data = (int32_t)raw_data;
-        ch_data[channel_base].push_back((float)signed_data*scaling_factors[channel_base]);
+        unsigned int sample_size = channel_sizes[channel_base];
+
+        float data_sample = scale_data(buffer_in[i],sample_size, scaling_factors[channel_base]);
+
+        ch_data[channel_base].push_back(data_sample);
     }
+}
+
+float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor) {
+    uint32_t sample;
+    if(size>100){ // USE CHANNELS > 100 to signal signedness
+        auto true_size = size-100;
+        sample = raw_sample & ((1<<true_size)-1);
+    } else {
+        sample = sign_extend(raw_sample & ((1<<size)-1), size);
+    }
+    auto signed_data = (int32_t)sample;
+    return scaling_factor*(float)signed_data;
 }
 
 void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
@@ -138,3 +154,4 @@ void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
 void scope_thread::set_scaling_factors(std::vector<float> &sf) {
     scaling_factors = sf;
 }
+

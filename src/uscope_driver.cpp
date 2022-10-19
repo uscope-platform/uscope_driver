@@ -38,26 +38,37 @@ int main (int argc, char **argv) {
 
     bool emulate_hw = false;
     bool log_command = false;
+    std::string scope_data_source;
 
     app.add_flag("--debug", emulate_hw, "Emulate hardware for debug on regular processors");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
+    app.add_option("--scope_source", scope_data_source, "Path for the scope data source");
 
     CLI11_PARSE(app, argc, argv);
-
 
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, intHandler);
     signal(SIGTERM,intHandler);
     signal(SIGKILL,intHandler);
 
-    std::string scope_driver_file = "/dev/uscope_data";
+    std::string scope_driver_file  = "/dev/uscope_data";;
+
+    bool emulate_scope = false;
+
+    if(!scope_data_source.empty()){
+        scope_driver_file = scope_data_source;
+        emulate_scope = true;
+    }
+
     unsigned int scope_buffer_size = 6144;
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
 
-    connector = new server_connector(6666, scope_driver_file, scope_buffer_size, emulate_hw,log_command);
+    connector = new server_connector(6666, scope_driver_file, scope_buffer_size,
+                                     emulate_hw, emulate_scope,log_command);
+
     connector->start_server();
     return 0;
 }

@@ -27,7 +27,7 @@ void sigbus_handler(int dummy) {
 }
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool debug, bool log) : scope_handler(driver_file,dma_buffer_size, debug, log) {
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log) : scope_handler(driver_file, dma_buffer_size, emulate_control, emulate_scope, log) {
 
     if(log){
         std::cout << "fpga_bridge initialization started"<< std::endl;
@@ -36,10 +36,10 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
     signal(SIGSEGV,sigsegv_handler);
     signal(SIGBUS,sigbus_handler);
 
-    debug_mode = debug;
+    debug_mode = emulate_control;
     log_enabled = log;
     std::string file_path;
-    if(!debug){
+    if(!emulate_control){
         if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
             std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
             exit(1);

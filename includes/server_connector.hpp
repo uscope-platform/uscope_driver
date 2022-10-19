@@ -33,7 +33,7 @@
 
 class server_connector {
 public:
-    server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log);
+    server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     void start_server();
     void process_connection(int connection_fd);
 

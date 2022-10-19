@@ -22,7 +22,7 @@
 
 class command_processor {
 public:
-    explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool debug, bool log);
+    explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     void stop_scope();
     response process_command(const command& c);
 
