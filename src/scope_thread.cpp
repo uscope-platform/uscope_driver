@@ -126,7 +126,8 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
         } else {
             raw_data = sign_extend(buffer_in[i] & ((1<<sample_size)-1), sample_size);
         }
-        ch_data[channel_base].push_back(raw_data*scaling_factors[channel_base]);
+        auto signed_data = (int32_t)raw_data;
+        ch_data[channel_base].push_back((float)signed_data*scaling_factors[channel_base]);
     }
 }
 
