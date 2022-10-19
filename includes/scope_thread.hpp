@@ -42,16 +42,19 @@
 #define N_CHANNELS 6
 
 
-#define GET_CHANNEL(NUMBER) (NUMBER >> 24) & 0xff
+#define GET_CHANNEL(NUMBER) ((NUMBER >> 24) & 0xff)
 
-static uint32_t sign_extend(uint32_t value, uint32_t bits) {
-    uint32_t sign = (1 << (bits - 1)) & value;
-    uint32_t mask = ((~0U) >> (bits - 1)) << (bits - 1);
-    if (sign != 0)
-        value |= mask;
-    else
-        value &= ~mask;
-    return value;
+static int32_t sign_extend(uint32_t value, uint32_t bits) {
+
+    int32_t result;
+
+    int x;      // sign extend this b-bit number to r
+    int r;      // resulting sign-extended number
+    int const mask = 1U << (bits - 1); // mask can be pre-computed if b is fixed
+
+    value = value & ((1U << bits) - 1);  // (Skip this if bits in x above position b are already zero.)
+    result = (value ^ mask) - mask;
+    return result;
 }
 
 class scope_thread {

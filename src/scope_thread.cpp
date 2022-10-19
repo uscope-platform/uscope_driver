@@ -136,15 +136,16 @@ void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
 }
 
 float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor) {
-    uint32_t sample;
+    int32_t sample;
     if(size>100){ // USE CHANNELS > 100 to signal signedness
         auto true_size = size-100;
         sample = raw_sample & ((1<<true_size)-1);
     } else {
-        sample = sign_extend(raw_sample & ((1<<size)-1), size);
+        auto masked_sample = raw_sample & ((1<<size)-1);
+        sample = sign_extend(masked_sample, size);
     }
-    auto signed_data = (int32_t)sample;
-    return scaling_factor*(float)signed_data;
+
+    return scaling_factor*(float)sample;
 }
 
 void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
