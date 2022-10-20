@@ -42,10 +42,8 @@ class fpga_bridge {
 public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     int load_bitstream(const std::string& bitstream);
-    int single_write_register(const std::string& write_obj);
-    int single_read_register(uint32_t address, std::vector<uint32_t> &value);
-    int bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
-    int bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value);
+    int single_write_register(const nlohmann::json &write_obj);
+    nlohmann::json single_read_register(uint32_t address);
     int start_capture(uint32_t n_buffers);
     int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(std::vector<float> &read_data);
@@ -53,7 +51,7 @@ public:
     int set_channel_widths( std::vector<uint32_t> widths);
     int set_scaling_factors( std::vector<float> sfs);
 
-    unsigned int check_capture_progress();
+    int check_capture_progress(unsigned int &progress);
     void stop_scope();
     static uint32_t register_address_to_index(uint32_t address);
     static uint32_t fcore_address_to_index(uint32_t address);

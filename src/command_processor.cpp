@@ -23,189 +23,173 @@ command_processor::command_processor(const std::string &driver_file, unsigned in
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates
 /// the response structure that defines what will be sent back to the server.
 /// \param Command Command received from the uscope_server
-response command_processor::process_command(const command& c) {
-    response resp;
+nlohmann::json command_processor::process_command(uint32_t command, nlohmann::json &arguments) {
 
-    resp.opcode = c.opcode;
+    nlohmann::json response_obj;
+    response_obj["cmd"] = command;
+
 #ifdef VERBOSE_LOGGING
     if(logging_enabled){
-        std::cout << "Received command: " << command_map[c.opcode] << std::endl;
+        std::cout << "Received command: " << command_map[command] << std::endl;
     }
 #endif
 
-    switch(c.opcode){
+    switch(command){
         case C_NULL_COMMAND:
+            response_obj["body"] = process_null();
             break;
         case C_LOAD_BITSTREAM:
-            resp.return_code = process_load_bitstream(c.operand_1);
+            response_obj["body"] = process_load_bitstream(arguments);
             break;
         case C_SINGLE_REGISTER_READ:
-            resp.return_code = process_single_read_register(c.operand_1, resp);
+            response_obj["body"] = process_single_read_register(arguments);
             break;
         case C_SINGLE_REGISTER_WRITE:
-            resp.return_code = process_single_write_register(c.operand_1);
-            break;
-        case C_BULK_REGISTER_READ:
-            resp.return_code =  process_bulk_read_register(c.operand_1, resp);
+            response_obj["body"] = process_single_write_register(arguments);
             break;
         case C_START_CAPTURE:
-            resp.return_code = process_start_capture(c.operand_1);
+            response_obj["body"] = process_start_capture(arguments);
             break;
         case C_PROXIED_WRITE:
-            resp.return_code = process_proxied_single_write_register(c.operand_1, c.operand_2);
+            response_obj["body"] = process_proxied_single_write_register(arguments);
             break;
         case C_READ_DATA:
-            resp.return_code = process_read_data(resp);
+            response_obj["body"] = process_read_data();
             break;
         case C_CHECK_CAPTURE_PROGRESS:
-            resp.return_code = process_check_capture_progress(resp);
+            response_obj["body"] = process_check_capture_progress();
             break;
         case C_APPLY_PROGRAM:
-            resp.return_code = process_apply_program(c.operand_1, c.operand_2);
+            response_obj["body"] = process_apply_program(arguments);
             break;
         case C_SET_CHANNEL_WIDTHS:
-            resp.return_code = process_set_widths(c.operand_1);
+            response_obj["body"] = process_set_widths(arguments);
             break;
         case C_SET_SCALING_FACTORS:
-            resp.return_code = process_set_scaling_factors(c.operand_1);
+            response_obj["body"] = process_set_scaling_factors(arguments);
             break;
     }
-    return resp;
+    return response_obj;
 }
 
 
 ///
 /// \param Operand bitstream name
 /// \return
-uint32_t command_processor::process_load_bitstream(const std::string& bitstream_name) {
-    return hw.load_bitstream(bitstream_name);
+nlohmann::json command_processor::process_load_bitstream(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::string bitstram_name = arguments;
+    resp["response_code"] = hw.load_bitstream(bitstram_name);
+    return resp;
 }
 
 ///
 /// \param operand_1 Register address
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor::process_single_write_register(const std::string& operand_1) {
-    return hw.single_write_register(operand_1);
+nlohmann::json command_processor::process_single_write_register(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    resp["response_code"] = hw.single_write_register(arguments);
+    return resp;
 }
 
 ///
 /// \param operand_1 Comma delimited list of address pairs to write to (comprised of address of the proxy and address to write)
 /// \param operand_2 Value to write
 /// \return Success
-uint32_t command_processor::process_proxied_single_write_register(const std::string& operand_1, const std::string& operand_2) {
-
-    std::string proxy_addr_s = operand_1.substr(0, operand_1.find(','));
-    std::string reg_addr_s =  operand_1.substr(operand_1.find(',')+1, operand_1.length());
-
+nlohmann::json command_processor::process_proxied_single_write_register(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::string proxy_addr_s = arguments[0];
+    std::string reg_addr_s =  arguments[1];
+    std::string value_s = arguments[2];
 
     uint32_t proxy_addr = std::stoul(proxy_addr_s, nullptr, 0);
-    uint32_t reg_addr = std::stoul(reg_addr_s,nullptr , 0);
-    uint32_t value = std::stoul(operand_2,nullptr , 0);
-    return hw.single_proxied_write_register(proxy_addr, reg_addr, value);
+    uint32_t reg_addr = std::stoul(reg_addr_s, nullptr , 0);
+    uint32_t value = std::stoul(value_s, nullptr , 0);
+    resp["response_code"] = hw.single_proxied_write_register(proxy_addr, reg_addr, value);
+    return resp;
 }
 
 ///
 /// \param operand_1 Register address
 /// \param response Response object where the read result will be placed
 /// \return Success
-uint32_t command_processor::process_single_read_register(const std::string& operand_1, response &resp) {
-
-    uint32_t address = std::stoul(operand_1, nullptr, 0);
-    return hw.single_read_register(address, resp.body);
-}
-
-///
-/// \param operand_1 Comma delimited list of addresses to read from
-/// \param response Pointer to the response structure where the results of the read will be put
-/// \return Success
-uint32_t command_processor::process_bulk_read_register(const std::string& operand_1, response &resp) {
-    std::vector<uint32_t> read_adresses;
-
-    std::istringstream iss(operand_1);
-    std::string token;
-    while (std::getline(iss, token, ','))
-    {
-        read_adresses.push_back(std::stoul(token, nullptr, 0));
-    }
-    return hw.bulk_read_register(read_adresses, resp.body);
+nlohmann::json command_processor::process_single_read_register(nlohmann::json &arguments) {
+    std::string reg_addr_s = arguments;
+    uint32_t address = std::stoul(reg_addr_s, nullptr, 0);
+    return hw.single_read_register(address);
 }
 
 ///
 /// \param Operand number of buffers to captire
 /// \return Success
-uint32_t command_processor::process_start_capture(const std::string& operand) {
-    uint32_t n_buffers = std::stoul(operand, nullptr, 0);
-    return hw.start_capture(n_buffers);
+nlohmann::json command_processor::process_start_capture(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::string n_buffers_s = arguments[0];
+    uint32_t n_buffers = std::stoul(n_buffers_s, nullptr, 0);
+    resp["response_code"] = hw.start_capture(n_buffers);
+    return resp;
 }
 
 ///
 /// \param response Pointer to the structure where the data will eventually be put
 /// \return Either success of failure depending on if the data is actually ready
-uint32_t command_processor::process_read_data(response &resp) {
+nlohmann::json command_processor::process_read_data() {
+    nlohmann::json resp;
     std::vector<float> flt_data;
-    int ret = hw.read_data(flt_data);
-    std::copy(flt_data.begin(), flt_data.end(), std::back_inserter(resp.body));
-    return  ret;
+    resp["response_code"] = hw.read_data(flt_data);
+    resp["data"] = flt_data;
+    return resp;
 }
 
 ///
 /// \param Response pointer to the response_t structure where the result of the check will be put
 /// \return Success
-uint32_t command_processor::process_check_capture_progress(response &resp) {
-    resp.body.push_back(hw.check_capture_progress());
-    return RESP_OK;
+nlohmann::json command_processor::process_check_capture_progress() {
+    nlohmann::json resp;
+    unsigned int progress;
+    resp["response_code"] = hw.check_capture_progress(progress);
+    resp["data"] = progress;
+    return resp;
 }
 
 ///
 /// \param operand_1 address of the fCore Instance to program
 /// \param operand_2 comma delimited list of instructions in the program
 /// \return Success
-uint32_t command_processor::process_apply_program(const std::string &operand_1, const std::string &operand_2) {
-
-    uint32_t address = std::stoul(operand_1,nullptr , 0);
-
-    std::istringstream iss(operand_2);
-    std::string token;
-    std::vector<uint32_t> program;
-    while (std::getline(iss, token, ',')) {
-        uint32_t instruction = std::stoul(token, nullptr, 0);
-        program.push_back(instruction);
-    }
-
-    return hw.apply_program(address, program);
+nlohmann::json command_processor::process_apply_program(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    uint32_t address = arguments["address"];
+    std::vector<uint32_t> program = arguments["program"];
+    resp["response_code"] = hw.apply_program(address, program);
+    return resp;
 }
 
 
 ///
 /// \param operand_2 comma delimited list of channel widths
 /// \return Success
-uint32_t command_processor::process_set_widths(const std::string &operand_1) {
-
-    std::istringstream iss(operand_1);
-    std::string token;
-    std::vector<uint32_t> widths;
-    while (std::getline(iss, token, ',')) {
-        uint32_t w = std::stoul(token, nullptr, 0);
-        widths.push_back(w);
-    }
-    hw.set_channel_widths(widths);
-    return 0;
+nlohmann::json command_processor::process_set_widths(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::vector<uint32_t> widths = arguments;
+    resp["response_code"] = hw.set_channel_widths(widths);
+    return resp;
 }
 
-uint32_t command_processor::process_set_scaling_factors(const std::string &operand_1) {
-    std::istringstream iss(operand_1);
-    std::string token;
-    std::vector<float> sfs;
-    while (std::getline(iss, token, ',')) {
-        float w = std::stof(token);
-        sfs.push_back(w);
-    }
-    hw.set_scaling_factors(sfs);
-    return 0;
+nlohmann::json  command_processor::process_set_scaling_factors(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::vector<float> sfs = arguments;
+    resp["response_code"] = hw.set_scaling_factors(sfs);
+    return resp;
 }
 
 
 void command_processor::stop_scope() {
     hw.stop_scope();
+}
+
+nlohmann::json command_processor::process_null() {
+    nlohmann::json resp;
+    resp["response_code"] = RESP_OK;
+    return resp;
 }

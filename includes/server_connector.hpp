@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <sstream>
 
+#include "json.hpp"
+
 #include "command_processor.hpp"
 #include "response.hpp"
 
@@ -37,8 +39,7 @@ public:
     void start_server();
     void process_connection(int connection_fd);
 
-    void send_response(response &resp, int connection_fd);
-    static command parse_raw_command(const std::string& received_str);
+    void send_response(nlohmann::json &resp, int connection_fd);
     void stop_server();
     ~server_connector();
     int sockfd;

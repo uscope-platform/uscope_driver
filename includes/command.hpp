@@ -44,11 +44,6 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_SINGLE_REGISTER_READ 4
 
-/// Read from multiple registers in bulk
-/// FORMAT: C_BULK_REGISTER_READ address_1, address_2,...
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_BULK_REGISTER_READ 5
-
 /// Start capture mode
 /// FORMAT: C_START_CAPTURE n_buffers
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
@@ -88,21 +83,12 @@
 #define C_SET_SCALING_FACTORS 12
 
 
-
-class command {
-public:
-    uint32_t opcode = C_NULL_COMMAND; /// opcode that indicates what type of command has been sent
-    std::string operand_1; /// first command specific data field
-    std::string operand_2; /// second command specific data field
-};
-
 static std::unordered_map<uint32_t , std::string> command_map = {
         {0, "C_NULL_COMMAND"},
         {1, "C_LOAD_BITSTREAM"},
         {2, "C_SINGLE_REGISTER_WRITE"},
         {3, "C_BULK_REGISTER_WRITE"},
         {4, "C_SINGLE_REGISTER_READ"},
-        {5, "C_BULK_REGISTER_READ"},
         {6, "C_START_CAPTURE"},
         {7, "C_PROXIED_WRITE"},
         {8, "C_READ_DATA"},

@@ -32,7 +32,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
-    ch_data = {};
+
     log_enabled = log;
     debug_mode = emulate_control;
     emulate_scope = es;
@@ -112,27 +112,25 @@ void scope_thread::read_data_debug(std::vector<float> &data_vector) {
 }
 
 void scope_thread::read_data_hw(std::vector<float> &data_vector) {
-    for(int i = 0; i<6; i++){
-        ch_data[i].clear();
-    }
     read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
-    shunt_data(dma_buffer);
+    std::array<std::vector<float>, 6> ch_data = shunt_data(dma_buffer);
     for(int i = 0; i< 6; i++){
         data_vector.insert(data_vector.end(), ch_data[i].begin(), ch_data[i].end());
     }
 }
 
 
-void scope_thread::shunt_data(const volatile int32_t * buffer_in) {
-    std::vector<uint32_t> tmp_data;
+std::array<std::vector<float>, 6> scope_thread::shunt_data(const volatile int32_t * buffer_in) {
+    std::array<std::vector<float>, 6> ret_data;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
         unsigned int sample_size = channel_sizes[channel_base];
 
         float data_sample = scale_data(buffer_in[i],sample_size, scaling_factors[channel_base]);
 
-        ch_data[channel_base].push_back(data_sample);
+        ret_data[channel_base].push_back(data_sample);
     }
+    return ret_data;
 }
 
 float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor) {

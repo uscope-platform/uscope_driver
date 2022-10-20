@@ -24,20 +24,20 @@ class command_processor {
 public:
     explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     void stop_scope();
-    response process_command(const command& c);
+    nlohmann::json process_command(uint32_t command, nlohmann::json &arguments);
 
 private:
-    uint32_t process_load_bitstream(const std::string& bitstream_name);
-    uint32_t process_single_write_register(const std::string& operand_1);
-    uint32_t process_proxied_single_write_register(const std::string& operand_1, const std::string& operand_2);
-    uint32_t process_single_read_register(const std::string& operand_1, response &resp);
-    uint32_t process_bulk_read_register(const std::string& operand_1, response &resp);
-    uint32_t process_start_capture(const std::string& operand);
-    uint32_t process_read_data(response &resp);
-    uint32_t process_check_capture_progress(response &resp);
-    uint32_t process_apply_program(const std::string& operand_1, const std::string& operand_2);
-    uint32_t process_set_widths(const std::string &operand_1);
-    uint32_t process_set_scaling_factors(const std::string &operand_1);
+    nlohmann::json process_null();
+    nlohmann::json process_load_bitstream(nlohmann::json &arguments);
+    nlohmann::json process_single_write_register( nlohmann::json &arguments);
+    nlohmann::json process_proxied_single_write_register(nlohmann::json &arguments);
+    nlohmann::json process_single_read_register(nlohmann::json &arguments);
+    nlohmann::json process_start_capture(nlohmann::json &arguments);
+    nlohmann::json process_read_data();
+    nlohmann::json process_check_capture_progress();
+    nlohmann::json process_apply_program(nlohmann::json &arguments);
+    nlohmann::json process_set_widths(nlohmann::json &arguments);
+    nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
 
     fpga_bridge hw;
     bool logging_enabled;

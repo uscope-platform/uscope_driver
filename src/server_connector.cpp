@@ -108,46 +108,21 @@ void server_connector::process_connection(int connection_fd) {
     }
     while (rec < command_length);
 
-    command c = parse_raw_command(const_cast<char *>(command_str.c_str()));
+    nlohmann::json command_obj = nlohmann::json::parse(command_str);
 
-    response resp = core_processor.process_command(c);
-
+    uint32_t command = command_obj["cmd"];
+    auto arguments = command_obj["args"];
+    nlohmann::json resp = core_processor.process_command(command, arguments);
     send_response(resp, connection_fd);
 
 }
 
-void server_connector::send_response(response &resp, int connection_fd) {
+void server_connector::send_response(nlohmann::json &resp, int connection_fd) {
 
-    uint16_t body_present;
-    if(!resp.body.empty()) body_present = 1;
-    else body_present = 0;
-
-    uint16_t raw_response_header[3] = {resp.opcode, resp.return_code,body_present};
-    send(connection_fd, &raw_response_header[0],3*sizeof(uint16_t), 0);
-    if(body_present){
-        uint64_t response_size = resp.body.size()*sizeof(uint32_t);
-        char* raw_response_size = (char *) &response_size;
-        write(connection_fd, raw_response_size, sizeof(uint64_t));
-        send(connection_fd,&resp.body[0], response_size,0);
-    }
-}
-
-/// This helper function parses the received commands.
-/// Each command is constructed of three space delimited strings: OPCODE OPERAND_1 and OPERAND_2
-/// the opcode is a simple integer number that defines the type of command, while the two operands are command dependent
-/// data fields.
-/// \param received_string C string that contains the raw command
-/// \return Structure containing the parsed command content
-command server_connector::parse_raw_command(const std::string& received_str) {
-    command parsed_command;
-    std::istringstream rec_stream(received_str);
-    std::string opcode;
-    rec_stream >> opcode;
-    parsed_command.opcode =  strtol(opcode.c_str(), nullptr, 0);
-    rec_stream >> parsed_command.operand_1;
-    rec_stream >> parsed_command.operand_2;
-
-    return parsed_command;
+    std::string resp_string = to_string(resp);
+    uint32_t response_length = htonl( resp_string.size());
+    send(connection_fd, &response_length, sizeof(uint32_t), MSG_CONFIRM);
+    send(connection_fd,resp_string.c_str(), resp_string.size(),MSG_CONFIRM);
 }
 
 server_connector::~server_connector() {

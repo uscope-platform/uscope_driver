@@ -72,7 +72,7 @@ public:
 private:
     void read_data_hw(std::vector<float> &data_vector);
     void read_data_debug(std::vector<float> &data_vector);
-    void shunt_data(const volatile int32_t * buffer_in);
+    std::array<std::vector<float>, 6> shunt_data(const volatile int32_t * buffer_in);
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor);
 
     std::vector<uint32_t> channel_sizes;
@@ -87,7 +87,6 @@ private:
     volatile int32_t* dma_buffer;  ///mmapped buffer
     volatile uint32_t fd_data; /// Scope driver file descriptor
     std::array<uint32_t, 6*1024> captured_data;
-    std::array<std::vector<float>, 6> ch_data;
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffer;

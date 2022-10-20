@@ -106,9 +106,8 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 /// \param address Address to write to
 /// \param value Value to write
 /// \return #RESP_OK
-int fpga_bridge::single_write_register(const std::string& write_obj_s) {
-    nlohmann::json write_obj;
-    write_obj = nlohmann::json::parse(write_obj_s);
+int fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
+
     if(write_obj["type"] == "direct"){
         if(log_enabled) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
         
@@ -116,7 +115,7 @@ int fpga_bridge::single_write_register(const std::string& write_obj_s) {
     } else if(write_obj["type"] == "proxied") {
         if(write_obj["proxy_type"] == "rtcu"){
             uint32_t proxy_addr = write_obj["proxy_address"];
-            if(log_enabled) std::cout << "WRITE SINGLE REGISTER (RTCU PROXIED) : proxy_addr "<< std::hex<< write_obj<<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+            if(log_enabled) std::cout << "WRITE SINGLE REGISTER (RTCU PROXIED) : proxy_addr "<< std::hex<< write_obj["proxy_address"]<<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
             registers[register_address_to_index(proxy_addr)] = write_obj["value"];
             registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
         } else if(write_obj["proxy_type"] == "axis_const"){
@@ -139,50 +138,16 @@ int fpga_bridge::single_write_register(const std::string& write_obj_s) {
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put
 /// \return #RESP_OK
-int fpga_bridge::single_read_register(uint32_t address,  std::vector<uint32_t> &value) {
-    uint32_t int_value;
+nlohmann::json fpga_bridge::single_read_register(uint32_t address) {
+    nlohmann::json response_body;
     if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
     if(debug_mode) {
-        int_value = rand() % 32767;
+        response_body["data"] = rand() % 32767;
     } else{
-        int_value = registers[register_address_to_index(address)];
+        response_body["data"] = registers[register_address_to_index(address)];
     }
-
-    value.push_back(int_value);
-
-    return RESP_OK;
-}
-
-/// Write to multiple register in a single "Transaction"
-/// \param address Pointer to the array of addresses to write to
-/// \param value Pointer to the array of values to write
-/// \param n_registers Number of registers to write
-/// \return #RESP_OK
-int fpga_bridge::bulk_write_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
-    if(log_enabled) std::cout << "WRITE BULK REGISTERS"<<std::endl;
-
-    for(int i=0;i< address.size(); i++){
-        uint32_t current_addr = register_address_to_index(address[i]);
-        registers[current_addr] = value[i];
-    }
-
-    return RESP_OK;
-}
-
-/// Read multiple addresses in a single "Transaction"
-/// \param address Pointer to the array of addresses to write to
-/// \param value Pointer to the array of values to write
-/// \param n_registers Number of registers to write
-/// \return #RESP_OK
-int fpga_bridge::bulk_read_register(std::vector<uint32_t> address, std::vector<uint32_t> value) {
-    if(log_enabled) std::cout << "READ BULK REGISTERS"<<std::endl;
-
-    for(unsigned int addr : address){
-        uint32_t current_addr = register_address_to_index(addr);
-        uint32_t int_value = registers[current_addr];
-        value.push_back(int_value);
-    }
-    return RESP_OK;
+    response_body["response_code"] = RESP_OK;
+    return response_body;
 }
 
 ///  Start scope data capture
@@ -232,8 +197,9 @@ uint32_t fpga_bridge::register_address_to_index(uint32_t address) {
     return (address - REGISTERS_BASE_ADDR) / 4;
 }
 
-unsigned int fpga_bridge::check_capture_progress() {
-    return scope_handler.check_capture_progress();
+int fpga_bridge::check_capture_progress(unsigned int &progress) {
+    progress = scope_handler.check_capture_progress();
+    return RESP_OK;
 }
 
 /// Set the channel widths for sign extension
@@ -272,7 +238,7 @@ int fpga_bridge::set_scaling_factors(std::vector<float> sfs) {
     if(log_enabled){
         std::cout << "SET_SCALING_FACTORS: ";
         for(auto &s:sfs){
-            std::cout << std::to_string(sfs[0]) << " ";
+            std::cout << std::to_string(s) << " ";
         }
         std::cout << std::endl;
     }
