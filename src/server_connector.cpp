@@ -119,10 +119,12 @@ void server_connector::process_connection(int connection_fd) {
 
 void server_connector::send_response(nlohmann::json &resp, int connection_fd) {
 
-    std::string resp_string = to_string(resp);
-    uint32_t response_length = htonl( resp_string.size());
+    std::vector<std::uint8_t> binary_response = nlohmann::json::to_msgpack(resp);
+
+    uint32_t response_length = htonl( binary_response.size());
     send(connection_fd, &response_length, sizeof(uint32_t), MSG_CONFIRM);
-    send(connection_fd,resp_string.c_str(), resp_string.size(),MSG_CONFIRM);
+    auto raw_data = reinterpret_cast<const char*>(binary_response.data());
+    send(connection_fd,raw_data, binary_response.size(),MSG_CONFIRM);
 }
 
 server_connector::~server_connector() {
