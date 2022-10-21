@@ -41,14 +41,14 @@ void sigbus_handler(int dummy);
 class fpga_bridge {
 public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
-    int load_bitstream(const std::string& bitstream);
-    int single_write_register(const nlohmann::json &write_obj);
+    responses::response_code load_bitstream(const std::string& bitstream);
+    responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint32_t address);
-    int start_capture(uint32_t n_buffers);
-    int read_data(std::vector<float> &read_data);
-    int apply_program(uint32_t address, std::vector<uint32_t> program);
-    int set_channel_widths( std::vector<uint32_t> widths);
-    int set_scaling_factors( std::vector<float> sfs);
+    responses::response_code start_capture(uint32_t n_buffers);
+    responses::response_code read_data(std::vector<float> &read_data);
+    responses::response_code apply_program(uint32_t address, std::vector<uint32_t> program);
+    responses::response_code set_channel_widths( std::vector<uint32_t> widths);
+    responses::response_code set_scaling_factors( std::vector<float> sfs);
 
     int check_capture_progress(unsigned int &progress);
     void stop_scope();

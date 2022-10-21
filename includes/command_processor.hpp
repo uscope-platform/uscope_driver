@@ -24,7 +24,7 @@ class command_processor {
 public:
     explicit command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     void stop_scope();
-    nlohmann::json process_command(uint32_t command, nlohmann::json &arguments);
+    nlohmann::json process_command(commands::command_code command, nlohmann::json &arguments);
 
 private:
     nlohmann::json process_null();

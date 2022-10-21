@@ -77,7 +77,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
-int fpga_bridge::load_bitstream(const std::string& bitstream) {
+responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
     if(log_enabled) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
     if(!debug_mode){
@@ -92,13 +92,13 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
             if(log_enabled) std::cout << command << std::endl;
 
             system(command.c_str());
-            return RESP_OK;
+            return responses::ok;
         } else {
             std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
-            return RESP_ERR_BITSTREAM_NOT_FOUND;
+            return responses::bitstream_not_found;
         }
     } else{
-        return RESP_OK;
+        return responses::ok;
     }
 }
 
@@ -106,7 +106,7 @@ int fpga_bridge::load_bitstream(const std::string& bitstream) {
 /// \param address Address to write to
 /// \param value Value to write
 /// \return #RESP_OK
-int fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
+responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
     if(write_obj["type"] == "direct"){
         if(log_enabled) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
@@ -128,7 +128,7 @@ int fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
         throw std::runtime_error("ERROR: Unrecognised register write type");
     }
 
-    return RESP_OK;
+    return responses::ok;
 }
 
 
@@ -146,29 +146,29 @@ nlohmann::json fpga_bridge::single_read_register(uint32_t address) {
     } else{
         response_body["data"] = registers[register_address_to_index(address)];
     }
-    response_body["response_code"] = RESP_OK;
+    response_body["response_code"] = responses::as_integer(responses::ok);
     return response_body;
 }
 
 ///  Start scope data capture
 /// \param n_buffers Number of buffers to capture
 /// \return #RESP_OK
-int fpga_bridge::start_capture(uint32_t n_buffers) {
+responses::response_code fpga_bridge::start_capture(uint32_t n_buffers) {
     if(log_enabled) std::cout << "START CAPTURE: n_buffers "<< n_buffers<<std::endl;
     scope_handler.start_capture(n_buffers);
-    return RESP_OK;
+    return responses::ok;
 }
 
 
 /// Read scope data if ready
 /// \param read_data pointer to the array the data will be put in
 /// \return #RESP_OK if data is ready #RESP_DATA_NOT_READY otherwise
-int fpga_bridge::read_data(std::vector<float> &read_data) {
+responses::response_code fpga_bridge::read_data(std::vector<float> &read_data) {
     if(debug_mode){
         if(log_enabled) std::cout << "READ DATA" << std::endl;
     }  
     scope_handler.read_data(read_data);
-    return RESP_OK;
+    return responses::ok;
 }
 
 ///  Helper function converting byte aligned addresses to array indices
@@ -187,7 +187,7 @@ uint32_t fpga_bridge::register_address_to_index(uint32_t address) {
 
 int fpga_bridge::check_capture_progress(unsigned int &progress) {
     progress = scope_handler.check_capture_progress();
-    return RESP_OK;
+    return responses::ok;
 }
 
 /// Set the channel widths for sign extension
@@ -201,7 +201,7 @@ void fpga_bridge::stop_scope() {
 /// \param address Address of the fCore instance
 /// \param program Vector with the instructions of the program to load
 /// \return #RESP_OK
-int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
+responses::response_code fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << std::hex << address << " program_size: "<< std::dec << program.size()<<std::endl;
     uint32_t offset = (address - FCORE_BASE_ADDR)/4;
 
@@ -209,20 +209,20 @@ int fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) 
         for(int i = 0; i< program.size(); i++)
             fCore[i+offset] = program[i];
     }
-    return 0;
+    return responses::ok;
 }
 
 /// Set the channel widths for sign extension
 /// \param widths list of channel widths
 /// \return #RESP_OK
-int fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
+responses::response_code fpga_bridge::set_channel_widths( std::vector<uint32_t> widths) {
     if(log_enabled)
         std::cout << "SET_CHANNEL_WIDTHS:"<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
     scope_handler.set_channel_widths(widths);
-    return RESP_OK;
+    return responses::ok;
 }
 
-int fpga_bridge::set_scaling_factors(std::vector<float> sfs) {
+responses::response_code fpga_bridge::set_scaling_factors(std::vector<float> sfs) {
     if(log_enabled){
         std::cout << "SET_SCALING_FACTORS: ";
         for(auto &s:sfs){
@@ -231,5 +231,5 @@ int fpga_bridge::set_scaling_factors(std::vector<float> sfs) {
         std::cout << std::endl;
     }
     scope_handler.set_scaling_factors(sfs);
-    return RESP_OK;
+    return responses::ok;
 }

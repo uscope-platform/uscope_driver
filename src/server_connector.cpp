@@ -114,9 +114,9 @@ void server_connector::process_connection(int connection_fd) {
 
     nlohmann::json command_obj = nlohmann::json::parse(command_str);
     std::string error_message;
-    if(!json_specs::validate_schema(command_obj, json_specs::command, error_message)){
+    if(!commands::validate_schema(command_obj, commands::command, error_message)){
         nlohmann::json resp;
-        resp["response_code"] = RESP_INVALID_COMMAND_SCHEMA;
+        resp["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
         resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
         send_response(resp, connection_fd);
         return;
@@ -124,7 +124,7 @@ void server_connector::process_connection(int connection_fd) {
 
     uint32_t command = command_obj["cmd"];
     auto arguments = command_obj["args"];
-    nlohmann::json resp = core_processor.process_command(command, arguments);
+    nlohmann::json resp = core_processor.process_command(static_cast<commands::command_code>(command), arguments);
     send_response(resp, connection_fd);
 
 }

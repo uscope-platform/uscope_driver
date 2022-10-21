@@ -23,46 +23,46 @@ command_processor::command_processor(const std::string &driver_file, unsigned in
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates
 /// the response structure that defines what will be sent back to the server.
 /// \param Command Command received from the uscope_server
-nlohmann::json command_processor::process_command(uint32_t command, nlohmann::json &arguments) {
+nlohmann::json command_processor::process_command(commands::command_code command, nlohmann::json &arguments) {
 
     nlohmann::json response_obj;
-    response_obj["cmd"] = command;
+    response_obj["cmd"] = commands::as_integer(command);
 
 #ifdef VERBOSE_LOGGING
     if(logging_enabled){
-        std::cout << "Received command: " << command_map[command] << std::endl;
+        std::cout << "Received command: " << commands::commands_name_map[command] << std::endl;
     }
 #endif
 
     switch(command){
-        case C_NULL_COMMAND:
+        case commands::null:
             response_obj["body"] = process_null();
             break;
-        case C_LOAD_BITSTREAM:
+        case commands::load_bitstream:
             response_obj["body"] = process_load_bitstream(arguments);
             break;
-        case C_SINGLE_REGISTER_READ:
+        case commands::register_read:
             response_obj["body"] = process_single_read_register(arguments);
             break;
-        case C_SINGLE_REGISTER_WRITE:
+        case commands::register_write:
             response_obj["body"] = process_single_write_register(arguments);
             break;
-        case C_START_CAPTURE:
+        case commands::start_capture:
             response_obj["body"] = process_start_capture(arguments);
             break;
-        case C_READ_DATA:
+        case commands::read_data:
             response_obj["body"] = process_read_data();
             break;
-        case C_CHECK_CAPTURE_PROGRESS:
+        case commands::check_capture:
             response_obj["body"] = process_check_capture_progress();
             break;
-        case C_APPLY_PROGRAM:
+        case commands::apply_program:
             response_obj["body"] = process_apply_program(arguments);
             break;
-        case C_SET_CHANNEL_WIDTHS:
+        case commands::set_channel_widths:
             response_obj["body"] = process_set_widths(arguments);
             break;
-        case C_SET_SCALING_FACTORS:
+        case commands::set_scaling_factors:
             response_obj["body"] = process_set_scaling_factors(arguments);
             break;
     }
@@ -76,7 +76,7 @@ nlohmann::json command_processor::process_command(uint32_t command, nlohmann::js
 nlohmann::json command_processor::process_load_bitstream(nlohmann::json &arguments) {
     nlohmann::json resp;
     if(arguments.type() !=nlohmann::detail::value_t::string) {
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The load bitstream command must be a string";
         return resp;
     }
@@ -92,8 +92,8 @@ nlohmann::json command_processor::process_load_bitstream(nlohmann::json &argumen
 nlohmann::json command_processor::process_single_write_register(nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
-    if(!json_specs::validate_schema(arguments, json_specs::write_register, error_message)){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+    if(!commands::validate_schema(arguments, commands::write_register, error_message)){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Invalid arguments for the write register command\n"+ error_message;
         return resp;
     }
@@ -108,7 +108,7 @@ nlohmann::json command_processor::process_single_write_register(nlohmann::json &
 nlohmann::json command_processor::process_single_read_register(nlohmann::json &arguments) {
     if(!arguments.is_number()){
         nlohmann::json resp;
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR:The argument for the single read register call must be a numeric value\n";
         return resp;
     }
@@ -156,8 +156,8 @@ nlohmann::json command_processor::process_check_capture_progress() {
 nlohmann::json command_processor::process_apply_program(nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
-    if(!json_specs::validate_schema(arguments, json_specs::load_program, error_message)){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+    if(!commands::validate_schema(arguments, commands::load_program, error_message)){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply program command\n"+ error_message;
         return resp;
     }
@@ -174,17 +174,17 @@ nlohmann::json command_processor::process_apply_program(nlohmann::json &argument
 nlohmann::json command_processor::process_set_widths(nlohmann::json &arguments) {
     nlohmann::json resp;
     if(arguments.type() != nlohmann::detail::value_t::array){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The argument for the set channel widths command must be an array\n";
         return resp;
     }
     if(arguments.empty()){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the set channel widths can not be an empty array\n";
         return resp;
     }
     if(!std::all_of(arguments.begin(), arguments.end(), [](const nlohmann::json& el){ return el.is_number(); })){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the set channel widths command must be numeric values\n";
         return resp;
     }
@@ -196,17 +196,17 @@ nlohmann::json command_processor::process_set_widths(nlohmann::json &arguments) 
 nlohmann::json  command_processor::process_set_scaling_factors(nlohmann::json &arguments) {
     nlohmann::json resp;
     if(arguments.type() != nlohmann::detail::value_t::array){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The argument for the set scaling factor command must be an array\n";
         return resp;
     }
     if(arguments.empty()){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the set scaling factor command can not be an empty array\n";
         return resp;
     }
     if(!std::all_of(arguments.begin(), arguments.end(), [](const nlohmann::json& el){ return el.is_number(); })){
-        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the set scaling factor command must be numeric values\n";
         return resp;
     }
@@ -222,6 +222,6 @@ void command_processor::stop_scope() {
 
 nlohmann::json command_processor::process_null() {
     nlohmann::json resp;
-    resp["response_code"] = RESP_OK;
+    resp["response_code"] = responses::ok;
     return resp;
 }

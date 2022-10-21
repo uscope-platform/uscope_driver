@@ -20,84 +20,45 @@
 #include <string>
 #include <unordered_map>
 
-/// Command with no effects
-/// EXPECTED RESPONSE TYPE: #RESP_NOT_NEEDED
-#define C_NULL_COMMAND 0
-
-/// Load a bitstream by name
-/// FORMAT: C_LOAD_BITSTREAM name
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_LOAD_BITSTREAM 1
-
-/// Write to a single register
-/// FORMAT: C_SINGLE_REGISTER_WRITE address value
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_SINGLE_REGISTER_WRITE 2
-
-/// Write to multiple registers in bulk
-/// FORMAT: C_BULK_REGISTER_WRITE address_1, address_2,... value_1, value_2,...
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_BULK_REGISTER_WRITE 3
-
-/// Read from a single register
-/// FORMAT: C_SINGLE_REGISTER_READ address
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_SINGLE_REGISTER_READ 4
-
-/// Start capture mode
-/// FORMAT: C_START_CAPTURE n_buffers
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_START_CAPTURE 6
-
-
-/// Read captured data
-/// FORMAT: C_READ_DATA
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_OUTBAND
-#define C_READ_DATA 8
-
-/// Check how many buffers are there left to capture
-/// FORMAT: C_CHECK_CAPTURE_PROGRESS
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_CHECK_CAPTURE_PROGRESS 9
-
-
-/// Set the size of each channel in bits
-/// FORMAT: C_SET_CHANNEL_WIDTHS ch_1_width,ch2_width,...
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_SET_CHANNEL_WIDTHS 10
-
-
-/// Load a program into the specified fCore instance memory
-/// FORMAT: C_APPLY_PROGRAM fCore_address program_instruction_1, program_instruction_2, ...
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_APPLY_PROGRAM 11
-
-
-/// Set the size of each channel in bits
-/// FORMAT: C_SET_SCALING_FACTORS ch_1_sf,ch_1_sf,...
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_SET_SCALING_FACTORS 12
-
-
-static std::unordered_map<uint32_t , std::string> command_map = {
-        {0, "C_NULL_COMMAND"},
-        {1, "C_LOAD_BITSTREAM"},
-        {2, "C_SINGLE_REGISTER_WRITE"},
-        {3, "C_BULK_REGISTER_WRITE"},
-        {4, "C_SINGLE_REGISTER_READ"},
-        {6, "C_START_CAPTURE"},
-        {8, "C_READ_DATA"},
-        {9, "C_CHECK_CAPTURE_PROGRESS"},
-        {10, "C_SET_CHANNEL_WIDTHS"},
-        {11, "C_APPLY_PROGRAM"},
-        {12, "C_SET_SCALING_FACTORS"}
-
-};
-
 
 #include <nlohmann/json-schema.hpp>
 
-namespace json_specs {
+namespace commands {
+
+    typedef enum {
+        null = 0,
+        load_bitstream = 1,
+        register_write = 2,
+        register_read = 4,
+        start_capture = 6,
+        read_data = 8,
+        check_capture = 9,
+        set_channel_widths=10,
+        apply_program=11,
+        set_scaling_factors = 12
+
+    } command_code;
+
+    template <typename command_code>
+    auto as_integer(command_code const value)
+    -> typename std::underlying_type<command_code>::type
+    {
+        return static_cast<typename std::underlying_type<command_code>::type>(value);
+    }
+
+
+    static std::unordered_map<command_code, std::string> commands_name_map = {
+        {null, "C_NULL_COMMAND"},
+        {load_bitstream, "C_LOAD_BITSTREAM"},
+        {register_write, "C_SINGLE_REGISTER_WRITE"},
+        {register_read, "C_SINGLE_REGISTER_READ"},
+        {start_capture, "C_START_CAPTURE"},
+        {read_data, "C_READ_DATA"},
+        {check_capture, "C_CHECK_CAPTURE_PROGRESS"},
+        {set_channel_widths, "C_SET_CHANNEL_WIDTHS"},
+        {apply_program, "C_APPLY_PROGRAM"},
+        {set_scaling_factors, "C_SET_SCALING_FACTORS"}
+    };
 
     static nlohmann::json command = R"(
     {

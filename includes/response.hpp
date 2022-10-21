@@ -19,14 +19,22 @@
 #include <cstdint>
 #include <vector>
 
-#define RESP_NULL_COMMAND 0;
 
-/// This response is issued when the command action has been performed successfully
-#define RESP_OK 1
-/// The bitstream file specified for the load bitstream command was not found
-#define RESP_ERR_BITSTREAM_NOT_FOUND 2
+namespace responses {
 
-#define RESP_INVALID_COMMAND_SCHEMA 3
-#define RESP_INVALID_ARGUMENT 4
+    typedef enum {
+        ok = 1,
+        bitstream_not_found = 2,
+        invalid_cmd_schema = 3,
+        invalid_arg = 4
+    } response_code;
+
+    template<typename response_code>
+    auto as_integer(response_code const value)
+    -> typename std::underlying_type<response_code>::type {
+        return static_cast<typename std::underlying_type<response_code>::type>(value);
+    }
+
+}
 
 #endif //USCOPE_DRIVER_RESPONSE_HPP
