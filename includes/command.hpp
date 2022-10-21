@@ -119,9 +119,24 @@ namespace json_specs {
                 ]
             },
             "args": {
-                "type": "object",
-                "default": {},
-                "title": "Relevant arguments for the specified command"
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "title": "Relevant arguments for the specified command"
+                    },
+                    {
+                        "type": "string",
+                        "title": "Relevant arguments for the specified command"
+                    },
+                    {
+                        "type": "number",
+                        "title": "Relevant arguments for the specified command"
+                    },
+                    {
+                        "type": "array",
+                        "title": "Relevant arguments for the specified command"
+                    }
+                  ]
             }
         },
         "required": [
@@ -130,7 +145,6 @@ namespace json_specs {
         ],
         "type": "object"
     }
-
     )"_json;
 }
 
