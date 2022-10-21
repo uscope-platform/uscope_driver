@@ -26,5 +26,6 @@
 /// The bitstream file specified for the load bitstream command was not found
 #define RESP_ERR_BITSTREAM_NOT_FOUND 2
 
+#define RESP_INVALID_COMMAND_SCHEMA 3
 
 #endif //USCOPE_DRIVER_RESPONSE_HPP

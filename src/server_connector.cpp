@@ -35,6 +35,10 @@ server_connector::server_connector(int port, const std::string &driver_file, uns
         exit(0);
     }
 
+
+    int optval = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -109,6 +113,14 @@ void server_connector::process_connection(int connection_fd) {
     while (rec < command_length);
 
     nlohmann::json command_obj = nlohmann::json::parse(command_str);
+    std::string error_message;
+    if(!validate_command(command_obj, json_specs::command, error_message)){
+        nlohmann::json resp;
+        resp["return_code"] = RESP_INVALID_COMMAND_SCHEMA;
+        resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
+        send_response(resp, connection_fd);
+        return;
+    }
 
     uint32_t command = command_obj["cmd"];
     auto arguments = command_obj["args"];
@@ -135,5 +147,20 @@ void server_connector::stop_server() {
     core_processor.stop_scope();
     server_stop_req = true;
 }
+
+bool server_connector::validate_command(nlohmann::json &cmd, nlohmann::json &schema, std::string &error) {
+
+
+    nlohmann::json_schema::json_validator validator;
+    try {
+        validator.set_root_schema(schema);
+        validator.validate(cmd);
+    } catch (const std::exception &e) {
+        error = e.what();
+        return false;
+    }
+    return true;
+}
+
 
 

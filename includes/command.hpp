@@ -101,4 +101,38 @@ static std::unordered_map<uint32_t , std::string> command_map = {
 };
 
 
+#include <nlohmann/json-schema.hpp>
+
+namespace json_specs {
+
+    static nlohmann::json command = R"(
+    {
+        "$schema": "https://json-schema.org/draft/2019-09/schema",
+        "title": "Command Schema",
+        "properties": {
+            "cmd": {
+                "type": "integer",
+                "default": 0,
+                "title": "The cmd Schema",
+                "examples": [
+                    1
+                ]
+            },
+            "args": {
+                "type": "object",
+                "default": {},
+                "title": "Relevant arguments for the specified command"
+            }
+        },
+        "required": [
+            "cmd",
+            "args"
+        ],
+        "type": "object"
+    }
+
+    )"_json;
+}
+
+
 #endif //USCOPE_DRIVER_COMMAND_HPP

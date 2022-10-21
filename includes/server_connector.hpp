@@ -37,11 +37,12 @@ class server_connector {
 public:
     server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log);
     void start_server();
-    void process_connection(int connection_fd);
-
-    void send_response(nlohmann::json &resp, int connection_fd);
     void stop_server();
     ~server_connector();
+private:
+    void send_response(nlohmann::json &resp, int connection_fd);
+    void process_connection(int connection_fd);
+    bool validate_command(nlohmann::json &cmd, nlohmann::json &schema, std::string &error);
     int sockfd;
     command_processor core_processor;
     bool logging;
