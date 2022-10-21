@@ -49,7 +49,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
             exit(1);
         }
 
-        registers = (uint32_t*) mmap(nullptr, 8*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
+        registers = (uint32_t*) mmap(nullptr, 10*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
