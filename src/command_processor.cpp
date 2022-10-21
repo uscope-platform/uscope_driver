@@ -50,9 +50,6 @@ nlohmann::json command_processor::process_command(uint32_t command, nlohmann::js
         case C_START_CAPTURE:
             response_obj["body"] = process_start_capture(arguments);
             break;
-        case C_PROXIED_WRITE:
-            response_obj["body"] = process_proxied_single_write_register(arguments);
-            break;
         case C_READ_DATA:
             response_obj["body"] = process_read_data();
             break;
@@ -101,23 +98,6 @@ nlohmann::json command_processor::process_single_write_register(nlohmann::json &
         return resp;
     }
     resp["response_code"] = hw.single_write_register(arguments);
-    return resp;
-}
-
-///
-/// \param operand_1 Comma delimited list of address pairs to write to (comprised of address of the proxy and address to write)
-/// \param operand_2 Value to write
-/// \return Success
-nlohmann::json command_processor::process_proxied_single_write_register(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    std::string proxy_addr_s = arguments[0];
-    std::string reg_addr_s =  arguments[1];
-    std::string value_s = arguments[2];
-
-    uint32_t proxy_addr = std::stoul(proxy_addr_s, nullptr, 0);
-    uint32_t reg_addr = std::stoul(reg_addr_s, nullptr , 0);
-    uint32_t value = std::stoul(value_s, nullptr , 0);
-    resp["response_code"] = hw.single_proxied_write_register(proxy_addr, reg_addr, value);
     return resp;
 }
 

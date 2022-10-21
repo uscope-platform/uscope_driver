@@ -45,7 +45,6 @@ public:
     int single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint32_t address);
     int start_capture(uint32_t n_buffers);
-    int single_proxied_write_register(uint32_t proxy_address,uint32_t reg_address, uint32_t value);
     int read_data(std::vector<float> &read_data);
     int apply_program(uint32_t address, std::vector<uint32_t> program);
     int set_channel_widths( std::vector<uint32_t> widths);

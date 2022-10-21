@@ -49,10 +49,6 @@
 /// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
 #define C_START_CAPTURE 6
 
-/// Write to a register through a Proxy
-/// FORMAT: C_PROXIED_WRITE proxy_address,register_address value
-/// EXPECTED RESPONSE TYPE: #RESP_TYPE_INBAND
-#define C_PROXIED_WRITE 7
 
 /// Read captured data
 /// FORMAT: C_READ_DATA
@@ -90,7 +86,6 @@ static std::unordered_map<uint32_t , std::string> command_map = {
         {3, "C_BULK_REGISTER_WRITE"},
         {4, "C_SINGLE_REGISTER_READ"},
         {6, "C_START_CAPTURE"},
-        {7, "C_PROXIED_WRITE"},
         {8, "C_READ_DATA"},
         {9, "C_CHECK_CAPTURE_PROGRESS"},
         {10, "C_SET_CHANNEL_WIDTHS"},

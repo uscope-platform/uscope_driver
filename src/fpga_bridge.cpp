@@ -159,18 +159,6 @@ int fpga_bridge::start_capture(uint32_t n_buffers) {
     return RESP_OK;
 }
 
-/// Write to a single address through a proxy
-/// \param proxy_address Address of the proxy
-/// \param reg_address Address of the register to write to
-/// \param value Value to write
-/// \return #RESP_OK
-int fpga_bridge::single_proxied_write_register(uint32_t proxy_address, uint32_t reg_address, uint32_t value) {
-    if(log_enabled)
-        std::cout << "WRITE SINGLE PROXIED REGISTER: proxy address "<< std::hex << proxy_address<<"   register address "<< std::hex <<reg_address<<"  value "<<std::dec<<value<<std::endl;
-    registers[register_address_to_index(proxy_address)] = value;
-    registers[register_address_to_index(proxy_address) + 1] = reg_address;
-    return RESP_OK;
-}
 
 /// Read scope data if ready
 /// \param read_data pointer to the array the data will be put in
