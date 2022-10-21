@@ -78,6 +78,11 @@ nlohmann::json command_processor::process_command(uint32_t command, nlohmann::js
 /// \return
 nlohmann::json command_processor::process_load_bitstream(nlohmann::json &arguments) {
     nlohmann::json resp;
+    if(arguments.type() !=nlohmann::detail::value_t::string) {
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The load bitstream command must be a string";
+        return resp;
+    }
     std::string bitstram_name = arguments;
     resp["response_code"] = hw.load_bitstream(bitstram_name);
     return resp;
@@ -89,6 +94,12 @@ nlohmann::json command_processor::process_load_bitstream(nlohmann::json &argumen
 /// \return Success
 nlohmann::json command_processor::process_single_write_register(nlohmann::json &arguments) {
     nlohmann::json resp;
+    std::string error_message;
+    if(!json_specs::validate_schema(arguments, json_specs::write_register, error_message)){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: Invalid arguments for the write register command\n"+ error_message;
+        return resp;
+    }
     resp["response_code"] = hw.single_write_register(arguments);
     return resp;
 }
@@ -115,8 +126,13 @@ nlohmann::json command_processor::process_proxied_single_write_register(nlohmann
 /// \param response Response object where the read result will be placed
 /// \return Success
 nlohmann::json command_processor::process_single_read_register(nlohmann::json &arguments) {
-    std::string reg_addr_s = arguments;
-    uint32_t address = std::stoul(reg_addr_s, nullptr, 0);
+    if(!arguments.is_number()){
+        nlohmann::json resp;
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR:The argument for the single read register call must be a numeric value\n";
+        return resp;
+    }
+    uint32_t address = arguments;
     return hw.single_read_register(address);
 }
 
@@ -159,6 +175,12 @@ nlohmann::json command_processor::process_check_capture_progress() {
 /// \return Success
 nlohmann::json command_processor::process_apply_program(nlohmann::json &arguments) {
     nlohmann::json resp;
+    std::string error_message;
+    if(!json_specs::validate_schema(arguments, json_specs::load_program, error_message)){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: Invalid arguments for the apply program command\n"+ error_message;
+        return resp;
+    }
     uint32_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
     resp["response_code"] = hw.apply_program(address, program);
@@ -171,6 +193,21 @@ nlohmann::json command_processor::process_apply_program(nlohmann::json &argument
 /// \return Success
 nlohmann::json command_processor::process_set_widths(nlohmann::json &arguments) {
     nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::array){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The argument for the set channel widths command must be an array\n";
+        return resp;
+    }
+    if(arguments.empty()){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The arguments for the set channel widths can not be an empty array\n";
+        return resp;
+    }
+    if(!std::all_of(arguments.begin(), arguments.end(), [](const nlohmann::json& el){ return el.is_number(); })){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The arguments for the set channel widths command must be numeric values\n";
+        return resp;
+    }
     std::vector<uint32_t> widths = arguments;
     resp["response_code"] = hw.set_channel_widths(widths);
     return resp;
@@ -178,6 +215,21 @@ nlohmann::json command_processor::process_set_widths(nlohmann::json &arguments) 
 
 nlohmann::json  command_processor::process_set_scaling_factors(nlohmann::json &arguments) {
     nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::array){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The argument for the set scaling factor command must be an array\n";
+        return resp;
+    }
+    if(arguments.empty()){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The arguments for the set scaling factor command can not be an empty array\n";
+        return resp;
+    }
+    if(!std::all_of(arguments.begin(), arguments.end(), [](const nlohmann::json& el){ return el.is_number(); })){
+        resp["response_code"] = RESP_INVALID_ARGUMENT;
+        resp["data"] = "DRIVER ERROR: The arguments for the set scaling factor command must be numeric values\n";
+        return resp;
+    }
     std::vector<float> sfs = arguments;
     resp["response_code"] = hw.set_scaling_factors(sfs);
     return resp;

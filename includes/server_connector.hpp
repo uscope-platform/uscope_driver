@@ -42,7 +42,6 @@ public:
 private:
     void send_response(nlohmann::json &resp, int connection_fd);
     void process_connection(int connection_fd);
-    bool validate_command(nlohmann::json &cmd, nlohmann::json &schema, std::string &error);
     int sockfd;
     command_processor core_processor;
     bool logging;

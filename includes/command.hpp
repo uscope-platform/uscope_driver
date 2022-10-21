@@ -95,7 +95,6 @@ static std::unordered_map<uint32_t , std::string> command_map = {
         {9, "C_CHECK_CAPTURE_PROGRESS"},
         {10, "C_SET_CHANNEL_WIDTHS"},
         {11, "C_APPLY_PROGRAM"},
-        {11, "C_APPLY_PROGRAM"},
         {12, "C_SET_SCALING_FACTORS"}
 
 };
@@ -146,6 +145,97 @@ namespace json_specs {
         "type": "object"
     }
     )"_json;
+
+    static nlohmann::json  load_program = R"(
+    {
+        "$schema": "https://json-schema.org/draft/2019-09/schema",
+        "title": "Load program schema",
+        "properties": {
+            "address": {
+                "type": "integer",
+                "title": "Address of the core to load"
+            },
+            "program": {
+                "type": "array",
+                "title": "Program to load",
+                "items": {
+                    "type": "integer"
+                }
+            }
+        },
+        "required": [
+            "address",
+            "program"
+        ],
+        "type": "object"
+    }
+    )"_json;
+
+    static nlohmann::json  write_register = R"(
+        {
+            "$schema": "https://json-schema.org/draft/2019-09/schema",
+            "title": "Write register schema",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "proxied",
+                        "direct"
+                    ],
+                    "title": "Type of register write"
+                },
+                "proxy_type": {
+                    "type": "string",
+                    "title": "Type of proxied write"
+                },
+                "proxy_address": {
+                    "type": "integer",
+                    "title": "Address of the write proxy"
+                },
+                "address": {
+                    "type": "integer",
+                    "title": "Address of the register to write to"
+                },
+                "value": {
+                    "type": "integer",
+                    "title": "Value to write to the desired register"
+                }
+            },
+            "required": [
+                "type",
+                "address",
+                "value"
+            ],
+            "type": "object",
+            "if": {
+                "properties": {
+                    "type": {
+                        "enum": [
+                            "proxied"
+                        ]
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "proxy_address",
+                    "proxy_type"
+                ]
+            }
+        }
+    )"_json;
+
+    static bool validate_schema(nlohmann::json &cmd, nlohmann::json &schema, std::string &error){
+        nlohmann::json_schema::json_validator validator;
+        try {
+            validator.set_root_schema(schema);
+            validator.validate(cmd);
+        } catch (const std::exception &e) {
+            error = e.what();
+            return false;
+        }
+        return true;
+    };
 }
 
 
