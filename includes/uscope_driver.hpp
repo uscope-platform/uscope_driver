@@ -17,7 +17,7 @@
 #define USCOPE_DIR_USCOPE_DRIVER_H
 
 
-#include "CLI11.hpp"
+#include <CLI/CLI.hpp>
 
 
 #include <csignal>

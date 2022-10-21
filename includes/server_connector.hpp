@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <sstream>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "command_processor.hpp"
 #include "response.hpp"

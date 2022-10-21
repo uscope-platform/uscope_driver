@@ -1,7 +1,29 @@
 cmake_minimum_required(VERSION 2.8.9)
-set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set (CMAKE_CXX_STANDARD 17)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
+include(FetchContent)
+
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json
+        GIT_TAG        v3.11.2
+)
+FetchContent_MakeAvailable(json)
+
+FetchContent_Declare(
+        json_schema
+        GIT_REPOSITORY https://github.com/pboettch/json-schema-validator
+        GIT_TAG       2.1.0
+)
+FetchContent_MakeAvailable(json_schema)
+
+FetchContent_Declare(
+        cli11
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11
+        GIT_TAG        v2.3.0
+)
+FetchContent_MakeAvailable(cli11)
 
 
 option(VERBOSE_LOGGING "Configure how verbose is the command line logging (1 for standard 2 for verbose)" OFF)
@@ -32,5 +54,4 @@ file(GLOB INC_SOURCES "includes/*.h*")
 project (uscope_driver)
 
 add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp includes/response.hpp includes/command.hpp)
-target_link_libraries(uscope_driver pthread)
-target_link_libraries(uscope_driver rt)
+target_link_libraries(uscope_driver PRIVATE pthread rt  nlohmann_json::nlohmann_json nlohmann_json_schema_validator CLI11::CLI11)

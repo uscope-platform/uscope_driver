@@ -26,7 +26,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "command.hpp"
 #include "response.hpp"
