@@ -32,7 +32,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     internal_buffer_size = buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(max_channels*internal_buffer_size);
-
+    scaling_factors = {1,1,1,1,1,1};
     log_enabled = log;
     debug_mode = emulate_control;
     emulate_scope = es;
@@ -96,12 +96,13 @@ void scope_thread::read_data_debug(std::vector<float> &data_vector) {
     for(int j= 0; j<internal_buffer_size/6-1; j++){
         tb.push_back(tb.back()+(float)1/10e3);
     }
-    std::array<float,6> phases = {0, M_PI/3, 2*M_PI/3, M_PI, 3*M_PI/3, 5*M_PI/3};
+    std::array<float,6> phases = {0, M_PI/3, 2*M_PI/3, M_PI, 4*M_PI/3, 5*M_PI/3};
 
     for(int i = 0; i<6; i++){
         for(int j= 0; j<internal_buffer_size/6; j++){
             //float sample = std::rand()%1000+1000*(i%6);
             float sample = 4000.0*sin(2*M_PI*50*tb[j]+phases[i]);
+            sample = sample + std::rand()%1000;
             float scaled_sample = sample*scaling_factors[i];
             mc_scope_data_buffer[i].push_back(scaled_sample);
         }
