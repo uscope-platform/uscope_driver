@@ -49,6 +49,7 @@ public:
     responses::response_code apply_program(uint32_t address, std::vector<uint32_t> program);
     responses::response_code set_channel_widths( std::vector<uint32_t> widths);
     responses::response_code set_scaling_factors( std::vector<float> sfs);
+    responses::response_code set_clock_frequency( std::vector<uint32_t> freq);
 
     int check_capture_progress(unsigned int &progress);
     void stop_scope();

@@ -29,6 +29,7 @@ public:
 private:
     nlohmann::json process_null();
     nlohmann::json process_load_bitstream(nlohmann::json &arguments);
+    nlohmann::json process_set_frequency(nlohmann::json &arguments);
     nlohmann::json process_single_write_register( nlohmann::json &arguments);
     nlohmann::json process_single_read_register(nlohmann::json &arguments);
     nlohmann::json process_start_capture(nlohmann::json &arguments);

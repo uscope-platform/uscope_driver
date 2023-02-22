@@ -41,6 +41,9 @@ nlohmann::json command_processor::process_command(commands::command_code command
         case commands::load_bitstream:
             response_obj["body"] = process_load_bitstream(arguments);
             break;
+        case commands::set_frequency:
+            response_obj["body"] = process_set_frequency(arguments);
+            break;
         case commands::register_read:
             response_obj["body"] = process_single_read_register(arguments);
             break;
@@ -223,5 +226,17 @@ void command_processor::stop_scope() {
 nlohmann::json command_processor::process_null() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
+    return resp;
+}
+
+nlohmann::json command_processor::process_set_frequency(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::array){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The argument for the set clock frequency command must be an array\n";
+        return resp;
+    }
+    std::vector<uint32_t> freq = arguments;
+    resp["response_code"] = hw.set_clock_frequency(freq);
     return resp;
 }

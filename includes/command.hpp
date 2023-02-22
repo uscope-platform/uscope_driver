@@ -20,7 +20,6 @@
 #include <string>
 #include <unordered_map>
 
-
 #include <nlohmann/json-schema.hpp>
 
 namespace commands {
@@ -29,6 +28,7 @@ namespace commands {
         null = 0,
         load_bitstream = 1,
         register_write = 2,
+        set_frequency = 3,
         register_read = 4,
         start_capture = 6,
         read_data = 8,

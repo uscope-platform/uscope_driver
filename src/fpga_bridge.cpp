@@ -233,3 +233,13 @@ responses::response_code fpga_bridge::set_scaling_factors(std::vector<float> sfs
     scope_handler.set_scaling_factors(sfs);
     return responses::ok;
 }
+
+responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
+    if(log_enabled)
+        std::cout << "SET_CLOCK FREQUENCY: clock #" + std::to_string(freq[0]) + " to " + std::to_string(freq[1]) + "Hz" <<std::endl;
+    std::string command = "echo " + std::to_string(freq[1]) + " > /sys/devices/soc0/fffc0000.uScope/fclk_" + std::to_string(freq[0]);
+    if(!debug_mode) {
+        system(command.c_str());
+    }
+    return responses::ok;
+}
