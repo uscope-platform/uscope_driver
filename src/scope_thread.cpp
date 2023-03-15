@@ -20,8 +20,8 @@
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
 scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool es, bool log) {
-    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control;
-    std::cout<< "scope_thread logging: "<< std::boolalpha <<log;
+    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control << std::endl;
+    std::cout<< "scope_thread logging: "<< std::boolalpha <<log << std::endl;
 
     if(log){
         std::cout << "scope_thread initialization started"<< std::endl;
