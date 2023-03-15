@@ -38,6 +38,15 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 
     debug_mode = emulate_control;
     log_enabled = log;
+
+    int n_pages;
+    char const* t = getenv("MMAP_N_PAGES");
+    if(t == nullptr){
+        n_pages = 10;
+    } else {
+        n_pages = std::stoi(std::string(t));
+    }
+    std::cout << "Mapping " <<std::to_string(n_pages)<<" memory pages from the axi control bus"<<std::endl;
     std::string file_path;
     if(!emulate_control){
         if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
@@ -49,7 +58,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
             exit(1);
         }
 
-        registers = (uint32_t*) mmap(nullptr, 10*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
+        registers = (uint32_t*) mmap(nullptr, n_pages*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
