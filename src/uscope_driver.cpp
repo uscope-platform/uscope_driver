@@ -53,11 +53,9 @@ int main (int argc, char **argv) {
 
     std::string scope_driver_file  = "/dev/uscope_data";;
 
-    bool emulate_scope = false;
 
     if(!scope_data_source.empty()){
         scope_driver_file = scope_data_source;
-        emulate_scope = true;
     }
 
     unsigned int scope_buffer_size = 6144;
@@ -67,7 +65,7 @@ int main (int argc, char **argv) {
 
 
     connector = new server_connector(6666, scope_driver_file, scope_buffer_size,
-                                     emulate_hw, emulate_scope,log_command);
+                                     emulate_hw,log_command);
 
     connector->start_server();
     return 0;

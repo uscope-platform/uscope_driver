@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <mutex>
 
+#include "emulated_data_generator.hpp"
+
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
 
@@ -60,7 +62,7 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool emulate_scope, bool log);
+    scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     [[nodiscard]] bool is_data_ready();
@@ -90,6 +92,8 @@ private:
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffer;
+
+     emulated_data_generator data_gen;
 
 };
 

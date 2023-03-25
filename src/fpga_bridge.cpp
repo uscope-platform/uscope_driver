@@ -27,7 +27,7 @@ void sigbus_handler(int dummy) {
 }
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool emulate_scope, bool log) : scope_handler(driver_file, dma_buffer_size, emulate_control, emulate_scope, log) {
+fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log) : scope_handler(driver_file, dma_buffer_size, emulate_control, log) {
 
     if(log){
         std::cout << "fpga_bridge initialization started"<< std::endl;

@@ -19,7 +19,7 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool es, bool log) {
+scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log) : data_gen(buffer_size){
     std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control << std::endl;
     std::cout<< "scope_thread logging: "<< std::boolalpha <<log << std::endl;
 
@@ -35,13 +35,15 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     scaling_factors = {1,1,1,1,1,1};
     log_enabled = log;
     debug_mode = emulate_control;
-    emulate_scope = es;
 
-    if(!debug_mode | emulate_scope){
+    if(!debug_mode){
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
         dma_buffer = (int32_t* ) malloc(buffer_size*sizeof(int32_t));
     } else {
+        if(std::filesystem::exists(driver_file)){
+            data_gen.set_data_file(driver_file);
+        }
         dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
 
@@ -51,7 +53,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
 }
 
 void scope_thread::stop_thread() {
-    if(debug_mode & !emulate_scope) {
+    if(debug_mode) {
         munmap((void *) dma_buffer, 6 * internal_buffer_size * sizeof(uint32_t));
     }
     close(fd_data);
@@ -75,10 +77,7 @@ bool scope_thread::is_data_ready() {
 }
 
 void scope_thread::read_data(std::vector<float> &data_vector) {
-    //if(log_enabled){
-    //    std::cout << "scope_thread::read_data start"<< std::endl;
-    //}
-    if(debug_mode & !emulate_scope){
+    if(debug_mode){
         read_data_debug(data_vector);
     } else{
         read_data_hw(data_vector);
@@ -87,26 +86,13 @@ void scope_thread::read_data(std::vector<float> &data_vector) {
 
 
 void scope_thread::read_data_debug(std::vector<float> &data_vector) {
-    std::vector<float> mc_scope_data_buffer[6];
+    std::array<std::vector<float>, 6> mc_scope_data_buffer;
     for(auto & i : mc_scope_data_buffer){
         i.clear();
     }
-    std::vector<float> tb;
-    tb.push_back(0);
-    for(int j= 0; j<internal_buffer_size/6-1; j++){
-        tb.push_back(tb.back()+(float)1/10e3);
-    }
-    std::array<float,6> phases = {0, M_PI/3, 2*M_PI/3, M_PI, 4*M_PI/3, 5*M_PI/3};
 
-    for(int i = 0; i<6; i++){
-        for(int j= 0; j<internal_buffer_size/6; j++){
-            //float sample = std::rand()%1000+1000*(i%6);
-            float sample = 4000.0*sin(2*M_PI*50*tb[j]+phases[i]);
-            sample = sample + std::rand()%1000;
-            float scaled_sample = sample*scaling_factors[i];
-            mc_scope_data_buffer[i].push_back(scaled_sample);
-        }
-    }
+    mc_scope_data_buffer = data_gen.get_data(scaling_factors);
+
     for(auto & i : mc_scope_data_buffer){
         data_vector.insert(data_vector.end(),i.begin(), i.end());
     }

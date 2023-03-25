@@ -53,5 +53,5 @@ file(GLOB INC_SOURCES "includes/*.h*")
 #
 project (uscope_driver)
 
-add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp includes/response.hpp includes/command.hpp)
+add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp includes/response.hpp includes/command.hpp src/emulated_data_generator.cpp src/emulated_data_generator.hpp)
 target_link_libraries(uscope_driver PRIVATE pthread rt  nlohmann_json::nlohmann_json nlohmann_json_schema_validator CLI11::CLI11)
