@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.12)
 set (CMAKE_CXX_STANDARD 17)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
@@ -53,5 +53,14 @@ file(GLOB INC_SOURCES "includes/*.h*")
 #
 project (uscope_driver)
 
-add_executable(uscope_driver src/uscope_driver.cpp src/server_connector.cpp src/fpga_bridge.cpp  src/command_processor.cpp src/scope_thread.cpp includes/response.hpp includes/command.hpp src/emulated_data_generator.cpp src/emulated_data_generator.hpp)
+set(DRIVER_SOURCES /
+        src/uscope_driver.cpp
+        src/server_connector.cpp
+        src/fpga_bridge.cpp
+        src/command_processor.cpp
+        src/scope_thread.cpp
+        src/emulated_data_generator.cpp
+        )
+
+add_executable(uscope_driver ${DRIVER_SOURCES})
 target_link_libraries(uscope_driver PRIVATE pthread rt  nlohmann_json::nlohmann_json nlohmann_json_schema_validator CLI11::CLI11)
