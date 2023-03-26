@@ -17,15 +17,15 @@
 
 emulated_data_generator::emulated_data_generator(uint32_t size) {
     external_emulator_data = false;
-    buffer_size = size;
+    buffer_size = size/n_channels;
     chunk_counter = 0;
 }
 
-std::array<std::vector<float>,6> emulated_data_generator::get_data(std::vector<float> scaling_factors) {
-    std::array<std::vector<float>,6> selected_data;
+std::array<std::vector<float>,n_channels> emulated_data_generator::get_data(std::vector<float> scaling_factors) {
+    std::array<std::vector<float>,n_channels> selected_data;
     if(external_emulator_data){
 
-        for(int i = 0; i< 6; ++i){
+        for(int i = 0; i< n_channels; ++i){
             std::vector<float> vec(data[i][chunk_counter].begin(), data[i][chunk_counter].end());
             selected_data[i] = vec;
         }
@@ -37,14 +37,14 @@ std::array<std::vector<float>,6> emulated_data_generator::get_data(std::vector<f
     } else {
         std::vector<float> tb;
         tb.push_back(0);
-        for(int j= 0; j<buffer_size/6-1; j++){
+        for(int j= 0; j<buffer_size-1; j++){
             tb.push_back(tb.back()+(float)1/10e3);
         }
 
-        std::array<float,6> phases = {0, M_PI/3, 2*M_PI/3, M_PI, 4*M_PI/3, 5*M_PI/3};
-        for(int i = 0; i<6; i++){
-            for(int j= 0; j<buffer_size/6; j++){
-                float sample = 4000.0*sin(2*M_PI*50*tb[j]+phases[i]);
+        for(int i = 0; i<n_channels; i++){
+            for(int j= 0; j<buffer_size; j++){
+                float phase = j*2*M_PI/n_channels;
+                float sample = 4000.0*sin(2*M_PI*50*tb[j]+phase);
                 sample = sample + std::rand()%1000;
                 float scaled_sample = sample*scaling_factors[i];
                 selected_data[i].push_back(scaled_sample);
@@ -58,16 +58,16 @@ void emulated_data_generator::set_data_file(std::string file) {
 
     std::ifstream fs(file);
     nlohmann::json json_data = nlohmann::json::parse(fs);
-    std::array<std::vector<float>, 6> raw_data = json_data["data"];
+    std::array<std::vector<float>, n_channels> raw_data = json_data["data"];
 
     for(int i = 0; i< raw_data.size(); ++i){
-        if(raw_data[i].size()%1024!= 0){
-            std::cerr << "ERROR: Wrong data format in the specified emulation file, each channel array must be a multiple of 1024" <<std::endl;
+        if(raw_data[i].size()%buffer_size!= 0){
+            std::cerr << "ERROR: Wrong data format in the specified emulation file, each channel array must be a multiple of the buffer size ("<< std::to_string(buffer_size)<< ")" <<std::endl;
             exit(-1);
         }
-        for (std::size_t j(0); j <raw_data[i].size()/1024; ++j) {
-            std::array<float,1024> chunk{};
-            std::copy(raw_data[i].begin() + j * 1024, raw_data[i].begin() + (j + 1) * 1024, chunk.begin());
+        for (std::size_t j(0); j <raw_data[i].size()/buffer_size; ++j) {
+            std::vector<float> chunk(buffer_size,0);
+            std::copy(raw_data[i].begin() + j * buffer_size, raw_data[i].begin() + (j + 1) * buffer_size, chunk.begin());
             data[i].push_back(chunk);
         }
     }
