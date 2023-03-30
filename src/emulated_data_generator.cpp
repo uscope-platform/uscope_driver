@@ -21,19 +21,18 @@ emulated_data_generator::emulated_data_generator(uint32_t size) {
     chunk_counter = 0;
 }
 
-std::array<std::vector<float>,n_channels> emulated_data_generator::get_data(std::vector<float> scaling_factors) {
-    std::array<std::vector<float>,n_channels> selected_data;
+std::vector<std::vector<float>> emulated_data_generator::get_data(std::vector<float> scaling_factors) {
+    std::vector<std::vector<float>> selected_data;
     if(external_emulator_data){
 
         for(int i = 0; i< n_channels; ++i){
             std::vector<float> vec(data[i][chunk_counter].begin(), data[i][chunk_counter].end());
-            selected_data[i] = vec;
+            selected_data.push_back(vec);
         }
         if(chunk_counter == data[0].size()-1)
             chunk_counter = 0;
         else
             ++chunk_counter;
-        return selected_data;
     } else {
         std::vector<float> tb;
         tb.push_back(0);
@@ -42,16 +41,18 @@ std::array<std::vector<float>,n_channels> emulated_data_generator::get_data(std:
         }
 
         for(int i = 0; i<n_channels; i++){
+            std::vector<float> ch_data;
             for(int j= 0; j<buffer_size; j++){
-                float phase = j*2*M_PI/n_channels;
+                float phase = i*2*M_PI/n_channels;
                 float sample = 4000.0*sin(2*M_PI*50*tb[j]+phase);
                 sample = sample + std::rand()%1000;
                 float scaled_sample = sample*scaling_factors[i];
-                selected_data[i].push_back(scaled_sample);
+                ch_data.push_back(scaled_sample);
             }
+            selected_data.push_back(ch_data);
         }
     }
-
+    return selected_data;
 }
 
 void emulated_data_generator::set_data_file(std::string file) {

@@ -23,6 +23,7 @@
 
 #include <random>
 #include <functional>
+#include <utility>
 #include <vector>
 #include <thread>
 #include <atomic>
@@ -66,15 +67,16 @@ public:
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     [[nodiscard]] bool is_data_ready();
-    void read_data(std::vector<float> &data_vector);
+    void read_data(std::vector<nlohmann::json> &data_vector);
     void stop_thread();
     void set_channel_widths(std::vector<uint32_t> &widths);
     void set_scaling_factors(std::vector<float> &sf);
+    void set_channel_status(std::unordered_map<int, bool>status) {channel_status = std::move(status);};
 
 private:
-    void read_data_hw(std::vector<float> &data_vector);
-    void read_data_debug(std::vector<float> &data_vector);
-    std::array<std::vector<float>, 6> shunt_data(const volatile int32_t * buffer_in);
+    void read_data_hw(std::vector<std::vector<float>> &data_vector);
+    void read_data_debug(std::vector<std::vector<float>> &data_vector);
+    std::vector<std::vector<float>> shunt_data(const volatile int32_t * buffer_in);
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor);
 
     std::vector<uint32_t> channel_sizes;
@@ -92,6 +94,7 @@ private:
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, 6*1024> mc_data_buffer;
+    std::unordered_map<int, bool> channel_status;
 
      emulated_data_generator data_gen;
 

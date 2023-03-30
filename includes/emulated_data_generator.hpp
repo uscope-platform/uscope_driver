@@ -28,7 +28,7 @@ class emulated_data_generator {
 public:
     explicit emulated_data_generator(uint32_t size);
     void set_data_file(std::string file);
-    std::array<std::vector<float>,n_channels> get_data(std::vector<float> scaling_factors);
+    std::vector<std::vector<float>> get_data(std::vector<float> scaling_factors);
 private:
     std::array<std::vector<std::vector<float>>, n_channels> data;
     int chunk_counter;

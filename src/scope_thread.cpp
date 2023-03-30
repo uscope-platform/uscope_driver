@@ -76,39 +76,39 @@ bool scope_thread::is_data_ready() {
 
 }
 
-void scope_thread::read_data(std::vector<float> &data_vector) {
+void scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
+
+    std::vector<std::vector<float>> data;
     if(debug_mode){
-        read_data_debug(data_vector);
+        read_data_debug(data);
     } else{
-        read_data_hw(data_vector);
+        read_data_hw(data);
+    }
+    for(int i = 0; i<n_channels; i++){
+        nlohmann::json ch_obj;
+        if(channel_status[i]){
+            ch_obj["channel"] = i;
+            ch_obj["data"] = data[i];
+            data_vector.push_back(ch_obj);
+        }
     }
 }
 
 
-void scope_thread::read_data_debug(std::vector<float> &data_vector) {
-    std::array<std::vector<float>, 6> mc_scope_data_buffer;
-    for(auto & i : mc_scope_data_buffer){
-        i.clear();
-    }
-
-    mc_scope_data_buffer = data_gen.get_data(scaling_factors);
-
-    for(auto & i : mc_scope_data_buffer){
-        data_vector.insert(data_vector.end(),i.begin(), i.end());
-    }
+void scope_thread::read_data_debug(std::vector<std::vector<float>> &data_vector) {
+    data_vector = data_gen.get_data(scaling_factors);
 }
 
-void scope_thread::read_data_hw(std::vector<float> &data_vector) {
+void scope_thread::read_data_hw(std::vector<std::vector<float>> &data_vector) {
     read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
-    std::array<std::vector<float>, 6> ch_data = shunt_data(dma_buffer);
-    for(int i = 0; i< 6; i++){
-        data_vector.insert(data_vector.end(), ch_data[i].begin(), ch_data[i].end());
-    }
+    data_vector = shunt_data(dma_buffer);
+
 }
 
 
-std::array<std::vector<float>, 6> scope_thread::shunt_data(const volatile int32_t * buffer_in) {
-    std::array<std::vector<float>, 6> ret_data;
+std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t * buffer_in) {
+    std::vector<std::vector<float>> ret_data;
+    ret_data.reserve(n_channels);
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
         unsigned int sample_size = channel_sizes[channel_base];

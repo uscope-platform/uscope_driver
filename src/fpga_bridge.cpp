@@ -15,6 +15,8 @@
 
 #include "fpga_bridge.hpp"
 
+#include <utility>
+
 
 void sigsegv_handler(int dummy) {
     std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
@@ -172,7 +174,7 @@ responses::response_code fpga_bridge::start_capture(uint32_t n_buffers) {
 /// Read scope data if ready
 /// \param read_data pointer to the array the data will be put in
 /// \return #RESP_OK if data is ready #RESP_DATA_NOT_READY otherwise
-responses::response_code fpga_bridge::read_data(std::vector<float> &read_data) {
+responses::response_code fpga_bridge::read_data(std::vector<nlohmann::json> &read_data) {
     if(debug_mode){
         if(log_enabled) std::cout << "READ DATA" << std::endl;
     }  
@@ -250,5 +252,10 @@ responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> 
     if(!debug_mode) {
         system(command.c_str());
     }
+    return responses::ok;
+}
+
+responses::response_code fpga_bridge::set_channel_status(std::unordered_map<int, bool> channel_status) {
+    scope_handler.set_channel_status(std::move(channel_status));
     return responses::ok;
 }

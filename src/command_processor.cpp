@@ -68,6 +68,9 @@ nlohmann::json command_processor::process_command(commands::command_code command
         case commands::set_scaling_factors:
             response_obj["body"] = process_set_scaling_factors(arguments);
             break;
+        case commands::set_channel_status:
+            response_obj["body"] = process_set_channel_status(arguments);
+            break;
     }
     return response_obj;
 }
@@ -135,9 +138,9 @@ nlohmann::json command_processor::process_start_capture(nlohmann::json &argument
 /// \return Either success of failure depending on if the data is actually ready
 nlohmann::json command_processor::process_read_data() {
     nlohmann::json resp;
-    std::vector<float> flt_data;
-    resp["response_code"] = hw.read_data(flt_data);
-    resp["data"] = flt_data;
+    std::vector<nlohmann::json> resp_data;
+    resp["response_code"] = hw.read_data(resp_data);
+    resp["data"] = resp_data;
     return resp;
 }
 
@@ -240,3 +243,20 @@ nlohmann::json command_processor::process_set_frequency(nlohmann::json &argument
     resp["response_code"] = hw.set_clock_frequency(freq);
     return resp;
 }
+
+nlohmann::json command_processor::process_set_channel_status(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::object){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The argument for the set channel status command must be an array of objects\n";
+        return resp;
+    }
+    std::unordered_map<int, bool> status;
+    for(auto &item:arguments.items()){
+        status[std::stoi(item.key())] = item.value();
+    }
+    resp["response_code"] = hw.set_channel_status(status);
+    return resp;
+}
+
+

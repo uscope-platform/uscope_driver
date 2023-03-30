@@ -45,11 +45,12 @@ public:
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint32_t address);
     responses::response_code start_capture(uint32_t n_buffers);
-    responses::response_code read_data(std::vector<float> &read_data);
+    responses::response_code read_data(std::vector<nlohmann::json> &read_data);
     responses::response_code apply_program(uint32_t address, std::vector<uint32_t> program);
-    responses::response_code set_channel_widths( std::vector<uint32_t> widths);
-    responses::response_code set_scaling_factors( std::vector<float> sfs);
-    responses::response_code set_clock_frequency( std::vector<uint32_t> freq);
+    responses::response_code set_channel_widths(std::vector<uint32_t> widths);
+    responses::response_code set_scaling_factors(std::vector<float> sfs);
+    responses::response_code set_clock_frequency(std::vector<uint32_t> freq);
+    responses::response_code set_channel_status(std::unordered_map<int, bool> channel_status);
 
     int check_capture_progress(unsigned int &progress);
     void stop_scope();
