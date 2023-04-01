@@ -26,12 +26,12 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     if(log){
         std::cout << "scope_thread initialization started"<< std::endl;
     }
-    int max_channels = 6;
+
     n_buffers_left = 0;
     scope_data_ready = false;
-    internal_buffer_size = buffer_size;
+    internal_buffer_size = n_channels*buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
-    data_holding_buffer.reserve(max_channels*internal_buffer_size);
+    data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
     log_enabled = log;
     debug_mode = emulate_control;
@@ -39,12 +39,12 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     if(!debug_mode){
         //mmap buffer
         fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
-        dma_buffer = (int32_t* ) malloc(buffer_size*sizeof(int32_t));
+        dma_buffer = (int32_t* ) malloc(n_channels*buffer_size*sizeof(int32_t));
     } else {
         if(std::filesystem::exists(driver_file)){
             data_gen.set_data_file(driver_file);
         }
-        dma_buffer = (int32_t* ) mmap(nullptr, max_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
+        dma_buffer = (int32_t* ) mmap(nullptr, n_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
     }
 
     if(log){
@@ -139,5 +139,9 @@ void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
 
 void scope_thread::set_scaling_factors(std::vector<float> &sf) {
     scaling_factors = sf;
+}
+
+void scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
+    channel_status = std::move(status);
 }
 

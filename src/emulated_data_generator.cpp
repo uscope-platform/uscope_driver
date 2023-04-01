@@ -17,7 +17,7 @@
 
 emulated_data_generator::emulated_data_generator(uint32_t size) {
     external_emulator_data = false;
-    buffer_size = size/n_channels;
+    buffer_size = size;
     chunk_counter = 0;
 }
 

@@ -42,8 +42,6 @@
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
 
-#define N_CHANNELS 6
-
 
 #define GET_CHANNEL(NUMBER) ((NUMBER >> 24) & 0xff)
 
@@ -71,9 +69,10 @@ public:
     void stop_thread();
     void set_channel_widths(std::vector<uint32_t> &widths);
     void set_scaling_factors(std::vector<float> &sf);
-    void set_channel_status(std::unordered_map<int, bool>status) {channel_status = std::move(status);};
+    void set_channel_status(std::unordered_map<int, bool>status);
 
 private:
+    static constexpr int n_channels = 7;
     void read_data_hw(std::vector<std::vector<float>> &data_vector);
     void read_data_debug(std::vector<std::vector<float>> &data_vector);
     std::vector<std::vector<float>> shunt_data(const volatile int32_t * buffer_in);
@@ -89,11 +88,11 @@ private:
     bool emulate_scope;
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
-    volatile uint32_t fd_data; /// Scope driver file descriptor
-    std::array<uint32_t, 6*1024> captured_data;
+    volatile int fd_data; /// Scope driver file descriptor
+    std::array<uint32_t, n_channels*1024> captured_data;
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
-    std::array<uint32_t, 6*1024> mc_data_buffer;
+    std::array<uint32_t, n_channels*1024> mc_data_buffer;
     std::unordered_map<int, bool> channel_status;
 
      emulated_data_generator data_gen;

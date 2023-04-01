@@ -22,7 +22,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-static constexpr int n_channels = 6;
+
 
 class emulated_data_generator {
 public:
@@ -30,6 +30,7 @@ public:
     void set_data_file(std::string file);
     std::vector<std::vector<float>> get_data(std::vector<float> scaling_factors);
 private:
+    static constexpr int n_channels = 7;
     std::array<std::vector<std::vector<float>>, n_channels> data;
     int chunk_counter;
     bool external_emulator_data;

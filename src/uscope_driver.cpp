@@ -58,13 +58,13 @@ int main (int argc, char **argv) {
         scope_driver_file = scope_data_source;
     }
 
-    unsigned int scope_buffer_size = 6144;
+    unsigned int channel_buffer_size = 1024;
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
 
-    connector = new server_connector(6666, scope_driver_file, scope_buffer_size,
+    connector = new server_connector(6666, scope_driver_file, channel_buffer_size,
                                      emulate_hw,log_command);
 
     connector->start_server();
