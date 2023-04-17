@@ -112,7 +112,10 @@ void scope_thread::read_data_hw(std::vector<std::vector<float>> &data_vector) {
 
 std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t * buffer_in) {
     std::vector<std::vector<float>> ret_data;
-    ret_data.reserve(n_channels);
+    for(int i = 0; i<n_channels; i++){
+        ret_data.emplace_back();
+    }
+    if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
         unsigned int sample_size = channel_sizes[channel_base];
