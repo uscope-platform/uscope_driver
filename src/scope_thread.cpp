@@ -117,12 +117,15 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t 
     }
     if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
+        if(log_level > 2) std::cout<<"HERE 1"<<std::endl;
         int channel_base = GET_CHANNEL(buffer_in[i]);
+        if(log_level > 2) std::cout<<"HERE 2"<<std::endl;
         unsigned int sample_size = channel_sizes[channel_base];
-
+        if(log_level > 2) std::cout<<"HERE 3"<<std::endl;
         float data_sample = scale_data(buffer_in[i],sample_size, scaling_factors[channel_base]);
-
+        if(log_level > 2) std::cout<<"HERE 4"<<std::endl;
         ret_data[channel_base].push_back(data_sample);
+        if(log_level > 2) std::cout<<"HERE 5"<<std::endl;
     }
     return ret_data;
 }
