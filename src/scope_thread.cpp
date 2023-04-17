@@ -19,7 +19,7 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log) : data_gen(buffer_size){
+scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log, int ll) : data_gen(buffer_size){
     std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control << std::endl;
     std::cout<< "scope_thread logging: "<< std::boolalpha <<log << std::endl;
 
@@ -34,6 +34,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
     log_enabled = log;
+    log_level = ll;
     debug_mode = emulate_control;
 
     if(!debug_mode){
@@ -100,8 +101,11 @@ void scope_thread::read_data_debug(std::vector<std::vector<float>> &data_vector)
 }
 
 void scope_thread::read_data_hw(std::vector<std::vector<float>> &data_vector) {
+    if(log_level > 2) std::cout<<"READ_DATA: STARTING"<<std::endl;
     read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(unsigned int));
+    if(log_level > 2) std::cout<<"READ_DATA: KERNEL COPY DEFINED"<<std::endl;
     data_vector = shunt_data(dma_buffer);
+    if(log_level > 2) std::cout<<"READ_DATA: SHUNTING ENDED"<<std::endl;
 
 }
 

@@ -61,7 +61,7 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log);
+    scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log, int log_level);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     [[nodiscard]] bool is_data_ready();
@@ -84,6 +84,7 @@ private:
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
     bool debug_mode;
+    int log_level;
     bool log_enabled;
     bool emulate_scope;
     std::atomic_bool scope_data_ready;

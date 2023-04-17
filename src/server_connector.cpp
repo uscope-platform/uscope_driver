@@ -20,7 +20,7 @@
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log) : core_processor(driver_file, dma_buffer_size, emulate_control,log) {
+server_connector::server_connector(int port, const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level) : core_processor(driver_file, dma_buffer_size, emulate_control,log, log_level) {
 
     if(log){
         std::cout << "server_connector initialization started"<< std::endl;

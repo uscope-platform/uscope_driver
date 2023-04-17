@@ -39,9 +39,11 @@ int main (int argc, char **argv) {
     bool emulate_hw = false;
     bool log_command = false;
     std::string scope_data_source;
+    int log_level = 0;
 
     app.add_flag("--debug", emulate_hw, "Emulate hardware for debug on regular processors");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
+    app.add_option("--log_level", log_level, "Log the received commands on the standard output");
     app.add_option("--scope_source", scope_data_source, "Path for the scope data source");
 
     CLI11_PARSE(app, argc, argv);
@@ -65,7 +67,7 @@ int main (int argc, char **argv) {
 
 
     connector = new server_connector(6666, scope_driver_file, channel_buffer_size,
-                                     emulate_hw,log_command);
+                                     emulate_hw,log_command, log_level);
 
     connector->start_server();
     return 0;
