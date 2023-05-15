@@ -56,7 +56,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
     } else {
         n_pages_fcore = std::stoi(std::string(t));
     }
-    std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus"<<std::endl;
+
     std::string file_path;
     if(!emulate_control){
         if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
@@ -68,12 +68,14 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
             exit(1);
         }
 
+        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus"<<std::endl;
         registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
+        std::cout << "Mapping " <<std::to_string(n_pages_fcore)<<" memory pages from the femtocore bus"<<std::endl;
         fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, FCORE_BASE_ADDR);
         if(fCore == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
