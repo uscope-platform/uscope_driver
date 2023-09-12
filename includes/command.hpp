@@ -130,7 +130,7 @@ namespace commands {
     }
     )"_json;
 
-    static nlohmann::json  apply_program_schema = R"(
+    static nlohmann::json  apply_filter_schema = R"(
     {
         "$schema": "https://json-schema.org/draft/2019-09/schema",
         "title": "Apply filter schema",

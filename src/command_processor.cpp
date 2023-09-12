@@ -265,7 +265,7 @@ nlohmann::json command_processor::process_set_channel_status(nlohmann::json &arg
 nlohmann::json command_processor::process_apply_filter(nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
-    if(!commands::validate_schema(arguments, commands::apply_program_schema, error_message)){
+    if(!commands::validate_schema(arguments, commands::apply_filter_schema, error_message)){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply filter command\n"+ error_message;
         return resp;
