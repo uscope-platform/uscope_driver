@@ -269,3 +269,18 @@ responses::response_code fpga_bridge::set_channel_status(std::unordered_map<int,
     scope_handler.set_channel_status(std::move(channel_status));
     return responses::ok;
 }
+
+responses::response_code fpga_bridge::apply_filter(uint32_t address, std::vector<uint32_t> taps) {
+    std::cout<< "APPLY FILTER: address: " << std::hex << address << " N. Filter Taps "<< std::dec << taps.size()<<std::endl;
+
+    auto filter_address= register_address_to_index(address);
+
+    if(!debug_mode) {
+        for(int i = 0; i< taps.size(); i++){
+            registers[filter_address] = taps[i];
+            registers[filter_address+1] = i;
+        }
+    }
+
+    return responses::ok;
+}

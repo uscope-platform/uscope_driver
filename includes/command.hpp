@@ -36,7 +36,8 @@ namespace commands {
         set_channel_widths=10,
         apply_program=11,
         set_scaling_factors = 12,
-        set_channel_status = 13
+        set_channel_status = 13,
+        apply_filter = 14
     } command_code;
 
     template <typename command_code>
@@ -58,7 +59,8 @@ namespace commands {
         {set_channel_widths, "C_SET_CHANNEL_WIDTHS"},
         {apply_program, "C_APPLY_PROGRAM"},
         {set_scaling_factors, "C_SET_SCALING_FACTORS"},
-        {set_channel_status, "C_SET_CHANNEL_STATUS"}
+        {set_channel_status, "C_SET_CHANNEL_STATUS"},
+        {apply_filter, "C_APPLY_FILTER"}
     };
 
     static nlohmann::json command = R"(
@@ -123,6 +125,31 @@ namespace commands {
         "required": [
             "address",
             "program"
+        ],
+        "type": "object"
+    }
+    )"_json;
+
+    static nlohmann::json  apply_program_schema = R"(
+    {
+        "$schema": "https://json-schema.org/draft/2019-09/schema",
+        "title": "Apply filter schema",
+        "properties": {
+            "address": {
+                "type": "integer",
+                "title": "Address of the peripheral to load"
+            },
+            "taps": {
+                "type": "array",
+                "title": "filter taps",
+                "items": {
+                    "type": "integer"
+                }
+            }
+        },
+        "required": [
+            "address",
+            "taps"
         ],
         "type": "object"
     }
