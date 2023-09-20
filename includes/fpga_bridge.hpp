@@ -52,6 +52,7 @@ public:
     responses::response_code set_scaling_factors(std::vector<float> sfs);
     responses::response_code set_clock_frequency(std::vector<uint32_t> freq);
     responses::response_code set_channel_status(std::unordered_map<int, bool> channel_status);
+    responses::response_code set_channel_signed(std::unordered_map<int, bool> channel_signs);
 
     int check_capture_progress(unsigned int &progress);
     void stop_scope();

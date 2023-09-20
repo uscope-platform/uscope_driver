@@ -74,6 +74,9 @@ nlohmann::json command_processor::process_command(commands::command_code command
         case commands::apply_filter:
             response_obj["body"] = process_apply_filter(arguments);
             break;
+        case commands::set_channel_signs:
+            response_obj["body"] = process_set_channel_signs(arguments);
+            break;
     }
     return response_obj;
 }
@@ -262,6 +265,21 @@ nlohmann::json command_processor::process_set_channel_status(nlohmann::json &arg
     return resp;
 }
 
+nlohmann::json command_processor::process_set_channel_signs(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::array){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The argument for the set channel signs command must be an array of objects\n";
+        return resp;
+    }
+    std::unordered_map<int, bool> signs;
+    for(auto &item:arguments.items()){
+        signs[std::stoi(item.key())] = item.value();
+    }
+    resp["response_code"] = hw.set_channel_signed(signs);
+    return resp;
+}
+
 nlohmann::json command_processor::process_apply_filter(nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
@@ -275,5 +293,6 @@ nlohmann::json command_processor::process_apply_filter(nlohmann::json &arguments
     resp["response_code"] = hw.apply_filter(address, taps);
     return resp;
 }
+
 
 

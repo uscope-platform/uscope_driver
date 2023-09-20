@@ -118,16 +118,15 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t 
     if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
-        unsigned int sample_size = channel_sizes[channel_base];
-        float data_sample = scale_data(buffer_in[i],sample_size, scaling_factors[channel_base]);
+        float data_sample = scale_data(buffer_in[i],channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
         ret_data[channel_base].push_back(data_sample);
     }
     return ret_data;
 }
 
-float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor) {
+float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status) {
     int32_t sample;
-    if(size>100){ // USE CHANNELS > 100 to signal signedness
+    if(!signed_status){
         auto true_size = size-100;
         sample = raw_sample & ((1<<true_size)-1);
     } else {
@@ -148,5 +147,9 @@ void scope_thread::set_scaling_factors(std::vector<float> &sf) {
 
 void scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
     channel_status = std::move(status);
+}
+
+void scope_thread::set_channel_signed(std::unordered_map<int, bool> signed_status) {
+    signed_status = std::move(signed_status);
 }
 

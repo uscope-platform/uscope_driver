@@ -37,7 +37,8 @@ namespace commands {
         apply_program=11,
         set_scaling_factors = 12,
         set_channel_status = 13,
-        apply_filter = 14
+        apply_filter = 14,
+        set_channel_signs = 15
     } command_code;
 
     template <typename command_code>
@@ -60,7 +61,8 @@ namespace commands {
         {apply_program, "C_APPLY_PROGRAM"},
         {set_scaling_factors, "C_SET_SCALING_FACTORS"},
         {set_channel_status, "C_SET_CHANNEL_STATUS"},
-        {apply_filter, "C_APPLY_FILTER"}
+        {apply_filter, "C_APPLY_FILTER"},
+        {set_channel_signs, "C_SET_CHANNEL_SIGNS"}
     };
 
     static nlohmann::json command = R"(

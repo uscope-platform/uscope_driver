@@ -270,6 +270,23 @@ responses::response_code fpga_bridge::set_channel_status(std::unordered_map<int,
     return responses::ok;
 }
 
+responses::response_code fpga_bridge::set_channel_signed(std::unordered_map<int, bool> channel_signs) {
+    if(log_enabled){
+        std::cout << "SET_CHANNEL_SIGNS: ";
+        for(auto &s:channel_signs){
+            if(s.second){
+                std::cout << "s ";
+            } else {
+                std::cout << "u ";
+            }
+
+        }
+        std::cout << std::endl;
+    }
+    scope_handler.set_channel_signed(std::move(channel_signs));
+    return responses::ok;
+}
+
 responses::response_code fpga_bridge::apply_filter(uint32_t address, std::vector<uint32_t> taps) {
     std::cout<< "APPLY FILTER: address: " << std::hex << address << " N. Filter Taps "<< std::dec << taps.size()<<std::endl;
 
@@ -284,3 +301,5 @@ responses::response_code fpga_bridge::apply_filter(uint32_t address, std::vector
 
     return responses::ok;
 }
+
+

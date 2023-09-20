@@ -70,13 +70,14 @@ public:
     void set_channel_widths(std::vector<uint32_t> &widths);
     void set_scaling_factors(std::vector<float> &sf);
     void set_channel_status(std::unordered_map<int, bool>status);
+    void set_channel_signed(std::unordered_map<int, bool>signed_status);
 
 private:
     static constexpr int n_channels = 7;
     void read_data_hw(std::vector<std::vector<float>> &data_vector);
     void read_data_debug(std::vector<std::vector<float>> &data_vector);
     std::vector<std::vector<float>> shunt_data(const volatile int32_t * buffer_in);
-    float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor);
+    float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status);
 
     std::vector<uint32_t> channel_sizes;
     std::vector<float> scaling_factors;
@@ -95,6 +96,7 @@ private:
     std::vector<uint32_t> data_holding_buffer;
     std::array<uint32_t, n_channels*1024> mc_data_buffer;
     std::unordered_map<int, bool> channel_status;
+    std::unordered_map<int, bool> signed_status;
 
      emulated_data_generator data_gen;
 
