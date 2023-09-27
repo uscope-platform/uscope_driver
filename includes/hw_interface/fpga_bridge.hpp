@@ -28,9 +28,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "command.hpp"
-#include "response.hpp"
-#include "scope_thread.hpp"
+#include "server_frontend/command.hpp"
+#include "server_frontend/response.hpp"
+#include "hw_interface/scope_thread.hpp"
 
 #define REGISTERS_BASE_ADDR 0x43c00000
 #define FCORE_BASE_ADDR 0x83c00000

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scope_thread.hpp"
+#include "hw_interface/scope_thread.hpp"
 
 /// Initializes the scope_handler infrastructure, opening the UIO driver file and writing to it to clear any outstanding
 /// interrupts

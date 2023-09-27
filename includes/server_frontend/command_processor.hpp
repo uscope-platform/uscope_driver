@@ -17,8 +17,9 @@
 
 #include <sstream>
 
-#include "fpga_bridge.hpp"
+#include "hw_interface/fpga_bridge.hpp"
 #include "response.hpp"
+#include "command.hpp"
 
 class command_processor {
 public:

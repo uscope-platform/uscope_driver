@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "server_connector.hpp"
+#include "server_frontend/server_connector.hpp"
 
 #ifdef __cplusplus
 extern "C" {

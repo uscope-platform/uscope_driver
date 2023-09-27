@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "fpga_bridge.hpp"
+#include "hw_interface/fpga_bridge.hpp"
 
 #include <utility>
 
