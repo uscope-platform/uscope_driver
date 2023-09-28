@@ -1,0 +1,9 @@
+[requires]
+libfuse/3.10.5
+cli11/2.3.2
+nlohmann_json/3.11.2
+json-schema-validator/2.2.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
