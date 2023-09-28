@@ -7,11 +7,14 @@
 #include <random>
 #include <vector>
 #include <array>
+#include <iostream>
+
+
+
+#define FUSE_USE_VERSION 31
 
 #include <cuse_lowlevel.h>
 #include <fuse_opt.h>
-
-
 
 class kernel_emulator {
 public:

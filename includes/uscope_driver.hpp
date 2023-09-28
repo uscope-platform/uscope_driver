@@ -24,26 +24,12 @@
 #include <cstdint>
 #include <regex.h>
 #include <argp.h>
+#include <thread>
 
 #include <unistd.h>
 #include <sys/mman.h>
 
 #include "server_frontend/server_connector.hpp"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    int setup_main_loop(void);
-
-    struct event_base *main_loop;
-
-    bool debug_mode;
-
-    struct event *scope_data;
-
-#ifdef __cplusplus
-}
-#endif
+#include "hw_emulation/kernel_emulator.hpp"
 
 #endif //USCOPE_DIR_USCOPE_DRIVER_H

@@ -45,7 +45,6 @@ private:
     int sockfd;
     command_processor core_processor;
     bool logging;
-    std::atomic_bool server_stop_req;
     struct sockaddr_in servaddr{};
 };
 

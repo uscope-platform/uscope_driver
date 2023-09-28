@@ -16,6 +16,7 @@
 #include "server_frontend/server_connector.hpp"
 
 
+std::atomic_bool server_stop_req;
 
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base

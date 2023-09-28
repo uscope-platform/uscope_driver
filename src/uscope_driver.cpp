@@ -32,7 +32,6 @@ void intHandler(int args) {
 /// \return Program exit value
 int main (int argc, char **argv) {
 
-    debug_mode = false;
 
     CLI::App app{"Low level Driver for the uScope interface system"};
 
@@ -56,8 +55,21 @@ int main (int argc, char **argv) {
     std::string scope_driver_file  = "/dev/uscope_data";;
 
 
+
     if(!scope_data_source.empty()){
         scope_driver_file = scope_data_source;
+    }
+    std::jthread ctrl_thread;
+    std::jthread cores_thread;
+    std::jthread scope_thread;
+    if(emulate_hw){
+        std::string control_bus_device = "DEVNAME=uscope_BUS_0";
+        std::string fCore_bus_device = "DEVNAME=uscope_BUS_1";
+        std::string data_device = "DEVNAME=uscope_data";
+        ctrl_thread = std::jthread([&](){kernel_emulator(control_bus_device, 300, 0);});
+        cores_thread = std::jthread([&](){kernel_emulator(fCore_bus_device, 301, 1);});
+        scope_thread = std::jthread([&](){kernel_emulator(data_device, 302, 2);});
+        usleep(10000);
     }
 
     unsigned int channel_buffer_size = 1024;

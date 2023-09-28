@@ -69,7 +69,6 @@ void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_f
     const int n_channels = 7;
     const int n_datapoints = 1024;
     uint32_t data_array[n_channels*n_datapoints];
-
     // Generate channel_data
     std::array<std::vector<uint32_t>, n_channels> channel_data;
     for(int j = 0; j<n_channels;j++){
@@ -100,6 +99,7 @@ void kernel_emulator::ioctl(fuse_req_t req, int cmd, void *arg, struct fuse_file
 
     if(cmd==4){
         int* data = (int*) fuse_req_userdata(req);
+        std::cout<< "Received termination signal for thread number: " << data[0] << std::endl;
         fuse_session_exit(se[data[0]]);
     }
 

@@ -32,6 +32,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <poll.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -75,7 +76,6 @@ public:
 private:
     static constexpr int n_channels = 7;
     void read_data_hw(std::vector<std::vector<float>> &data_vector);
-    void read_data_debug(std::vector<std::vector<float>> &data_vector);
     std::vector<std::vector<float>> shunt_data(const volatile int32_t * buffer_in);
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status);
 
@@ -84,13 +84,9 @@ private:
     int internal_buffer_size;
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
-    bool debug_mode;
     int log_level;
-    bool log_enabled;
-    bool emulate_scope;
     std::atomic_bool scope_data_ready;
     volatile int32_t* dma_buffer;  ///mmapped buffer
-    volatile int fd_data; /// Scope driver file descriptor
     std::array<uint32_t, n_channels*1024> captured_data;
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;

@@ -60,8 +60,6 @@ public:
     static uint32_t fcore_address_to_index(uint32_t address);
 
 private:
-    int registers_fd, fcore_fd;
-    
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
 

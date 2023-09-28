@@ -15,6 +15,8 @@
 
 #include "hw_interface/scope_thread.hpp"
 
+thread_local volatile int fd_data; /// Scope driver file descriptor
+
 /// Initializes the scope_handler infrastructure, opening the UIO driver file and writing to it to clear any outstanding
 /// interrupts
 /// \param driver_file Path of the driver file
@@ -33,20 +35,11 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
-    log_enabled = log;
     log_level = ll;
-    debug_mode = emulate_control;
 
-    if(!debug_mode){
-        //mmap buffer
-        fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
-        dma_buffer = (int32_t* ) malloc(n_channels*buffer_size*sizeof(int32_t));
-    } else {
-        if(std::filesystem::exists(driver_file)){
-            data_gen.set_data_file(driver_file);
-        }
-        dma_buffer = (int32_t* ) mmap(nullptr, n_channels*buffer_size*sizeof(uint32_t), PROT_READ, MAP_ANONYMOUS, -1, 0);
-    }
+    //mmap buffer
+    fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
+    dma_buffer = (int32_t* ) malloc(n_channels*buffer_size*sizeof(int32_t));
 
     if(log){
         std::cout << "scope_thread initialization ended"<< std::endl;
@@ -54,9 +47,7 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
 }
 
 void scope_thread::stop_thread() {
-    if(debug_mode) {
-        munmap((void *) dma_buffer, 6 * internal_buffer_size * sizeof(uint32_t));
-    }
+    ioctl(fd_data,4);
     close(fd_data);
 }
 
@@ -80,11 +71,7 @@ bool scope_thread::is_data_ready() {
 void scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
 
     std::vector<std::vector<float>> data;
-    if(debug_mode){
-        read_data_debug(data);
-    } else{
-        read_data_hw(data);
-    }
+    read_data_hw(data);
     for(int i = 0; i<n_channels; i++){
         nlohmann::json ch_obj;
         if(channel_status[i]){
@@ -93,11 +80,6 @@ void scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
             data_vector.push_back(ch_obj);
         }
     }
-}
-
-
-void scope_thread::read_data_debug(std::vector<std::vector<float>> &data_vector) {
-    data_vector = data_gen.get_data(scaling_factors);
 }
 
 void scope_thread::read_data_hw(std::vector<std::vector<float>> &data_vector) {
@@ -127,8 +109,7 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t 
 float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status) {
     int32_t sample;
     if(!signed_status){
-        auto true_size = size-100;
-        sample = raw_sample & ((1<<true_size)-1);
+        sample = raw_sample & ((1<<size)-1);
     } else {
         auto masked_sample = raw_sample & ((1<<size)-1);
         sample = sign_extend(masked_sample, size);

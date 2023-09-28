@@ -18,6 +18,9 @@
 #include <utility>
 
 
+volatile int registers_fd, fcore_fd;
+
+
 void sigsegv_handler(int dummy) {
     std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
     exit(-1);
@@ -215,6 +218,8 @@ int fpga_bridge::check_capture_progress(unsigned int &progress) {
 /// \param widths list of channel widths
 /// \return #RESP_OK
 void fpga_bridge::stop_scope() {
+    ioctl(fcore_fd,4);
+    ioctl(registers_fd,4);
     scope_handler.stop_thread();
 }
 
