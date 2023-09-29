@@ -6,13 +6,6 @@ static std::random_device rd;
 static std::mt19937 gen(rd());
 static std::uniform_int_distribution<> distrib(0, 2<<16);
 
-std::vector<uint32_t> generate_random_unsigned_data(uint32_t size, uint32_t average_value, uint32_t noise_ampl){
-    std::vector<uint32_t> ret;
-    for(int i = 0; i<size; i++){
-        ret.push_back(average_value + distrib(gen) % noise_ampl);
-    }
-    return ret;
-}
 
 kernel_emulator::kernel_emulator(const std::string &intf, int dev_order, int ti) {
     const char *argv[] = {
@@ -70,9 +63,15 @@ void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_f
     const int n_datapoints = 1024;
     uint32_t data_array[n_channels*n_datapoints];
     // Generate channel_data
+    /*
+        std::array<std::vector<uint32_t>, n_channels> channel_data;
+        for(int j = 0; j<n_channels;j++){
+            channel_data[j] = generate_white_noise(n_datapoints, j*100, 20);
+        }
+     */
     std::array<std::vector<uint32_t>, n_channels> channel_data;
     for(int j = 0; j<n_channels;j++){
-        channel_data[j] = generate_random_unsigned_data(n_datapoints, j*100, 20);
+        channel_data[j] = generate_sinusoid(n_datapoints, 20, 1000, 10, j+100);
     }
     // Interleave channels and add id to MSB
     for(int i = 0; i<n_datapoints;i++){
@@ -104,4 +103,23 @@ void kernel_emulator::ioctl(fuse_req_t req, int cmd, void *arg, struct fuse_file
     }
 
     fuse_reply_ioctl(req, 0, nullptr, 0);
+}
+
+std::vector<uint32_t>
+kernel_emulator::generate_white_noise(uint32_t size, uint32_t average_value, uint32_t noise_ampl) {
+    std::vector<uint32_t> ret;
+    for(int i = 0; i<size; i++){
+        ret.push_back(average_value + distrib(gen) % noise_ampl);
+    }
+    return ret;
+}
+
+std::vector<uint32_t>
+kernel_emulator::generate_sinusoid(uint32_t size, uint32_t amplitude, float frequency, uint32_t offset, uint32_t phase) {
+    std::vector<uint32_t> ret;
+    for(int i = 0; i<size; i++){
+        uint32_t val = amplitude*sin(2*M_PI*frequency + i+phase) + offset;
+        ret.push_back(val);
+    }
+    return ret;
 }

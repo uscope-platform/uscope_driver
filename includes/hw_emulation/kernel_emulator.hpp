@@ -32,6 +32,9 @@ public:
 
 
 private:
+
+    static std::vector<uint32_t> generate_white_noise(uint32_t size, uint32_t average_value, uint32_t noise_ampl);
+    static std::vector<uint32_t> generate_sinusoid(uint32_t size, uint32_t amplitude, float frequency, uint32_t offset, uint32_t phase);
 };
 
 static const struct cuse_lowlevel_ops kernel_emulator_ops = {
