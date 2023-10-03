@@ -68,3 +68,5 @@ doc/
 CMakeFiles/
 
 .vscode
+
+CMakeUserPresets.json

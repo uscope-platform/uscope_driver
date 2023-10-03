@@ -142,7 +142,7 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
             if(log_enabled) std::cout << "WRITE SINGLE REGISTER (RTCU PROXIED) : proxy_addr "<< std::hex<< write_obj["proxy_address"]<<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
             registers[register_address_to_index(proxy_addr)] = write_obj["value"];
             registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
-        } else if(write_obj["proxy_type"] == "axis_const"){
+        } else if(write_obj["proxy_type"] == "axis_constant"){
             if(log_enabled) std::cout << "WRITE SINGLE REGISTER (AXIS PROXIED) : proxy_addr "<< std::hex<< write_obj["proxy_address"] <<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
             uint32_t proxy_addr = write_obj["proxy_address"];
             registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
