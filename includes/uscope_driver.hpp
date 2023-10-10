@@ -31,5 +31,6 @@
 
 #include "server_frontend/server_connector.hpp"
 #include "hw_emulation/kernel_emulator.hpp"
+#include "version.h"
 
 #endif //USCOPE_DIR_USCOPE_DRIVER_H

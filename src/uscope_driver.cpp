@@ -37,6 +37,7 @@ int main (int argc, char **argv) {
 
     bool emulate_hw = false;
     bool log_command = false;
+    bool read_version = false;
     std::string scope_data_source;
     int log_level = 0;
 
@@ -44,8 +45,16 @@ int main (int argc, char **argv) {
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
     app.add_option("--log_level", log_level, "Log the received commands on the standard output");
     app.add_option("--scope_source", scope_data_source, "Path for the scope data source");
+    app.add_flag("--version", read_version, "Print the software version information");
 
     CLI11_PARSE(app, argc, argv);
+
+    if(read_version){
+        std::cout << "The current uscope_driver version is:\n    " + uscope_driver_versions<<std::endl;
+        return 0;
+    }
+
+    
 
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, intHandler);

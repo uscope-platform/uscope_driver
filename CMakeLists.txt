@@ -49,3 +49,14 @@ target_link_libraries(uscope_driver PRIVATE pthread rt
         CLI11::CLI11
         libfuse::libfuse
 )
+
+add_custom_target(update_version
+    COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Version Header Update"
+)
+
+add_custom_command(
+        TARGET update_version
+        PRE_BUILD
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py  ${CMAKE_SOURCE_DIR}/includes/version.h
+        VERBATIM
+)
