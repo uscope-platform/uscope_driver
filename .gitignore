@@ -70,3 +70,5 @@ CMakeFiles/
 .vscode
 
 CMakeUserPresets.json
+
+includes/version.h

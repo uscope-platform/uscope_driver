@@ -60,3 +60,5 @@ add_custom_command(
         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py  ${CMAKE_SOURCE_DIR}/includes/version.h
         VERBATIM
 )
+
+add_dependencies(uscope_driver update_version)
