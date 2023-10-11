@@ -302,4 +302,12 @@ responses::response_code fpga_bridge::apply_filter(uint32_t address, std::vector
     return responses::ok;
 }
 
+std::string fpga_bridge::get_module_version() {
+    return "KERNEL MODULE VERSIONING NOT IMPLEMENTED YET";
+}
+
+std::string fpga_bridge::get_hardware_version() {
+    return "HARDWARE VERSIONING NOT IMPLEMENTED YET";
+}
+
 

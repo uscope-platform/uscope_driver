@@ -20,6 +20,7 @@
 #include "hw_interface/fpga_bridge.hpp"
 #include "response.hpp"
 #include "command.hpp"
+#include "version.h"
 
 class command_processor {
 public:
@@ -41,6 +42,7 @@ private:
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
     nlohmann::json process_apply_filter(nlohmann::json &arguments);
+    nlohmann::json process_get_version(nlohmann::json &arguments);
     nlohmann::json process_set_channel_signs(nlohmann::json &arguments);
 
     fpga_bridge hw;

@@ -54,6 +54,9 @@ public:
     responses::response_code set_channel_status(std::unordered_map<int, bool> channel_status);
     responses::response_code set_channel_signed(std::unordered_map<int, bool> channel_signs);
 
+    std::string get_module_version();
+    std::string get_hardware_version();
+
     int check_capture_progress(unsigned int &progress);
     void stop_scope();
     static uint32_t register_address_to_index(uint32_t address);
