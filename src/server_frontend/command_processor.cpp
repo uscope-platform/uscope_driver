@@ -14,7 +14,8 @@
 // limitations under the License.
 #include "server_frontend/command_processor.hpp"
 
-command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level) : hw(driver_file, dma_buffer_size, emulate_control, log, log_level) {
+command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level)
+: hw(driver_file, dma_buffer_size, emulate_control, log, log_level) {
     logging_enabled = log;
 }
 

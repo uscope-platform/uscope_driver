@@ -61,7 +61,10 @@ add_custom_command(
         VERBATIM
 )
 
-add_dependencies(uscope_driver update_version)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_dependencies(uscope_driver update_version)
+endif(CMAKE_BUILD_TYPE STREQUAL "Release")
+
 
 
 add_executable(kernel_emulator testing/kernel_emulator_standalone.cpp src/hw_emulation/kernel_emulator.cpp)

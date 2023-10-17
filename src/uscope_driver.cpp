@@ -37,12 +37,14 @@ int main (int argc, char **argv) {
     CLI::App app{"Low level Driver for the uScope interface system"};
 
     bool emulate_hw = false;
+    bool external_emu = false;
     bool log_command = false;
     bool read_version = false;
     std::string scope_data_source;
     int log_level = 0;
 
-    app.add_flag("--debug", emulate_hw, "Emulate hardware for debug on regular processors");
+    app.add_flag("--external_emulator", external_emu, "Use extenral kernel emulator");
+    app.add_flag("--debug", emulate_hw, "Enable debug features to allow running off target");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
     app.add_option("--log_level", log_level, "Log the received commands on the standard output");
     app.add_option("--scope_source", scope_data_source, "Path for the scope data source");
@@ -74,12 +76,13 @@ int main (int argc, char **argv) {
     std::jthread scope_thread;
 
 
-    if(emulate_hw){
+    if(!external_emu){
         std::string emulator = "./kernel_emulator";
          emulator_fd = popen(emulator.c_str(), "w");
          if(emulator_fd == nullptr){
              std::cerr<< "An error occurred while launching the kernel emulator executable";
          }
+        usleep(100*1000);
     }
 
     unsigned int channel_buffer_size = 1024;
