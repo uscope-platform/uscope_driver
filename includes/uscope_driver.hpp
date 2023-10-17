@@ -30,7 +30,6 @@
 #include <sys/mman.h>
 
 #include "server_frontend/server_connector.hpp"
-#include "hw_emulation/kernel_emulator.hpp"
 #include "version.h"
 
 

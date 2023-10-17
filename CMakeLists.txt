@@ -39,7 +39,6 @@ set(DRIVER_SOURCES /
         src/hw_interface/fpga_bridge.cpp
         src/hw_interface/scope_thread.cpp
         src/emulated_data_generator.cpp
-        src/hw_emulation/kernel_emulator.cpp
 )
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
@@ -47,7 +46,6 @@ target_link_libraries(uscope_driver PRIVATE pthread rt
         nlohmann_json::nlohmann_json
         nlohmann_json_schema_validator
         CLI11::CLI11
-        libfuse::libfuse
 )
 
 add_custom_target(update_version
