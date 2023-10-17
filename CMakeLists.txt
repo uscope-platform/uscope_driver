@@ -5,7 +5,7 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 project (uscope_driver)
 
 option(VERBOSE_LOGGING "Configure how verbose is the command line logging (1 for standard 2 for verbose)" OFF)
-option(INCLUDE_KERNEL_EMU "Build the kernel emulator (require libfuse)" OFF)
+option(EXCLUDE_KERNEL_EMU "Exclude the the kernel emulator from the build" OFF)
 
 if(${VERBOSE_LOGGING})
     add_compile_definitions(VERBOSE_LOGGING)
@@ -65,13 +65,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_dependencies(uscope_driver update_version)
 endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
-if(${INCLUDE_KERNEL_EMU})
+if(NOT ${EXCLUDE_KERNEL_EMU})
 
     find_package(libfuse REQUIRED)
     add_executable(kernel_emulator testing/kernel_emulator_standalone.cpp src/hw_emulation/kernel_emulator.cpp)
     target_link_libraries(kernel_emulator PRIVATE pthread rt
             libfuse::libfuse
     )
-endif(${INCLUDE_KERNEL_EMU})
+endif(NOT ${EXCLUDE_KERNEL_EMU})
 
 
