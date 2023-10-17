@@ -111,8 +111,9 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t 
     }
     if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
-        int channel_base = GET_CHANNEL(buffer_in[i]);
-        float data_sample = scale_data(buffer_in[i], channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
+        auto sample = buffer_in[i];
+        int channel_base = GET_CHANNEL(sample);
+        float data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
         ret_data[channel_base].push_back(data_sample);
     }
     return ret_data;
@@ -142,7 +143,7 @@ void scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
     channel_status = std::move(status);
 }
 
-void scope_thread::set_channel_signed(std::unordered_map<int, bool> signed_status) {
-    signed_status = std::move(signed_status);
+void scope_thread::set_channel_signed(std::unordered_map<int, bool> ss) {
+    signed_status = std::move(ss);
 }
 

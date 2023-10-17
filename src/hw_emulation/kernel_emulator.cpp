@@ -65,22 +65,24 @@ void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_f
     uint32_t data_array[n_channels*n_datapoints];
     // Generate channel_data
 
-    /*std::array<std::vector<uint32_t>, n_channels> channel_data;
+    std::array<std::vector<int32_t>, n_channels> channel_data;
+
+    /*
     for(int j = 0; j<n_channels;j++){
         channel_data[j] = generate_white_noise(n_datapoints, j*100, 20);
     }
     */
 
-    std::array<std::vector<uint32_t>, n_channels> channel_data;
     for(int j = 0; j<n_channels;j++){
-        channel_data[j] = generate_sinusoid(n_datapoints, 20, 1000, 10, j+100);
+        channel_data[j] = generate_sinusoid(n_datapoints, 20, 500, 0, j+100);
     }
 
     // Interleave channels and add id to MSB
     for(int i = 0; i<n_datapoints;i++){
         for(int j = 0; j<n_channels;j++){
             uint32_t channel_id = (j<<24);
-            data_array[i*n_channels+j] =  channel_id | channel_data[j][i];
+            uint32_t  raw_data = 0xFFFFFF & channel_data[j][i];
+            data_array[i*n_channels+j] =  channel_id | raw_data;
         }
     }
     char *data_array_raw = (char *) &data_array;
@@ -108,20 +110,23 @@ void kernel_emulator::ioctl(fuse_req_t req, int cmd, void *arg, struct fuse_file
     fuse_reply_ioctl(req, 0, nullptr, 0);
 }
 
-std::vector<uint32_t>
-kernel_emulator::generate_white_noise(uint32_t size, uint32_t average_value, uint32_t noise_ampl) {
-    std::vector<uint32_t> ret;
+std::vector<int32_t>
+kernel_emulator::generate_white_noise(int32_t size, int32_t average_value, int32_t noise_ampl) {
+    std::vector<int32_t> ret;
     for(int i = 0; i<size; i++){
         ret.push_back(average_value + distrib(gen) % noise_ampl);
     }
     return ret;
 }
 
-std::vector<uint32_t>
+std::vector<int32_t>
 kernel_emulator::generate_sinusoid(uint32_t size, uint32_t amplitude, float frequency, uint32_t offset, uint32_t phase) {
-    std::vector<uint32_t> ret;
+    std::vector<int32_t> ret;
     for(int i = 0; i<size; i++){
-        uint32_t val = amplitude*sin(2*M_PI*frequency + i+phase) + offset;
+        double t = i*1e-6;
+        auto omega = 2*M_PI*frequency;
+        auto noise = distrib(gen) % amplitude/10.0;
+        int32_t val = amplitude*sin(omega*t + phase) + offset + noise;
         ret.push_back(val);
     }
     return ret;
