@@ -35,10 +35,22 @@ scope_thread::scope_thread(const std::string& driver_file, int32_t buffer_size, 
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
+    channel_sizes = {16,16,16,16,16,16};
+    channel_status = {
+            {0,true},
+            {1,true},
+            {2,true},
+            {3,true},
+            {4,true},
+            {5,true},
+    };
     log_level = ll;
 
     //mmap buffer
     fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
+    if(fd_data == -1){
+        std::cerr << std::strerror(errno);
+    }
     dma_buffer = (int32_t* ) malloc(n_channels*buffer_size*sizeof(int32_t));
 
     if(log){
@@ -100,7 +112,7 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile int32_t 
     if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
         int channel_base = GET_CHANNEL(buffer_in[i]);
-        float data_sample = scale_data(buffer_in[i],channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
+        float data_sample = scale_data(buffer_in[i], channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
         ret_data[channel_base].push_back(data_sample);
     }
     return ret_data;

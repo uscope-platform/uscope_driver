@@ -62,3 +62,9 @@ add_custom_command(
 )
 
 add_dependencies(uscope_driver update_version)
+
+
+add_executable(kernel_emulator testing/kernel_emulator_standalone.cpp src/hw_emulation/kernel_emulator.cpp)
+target_link_libraries(kernel_emulator PRIVATE pthread rt
+        libfuse::libfuse
+)

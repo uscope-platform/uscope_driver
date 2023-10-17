@@ -59,20 +59,23 @@ void kernel_emulator::open(fuse_req_t req, struct fuse_file_info *fi) {
 
 void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_file_info *fi) {
     (void)fi;
+    std::cout<<"HERE!!"<< std::endl;
     const int n_channels = 7;
     const int n_datapoints = 1024;
     uint32_t data_array[n_channels*n_datapoints];
     // Generate channel_data
-    /*
-        std::array<std::vector<uint32_t>, n_channels> channel_data;
-        for(int j = 0; j<n_channels;j++){
-            channel_data[j] = generate_white_noise(n_datapoints, j*100, 20);
-        }
-     */
+
+    /*std::array<std::vector<uint32_t>, n_channels> channel_data;
+    for(int j = 0; j<n_channels;j++){
+        channel_data[j] = generate_white_noise(n_datapoints, j*100, 20);
+    }
+    */
+
     std::array<std::vector<uint32_t>, n_channels> channel_data;
     for(int j = 0; j<n_channels;j++){
         channel_data[j] = generate_sinusoid(n_datapoints, 20, 1000, 10, j+100);
     }
+
     // Interleave channels and add id to MSB
     for(int i = 0; i<n_datapoints;i++){
         for(int j = 0; j<n_channels;j++){

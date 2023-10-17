@@ -22,6 +22,7 @@ server_connector *connector;
 /// \param args
 void intHandler(int args) {
     connector->stop_server();
+    pclose(emulator_fd);
     exit(0);
 }
 
@@ -71,14 +72,14 @@ int main (int argc, char **argv) {
     std::jthread ctrl_thread;
     std::jthread cores_thread;
     std::jthread scope_thread;
+
+
     if(emulate_hw){
-        std::string control_bus_device = "DEVNAME=uscope_BUS_0";
-        std::string fCore_bus_device = "DEVNAME=uscope_BUS_1";
-        std::string data_device = "DEVNAME=uscope_data";
-        ctrl_thread = std::jthread([&](){kernel_emulator(control_bus_device, 300, 0);});
-        cores_thread = std::jthread([&](){kernel_emulator(fCore_bus_device, 301, 1);});
-        scope_thread = std::jthread([&](){kernel_emulator(data_device, 302, 2);});
-        usleep(10000);
+        std::string emulator = "./kernel_emulator";
+         emulator_fd = popen(emulator.c_str(), "w");
+         if(emulator_fd == nullptr){
+             std::cerr<< "An error occurred while launching the kernel emulator executable";
+         }
     }
 
     unsigned int channel_buffer_size = 1024;
@@ -91,5 +92,7 @@ int main (int argc, char **argv) {
                                      emulate_hw,log_command, log_level);
 
     connector->start_server();
+
+
     return 0;
 }

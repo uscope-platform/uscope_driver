@@ -33,4 +33,8 @@
 #include "hw_emulation/kernel_emulator.hpp"
 #include "version.h"
 
+
+
+FILE *emulator_fd;
+
 #endif //USCOPE_DIR_USCOPE_DRIVER_H
