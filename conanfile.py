@@ -14,9 +14,10 @@ class BasicConanfile(ConanFile):
     def requirements(self):
         self.requires("cli11/2.3.2")
         self.requires("nlohmann_json/3.11.2")
-        self.requires("json-schema-validator/2.2.0")
+        self.requires("valijson/1.0.1")
         if self.settings.arch == "x86_64":
             self.requires("libfuse/3.10.5")
+
 
 
     def build_requirements(self):

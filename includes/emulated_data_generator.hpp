@@ -20,9 +20,11 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cstdint>
+#include <cmath>
+#include <array>
+
 #include <nlohmann/json.hpp>
-
-
 
 class emulated_data_generator {
 public:

@@ -20,7 +20,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <nlohmann/json-schema.hpp>
+#include "server_frontend/schema_validator.h"
 
 namespace commands {
 
@@ -214,15 +214,8 @@ namespace commands {
     )"_json;
 
     static bool validate_schema(nlohmann::json &cmd, nlohmann::json &schema, std::string &error){
-        nlohmann::json_schema::json_validator validator;
-        try {
-            validator.set_root_schema(schema);
-            validator.validate(cmd);
-        } catch (const std::exception &e) {
-            error = e.what();
-            return false;
-        }
-        return true;
+        schema_validator sv(schema);
+        return sv.validate(cmd, error);
     };
 }
 

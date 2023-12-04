@@ -28,7 +28,7 @@ include_directories(${CMAKE_SOURCE_DIR}/includes)
 file(GLOB INC_SOURCES "includes/*.h*")
 
 
-find_package(nlohmann_json_schema_validator REQUIRED)
+find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
 
@@ -36,6 +36,7 @@ set(DRIVER_SOURCES /
         src/uscope_driver.cpp
         src/server_frontend/server_connector.cpp
         src/server_frontend/command_processor.cpp
+        src/server_frontend/schema_validator.cpp
         src/hw_interface/fpga_bridge.cpp
         src/hw_interface/scope_thread.cpp
         src/emulated_data_generator.cpp
@@ -43,8 +44,8 @@ set(DRIVER_SOURCES /
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
 target_link_libraries(uscope_driver PRIVATE pthread rt
+        ValiJSON::valijson
         nlohmann_json::nlohmann_json
-        nlohmann_json_schema_validator
         CLI11::CLI11
 )
 
