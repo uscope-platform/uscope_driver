@@ -32,6 +32,7 @@
 #include "server_frontend/response.hpp"
 #include "hw_interface/scope_thread.hpp"
 
+
 #define ZYNQ_REGISTERS_BASE_ADDR 0x43c00000
 #define ZYNQ_FCORE_BASE_ADDR 0x83c00000
 #define ZYNQMP_REGISTERS_BASE_ADDR 0x400000000

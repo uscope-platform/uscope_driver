@@ -85,21 +85,21 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         }
 
         std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< control_addr <<std::endl;
-        registers = (uint32_t*) mmap64(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
+        registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
         std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< control_addr <<std::endl;
-        fCore = (uint32_t*) mmap64(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
+        fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
         if(fCore == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
     } else {
-        registers = (uint32_t*) mmap64(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+        registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot create /dev/mem emulator anonymous mapping: "<< strerror(errno) << std::endl;
             exit(1);
