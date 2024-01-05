@@ -39,6 +39,17 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         std::cout << "fpga_bridge initialization started"<< std::endl;
     }
 
+    std::string arch = std::getenv("ARCH");
+
+    if(arch == "zynqmp"){
+        control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
+        core_addr = ZYNQMP_FCORE_BASE_ADDR;
+    } else {
+        control_addr = ZYNQ_REGISTERS_BASE_ADDR;
+        core_addr = ZYNQ_FCORE_BASE_ADDR;
+    }
+
+
     signal(SIGSEGV,sigsegv_handler);
     signal(SIGBUS,sigbus_handler);
 
@@ -63,24 +74,27 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
 
     std::string file_path;
     if(!emulate_control){
-        if((registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC)) == -1){
+        registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC);
+        if(registers_fd == -1){
             std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
             exit(1);
         }
-        if((fcore_fd = open("/dev/uscope_BUS_1", O_RDWR | O_SYNC)) == -1){
+
+        fcore_fd = open("/dev/uscope_BUS_1", O_RDWR | O_SYNC);
+        if(fcore_fd == -1){
             std::cerr << "error while mapping the fcore rom bus (M_GP1)" <<std::endl;
             exit(1);
         }
 
         std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus"<<std::endl;
-        registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, REGISTERS_BASE_ADDR);
+        registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
         std::cout << "Mapping " <<std::to_string(n_pages_fcore)<<" memory pages from the femtocore bus"<<std::endl;
-        fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, FCORE_BASE_ADDR);
+        fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
         if(fCore == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
             exit(1);
@@ -111,7 +125,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
         std::string filename = "/lib/firmware/" + bitstream;
         //struct stat buffer;
         if(log_enabled) std::cout << filename << std::endl;
-        
+
         if(std::filesystem::exists(filename)){
             std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
             if(log_enabled) std::cout << command << std::endl;
@@ -135,7 +149,7 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 
     if(write_obj["type"] == "direct"){
         if(log_enabled) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
-        
+
         registers[register_address_to_index(write_obj["address"])] = write_obj["value"];
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
@@ -186,7 +200,7 @@ responses::response_code fpga_bridge::start_capture(uint32_t n_buffers) {
 responses::response_code fpga_bridge::read_data(std::vector<nlohmann::json> &read_data) {
     if(debug_mode){
         if(log_enabled) std::cout << "READ DATA" << std::endl;
-    }  
+    }
     scope_handler.read_data(read_data);
     return responses::ok;
 }
@@ -194,15 +208,15 @@ responses::response_code fpga_bridge::read_data(std::vector<nlohmann::json> &rea
 ///  Helper function converting byte aligned addresses to array indices
 /// \param address to convert
 /// \return converted address
-uint32_t fpga_bridge::fcore_address_to_index(uint32_t address) {
-    return (address - FCORE_BASE_ADDR) / 4;
+uint64_t fpga_bridge::fcore_address_to_index(uint64_t address) const {
+    return (address - core_addr) / 4;
 }
 
 ///  Helper function converting byte aligned addresses to array indices
 /// \param address to convert
 /// \return converted address
-uint32_t fpga_bridge::register_address_to_index(uint32_t address) {
-    return (address - REGISTERS_BASE_ADDR) / 4;
+uint64_t fpga_bridge::register_address_to_index(uint64_t address) const {
+    return (address - control_addr) / 4;
 }
 
 int fpga_bridge::check_capture_progress(unsigned int &progress) {
@@ -225,7 +239,7 @@ void fpga_bridge::stop_scope() {
 /// \return #RESP_OK
 responses::response_code fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << std::hex << address << " program_size: "<< std::dec << program.size()<<std::endl;
-    uint32_t offset = (address - FCORE_BASE_ADDR)/4;
+    uint32_t offset = (address - core_addr)/4;
 
     if(!debug_mode) {
         for(int i = 0; i< program.size(); i++)

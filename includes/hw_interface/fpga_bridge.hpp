@@ -32,8 +32,10 @@
 #include "server_frontend/response.hpp"
 #include "hw_interface/scope_thread.hpp"
 
-#define REGISTERS_BASE_ADDR 0x43c00000
-#define FCORE_BASE_ADDR 0x83c00000
+#define ZYNQ_REGISTERS_BASE_ADDR 0x43c00000
+#define ZYNQ_FCORE_BASE_ADDR 0x83c00000
+#define ZYNQMP_REGISTERS_BASE_ADDR 0x400000000
+#define ZYNQMP_FCORE_BASE_ADDR 0x500000000
 
 void sigsegv_handler(int dummy);
 void sigbus_handler(int dummy);
@@ -59,12 +61,14 @@ public:
 
     int check_capture_progress(unsigned int &progress);
     void stop_scope();
-    static uint32_t register_address_to_index(uint32_t address);
-    static uint32_t fcore_address_to_index(uint32_t address);
+    uint64_t register_address_to_index(uint64_t address) const;
+    uint64_t fcore_address_to_index(uint64_t address) const;
 
 private:
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
+    uint64_t control_addr;
+    uint64_t core_addr;
 
     bool debug_mode;
     bool log_enabled;
