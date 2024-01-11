@@ -37,7 +37,7 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer
         std::cout << "fpga_bridge initialization started"<< std::endl;
     }
 
-    std::string arch = std::getenv("ARCH");
+    arch = std::getenv("ARCH");
 
     if(arch == "zynqmp"){
         control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
@@ -271,7 +271,14 @@ responses::response_code fpga_bridge::set_scaling_factors(std::vector<float> sfs
 responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
     if(log_enabled)
         std::cout << "SET_CLOCK FREQUENCY: clock #" + std::to_string(freq[0]) + " to " + std::to_string(freq[1]) + "Hz" <<std::endl;
-    std::string command = "echo " + std::to_string(freq[1]) + " > /sys/devices/soc0/fffc0000.uScope/fclk_" + std::to_string(freq[0]);
+
+    std::string command;
+
+    if(arch=="zynq"){
+        command = "echo " + std::to_string(freq[1]) + " > /sys/devices/soc0/fffc0000.uScope/fclk_" + std::to_string(freq[0]);
+    } else{
+        return responses::ok;
+    }
     if(!debug_mode) {
         system(command.c_str());
     }

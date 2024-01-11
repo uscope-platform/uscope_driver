@@ -73,6 +73,7 @@ private:
 
     bool debug_mode;
     bool log_enabled;
+    std::string arch;
 
 
     scope_thread scope_handler;
