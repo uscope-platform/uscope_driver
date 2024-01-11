@@ -46,7 +46,7 @@ public:
     fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level);
     responses::response_code load_bitstream(const std::string& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
-    nlohmann::json single_read_register(uint32_t address);
+    nlohmann::json single_read_register(uint64_t address);
     responses::response_code start_capture(uint32_t n_buffers);
     responses::response_code read_data(std::vector<nlohmann::json> &read_data);
     responses::response_code apply_program(uint32_t address, std::vector<uint32_t> program);

@@ -128,7 +128,7 @@ nlohmann::json command_processor::process_single_read_register(nlohmann::json &a
         resp["data"] = "DRIVER ERROR:The argument for the single read register call must be a numeric value\n";
         return resp;
     }
-    uint32_t address = arguments;
+    uint64_t address = arguments;
     return hw.single_read_register(address);
 }
 

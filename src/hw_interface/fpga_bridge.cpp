@@ -170,7 +170,7 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put
 /// \return #RESP_OK
-nlohmann::json fpga_bridge::single_read_register(uint32_t address) {
+nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
     nlohmann::json response_body;
     if(log_enabled) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
     if(debug_mode) {
