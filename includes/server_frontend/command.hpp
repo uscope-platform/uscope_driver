@@ -39,7 +39,8 @@ namespace commands {
         set_channel_status = 13,
         apply_filter = 14,
         set_channel_signs = 15,
-        get_version = 16
+        get_version = 16,
+        set_scope_data = 17
     } command_code;
 
     template <typename command_code>
@@ -58,13 +59,21 @@ namespace commands {
         {start_capture, "C_START_CAPTURE"},
         {read_data, "C_READ_DATA"},
         {check_capture, "C_CHECK_CAPTURE_PROGRESS"},
-        {set_channel_widths, "C_SET_CHANNEL_WIDTHS"},
         {apply_program, "C_APPLY_PROGRAM"},
+        {set_channel_widths, "C_SET_CHANNEL_WIDTHS"},
         {set_scaling_factors, "C_SET_SCALING_FACTORS"},
         {set_channel_status, "C_SET_CHANNEL_STATUS"},
-        {apply_filter, "C_APPLY_FILTER"},
         {set_channel_signs, "C_SET_CHANNEL_SIGNS"},
+        {apply_filter, "C_APPLY_FILTER"},
+        {set_scope_data,"C_SET_SCOPE_DATA"},
         {get_version, "C_GET_VERSION"}
+    };
+
+    struct scope_data {
+        uint64_t buffer_address = 0;
+        uint64_t enable_address = 0;
+        uint64_t data_length_address = 0;
+        uint64_t mux_address = 0;
     };
 
     static nlohmann::json command = R"(

@@ -44,6 +44,7 @@ private:
     nlohmann::json process_apply_filter(nlohmann::json &arguments);
     nlohmann::json process_get_version(nlohmann::json &arguments);
     nlohmann::json process_set_channel_signs(nlohmann::json &arguments);
+    nlohmann::json process_set_scope_data(nlohmann::json &arguments);
 
     fpga_bridge hw;
     bool logging_enabled;

@@ -235,7 +235,7 @@ void fpga_bridge::stop_scope() {
 /// \param address Address of the fCore instance
 /// \param program Vector with the instructions of the program to load
 /// \return #RESP_OK
-responses::response_code fpga_bridge::apply_program(uint32_t address, std::vector<uint32_t> program) {
+responses::response_code fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
     std::cout<< "APPLY PROGRAM: address: " << std::hex << address << " program_size: "<< std::dec << program.size()<<std::endl;
     uint32_t offset = (address - core_addr)/4;
 
@@ -307,7 +307,7 @@ responses::response_code fpga_bridge::set_channel_signed(std::unordered_map<int,
     return responses::ok;
 }
 
-responses::response_code fpga_bridge::apply_filter(uint32_t address, std::vector<uint32_t> taps) {
+responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
     std::cout<< "APPLY FILTER: address: " << std::hex << address << " N. Filter Taps "<< std::dec << taps.size()<<std::endl;
 
     auto filter_address= register_address_to_index(address);
@@ -328,6 +328,21 @@ std::string fpga_bridge::get_module_version() {
 
 std::string fpga_bridge::get_hardware_version() {
     return "HARDWARE VERSIONING NOT IMPLEMENTED YET";
+}
+
+responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) {
+    uint64_t buffer;
+    if(log_enabled){
+        std::cout << "SET_SCOPE_BUFFER_ADDDRESS: " + std::to_string(buffer);
+    }
+
+    if(!debug_mode){
+        std::ifstream fs("/sys/devices/platform/fffc000000008000.uScope/dma_addr");
+        fs >> buffer;
+    }
+    
+    registers[register_address_to_index(data.buffer_address)] = buffer;
+    return responses::ok;
 }
 
 

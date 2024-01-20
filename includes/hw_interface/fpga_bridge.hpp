@@ -49,14 +49,14 @@ public:
     nlohmann::json single_read_register(uint64_t address);
     responses::response_code start_capture(uint32_t n_buffers);
     responses::response_code read_data(std::vector<nlohmann::json> &read_data);
-    responses::response_code apply_program(uint32_t address, std::vector<uint32_t> program);
-    responses::response_code apply_filter(uint32_t address, std::vector<uint32_t> taps);
+    responses::response_code apply_program(uint64_t address, std::vector<uint32_t> program);
+    responses::response_code apply_filter(uint64_t address, std::vector<uint32_t> taps);
     responses::response_code set_channel_widths(std::vector<uint32_t> widths);
     responses::response_code set_scaling_factors(std::vector<float> sfs);
     responses::response_code set_clock_frequency(std::vector<uint32_t> freq);
     responses::response_code set_channel_status(std::unordered_map<int, bool> channel_status);
     responses::response_code set_channel_signed(std::unordered_map<int, bool> channel_signs);
-
+    responses::response_code set_scope_data(commands::scope_data address);
     std::string get_module_version();
     std::string get_hardware_version();
 

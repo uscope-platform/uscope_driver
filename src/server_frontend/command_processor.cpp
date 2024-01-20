@@ -81,6 +81,8 @@ nlohmann::json command_processor::process_command(commands::command_code command
         case commands::get_version:
             response_obj["body"] = process_get_version(arguments);
             break;
+        case commands::set_scope_data:
+            response_obj["body"] = process_set_scope_data(arguments);
     }
     return response_obj;
 }
@@ -316,6 +318,18 @@ nlohmann::json command_processor::process_get_version(nlohmann::json &arguments)
         resp["data"] = "DRIVER ERROR: Unknown component\n";
     }
     resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+nlohmann::json command_processor::process_set_scope_data(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    commands::scope_data sd;
+    sd.data_length_address = arguments["length"];
+    sd.enable_address = arguments["enable"];
+    sd.buffer_address = arguments["buffer_address"];
+    sd.mux_address = arguments["mux"];
+
+    resp["response_code"] = hw.set_scope_data(sd);
     return resp;
 }
 
