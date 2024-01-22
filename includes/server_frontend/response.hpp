@@ -26,7 +26,8 @@ namespace responses {
         ok = 1,
         bitstream_not_found = 2,
         invalid_cmd_schema = 3,
-        invalid_arg = 4
+        invalid_arg = 4,
+        bitstream_load_failed =5
     } response_code;
 
     template<typename response_code>

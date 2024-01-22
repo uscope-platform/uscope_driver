@@ -18,6 +18,7 @@
 
 volatile int registers_fd, fcore_fd;
 
+using namespace std::chrono_literals;
 
 void sigsegv_handler(int dummy) {
     std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
@@ -125,11 +126,22 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
         if(log_enabled) std::cout << filename << std::endl;
 
         if(std::filesystem::exists(filename)){
-            std::string command = "echo " + bitstream + " > /sys/class/fpga_manager/fpga0/firmware";
-            if(log_enabled) std::cout << command << std::endl;
+            std::ofstream ofs("/sys/class/fpga_manager/fpga0/firmware");
+            ofs << bitstream;
 
-            system(command.c_str());
-            return responses::ok;
+            std::string state;
+            std::ifstream ifs("/sys/class/fpga_manager/fpga0/state");
+            int timeout_counter = 500;
+            do {
+                std::this_thread::sleep_for(5ms);
+                ifs >> state;
+                timeout_counter--;
+            } while (state != "operating" && timeout_counter>=0);
+
+            if(timeout_counter <0)
+                return responses::bitstream_load_failed;
+            else
+                return responses::ok;
         } else {
             std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
             return responses::bitstream_not_found;
@@ -340,7 +352,7 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
         std::ifstream fs("/sys/devices/platform/fffc000000008000.uScope/dma_addr");
         fs >> buffer;
     }
-    
+
     registers[register_address_to_index(data.buffer_address)] = buffer;
     return responses::ok;
 }
