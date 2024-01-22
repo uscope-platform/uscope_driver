@@ -119,15 +119,16 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
     if(log_enabled) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
     if(!debug_mode){
-        system("echo 0 > /sys/class/fpga_manager/fpga0/flags");
+        std::ofstream ofs("/sys/class/fpga_manager/fpga0/flags");
+        ofs << "0";
+        ofs.flush();
 
         std::string filename = "/lib/firmware/" + bitstream;
-        //struct stat buffer;
-        if(log_enabled) std::cout << filename << std::endl;
 
         if(std::filesystem::exists(filename)){
-            std::ofstream ofs("/sys/class/fpga_manager/fpga0/firmware");
+            ofs = std::ofstream("/sys/class/fpga_manager/fpga0/firmware");
             ofs << bitstream;
+            ofs.flush();
 
             std::string state;
             std::ifstream ifs("/sys/class/fpga_manager/fpga0/state");
@@ -138,10 +139,12 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
                 timeout_counter--;
             } while (state != "operating" && timeout_counter>=0);
 
-            if(timeout_counter <0)
+            if(timeout_counter <0){
+                if(log_enabled) std::cout << "ERROR: Bitstream load failed to complete in time";
                 return responses::bitstream_load_failed;
-            else
+            } else{
                 return responses::ok;
+            }
         } else {
             std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
             return responses::bitstream_not_found;
