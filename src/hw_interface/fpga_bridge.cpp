@@ -358,9 +358,9 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
         std::cout << "SET_SCOPE_BUFFER_ADDDRESS: writing buffer address "
                 + std::to_string(buffer)
                 + " to scope at address "
-                + std::to_string(data.buffer_address);
+                + std::to_string(data.buffer_address)<< std::endl;
     }
-    //registers[register_address_to_index(data.buffer_address)] = buffer;
+    registers[register_address_to_index(data.buffer_address)] = buffer;
     return responses::ok;
 }
 
