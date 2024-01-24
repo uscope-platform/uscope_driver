@@ -347,16 +347,20 @@ std::string fpga_bridge::get_hardware_version() {
 
 responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) {
     uint64_t buffer;
-    if(log_enabled){
-        std::cout << "SET_SCOPE_BUFFER_ADDDRESS: " + std::to_string(buffer);
-    }
 
     if(!debug_mode){
         std::ifstream fs("/sys/devices/platform/fffc000000008000.uScope/dma_addr");
         fs >> buffer;
     }
 
-    registers[register_address_to_index(data.buffer_address)] = buffer;
+
+    if(log_enabled){
+        std::cout << "SET_SCOPE_BUFFER_ADDDRESS: writing buffer address "
+                + std::to_string(buffer)
+                + " to scope at address "
+                + std::to_string(data.buffer_address);
+    }
+    //registers[register_address_to_index(data.buffer_address)] = buffer;
     return responses::ok;
 }
 
