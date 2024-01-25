@@ -105,6 +105,7 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
         auto raw_sample = buffer_in[i];
         int channel_base = GET_CHANNEL(raw_sample);
         auto sample = GET_DATA(raw_sample);
+        auto metadata = GET_METADATA(raw_sample);
         float data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
         ret_data[channel_base].push_back(data_sample);
     }

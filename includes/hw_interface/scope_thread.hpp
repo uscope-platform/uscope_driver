@@ -45,7 +45,8 @@
 
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
-#define GET_CHANNEL(NUMBER) ((NUMBER & 0xffffffff00000000)>>32)
+#define GET_CHANNEL(NUMBER) ((NUMBER & 0x0000ffff00000000)>>32)
+#define GET_METADATA(NUMBER) ((NUMBER & 0xffff000000000000)>>48)
 
 static int32_t sign_extend(uint32_t value, uint32_t bits) {
 

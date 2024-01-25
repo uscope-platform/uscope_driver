@@ -179,7 +179,7 @@ nlohmann::json command_processor::process_apply_program(nlohmann::json &argument
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply program command\n"+ error_message;
         return resp;
     }
-    uint32_t address = arguments["address"];
+    uint64_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
     resp["response_code"] = hw.apply_program(address, program);
     return resp;
