@@ -44,7 +44,7 @@
 #define SCOPE_MODE_CAPTURE 2
 
 
-#define GET_DATA (NUMBER) (NUMBER & 0xffffffff)
+#define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
 #define GET_CHANNEL(NUMBER) ((NUMBER & 0xffffffff00000000)>>32)
 
 static int32_t sign_extend(uint32_t value, uint32_t bits) {
