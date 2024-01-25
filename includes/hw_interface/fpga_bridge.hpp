@@ -59,6 +59,7 @@ public:
     responses::response_code set_channel_status(std::unordered_map<int, bool> channel_status);
     responses::response_code set_channel_signed(std::unordered_map<int, bool> channel_signs);
     responses::response_code set_scope_data(commands::scope_data address);
+    responses::response_code enable_manual_metadata();
     std::string get_module_version();
     std::string get_hardware_version();
 

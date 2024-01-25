@@ -365,4 +365,9 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
     return responses::ok;
 }
 
+responses::response_code fpga_bridge::enable_manual_metadata() {
+    scope_handler.enable_manual_metadata();
+    return responses::ok;
+}
+
 

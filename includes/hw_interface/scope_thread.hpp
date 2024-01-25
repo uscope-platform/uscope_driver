@@ -39,6 +39,7 @@
 #include <mutex>
 
 #include "emulated_data_generator.hpp"
+#include "channel_metadata.hpp"
 
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
@@ -73,7 +74,7 @@ public:
     void set_scaling_factors(std::vector<float> &sf);
     void set_channel_status(std::unordered_map<int, bool>status);
     void set_channel_signed(std::unordered_map<int, bool>signed_status);
-
+    void enable_manual_metadata() {manual_metadata = true;};
 private:
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
@@ -93,7 +94,8 @@ private:
     std::unordered_map<int, bool> channel_status;
     std::unordered_map<int, bool> signed_status;
 
-     emulated_data_generator data_gen;
+    emulated_data_generator data_gen;
+    bool manual_metadata = false;
 
 };
 

@@ -40,7 +40,8 @@ namespace commands {
         apply_filter = 14,
         set_channel_signs = 15,
         get_version = 16,
-        set_scope_data = 17
+        set_scope_data = 17,
+        enable_manual_metadata = 18
     } command_code;
 
     template <typename command_code>
@@ -66,7 +67,8 @@ namespace commands {
         {set_channel_signs, "C_SET_CHANNEL_SIGNS"},
         {apply_filter, "C_APPLY_FILTER"},
         {set_scope_data,"C_SET_SCOPE_DATA"},
-        {get_version, "C_GET_VERSION"}
+        {get_version, "C_GET_VERSION"},
+        {enable_manual_metadata, "C_ENABLE_MANUAL_METADATA"}
     };
 
     struct scope_data {

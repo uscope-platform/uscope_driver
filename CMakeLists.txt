@@ -39,6 +39,7 @@ set(DRIVER_SOURCES /
         src/server_frontend/schema_validator.cpp
         src/hw_interface/fpga_bridge.cpp
         src/hw_interface/scope_thread.cpp
+        src/hw_interface/channel_metadata.cpp
         src/emulated_data_generator.cpp
 )
 

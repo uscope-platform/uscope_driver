@@ -83,6 +83,9 @@ nlohmann::json command_processor::process_command(commands::command_code command
             break;
         case commands::set_scope_data:
             response_obj["body"] = process_set_scope_data(arguments);
+            break;
+        case commands::enable_manual_metadata:
+            response_obj["body"] = process_enable_mannual_metadata();
     }
     return response_obj;
 }
@@ -329,6 +332,10 @@ nlohmann::json command_processor::process_set_scope_data(nlohmann::json &argumen
 
     resp["response_code"] = hw.set_scope_data(sd);
     return resp;
+}
+
+nlohmann::json command_processor::process_enable_mannual_metadata() {
+    return hw.enable_manual_metadata();
 }
 
 
