@@ -87,14 +87,12 @@ int main (int argc, char **argv) {
         usleep(100*1000);
     }
 
-    unsigned int channel_buffer_size = 1024;
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
 
-    connector = new server_connector(6666, scope_driver_file, channel_buffer_size,
-                                     emulate_hw,log_command, log_level);
+    connector = new server_connector(6666, scope_driver_file, emulate_hw,log_command, log_level);
 
     connector->start_server();
 

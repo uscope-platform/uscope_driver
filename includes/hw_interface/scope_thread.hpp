@@ -44,7 +44,8 @@
 #define SCOPE_MODE_CAPTURE 2
 
 
-#define GET_CHANNEL(NUMBER) ((NUMBER >> 24) & 0xff)
+#define GET_DATA (NUMBER) (NUMBER & 0xffffffff)
+#define GET_CHANNEL(NUMBER) ((NUMBER & 0xffffffff00000000)>>32)
 
 static int32_t sign_extend(uint32_t value, uint32_t bits) {
 
@@ -62,10 +63,9 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, int32_t buffer_size, bool emulate_control, bool log, int log_level);
+    scope_thread(const std::string& driver_file, bool emulate_control, bool log, int log_level);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
-    [[nodiscard]] bool is_data_ready();
     void read_data(std::vector<nlohmann::json> &data_vector);
     void stop_thread();
     void set_channel_widths(std::vector<uint32_t> &widths);
@@ -74,9 +74,10 @@ public:
     void set_channel_signed(std::unordered_map<int, bool>signed_status);
 
 private:
-    static constexpr int n_channels = 7;
-    void read_data_hw(std::vector<std::vector<float>> &data_vector);
-    std::vector<std::vector<float>> shunt_data(const volatile int32_t * buffer_in);
+    static constexpr int n_channels = 6;
+    static constexpr int buffer_size = 1024;
+
+    std::vector<std::vector<float>> shunt_data(const volatile uint64_t * buffer_in);
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status);
 
     std::vector<uint32_t> channel_sizes;
@@ -85,12 +86,9 @@ private:
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
     int log_level;
-    std::atomic_bool scope_data_ready;
-    volatile int32_t* dma_buffer;  ///mmapped buffer
-    std::array<uint32_t, n_channels*1024> captured_data;
+    volatile uint64_t * dma_buffer;  ///mmapped buffer
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
-    std::array<uint32_t, n_channels*1024> mc_data_buffer;
     std::unordered_map<int, bool> channel_status;
     std::unordered_map<int, bool> signed_status;
 

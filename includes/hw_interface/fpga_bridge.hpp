@@ -45,7 +45,7 @@ void sigbus_handler(int dummy);
 
 class fpga_bridge {
 public:
-    fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level);
+    fpga_bridge(const std::string& driver_file, bool emulate_control, bool log, int log_level);
     responses::response_code load_bitstream(const std::string& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint64_t address);

@@ -31,8 +31,8 @@ void sigbus_handler(int dummy) {
 }
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level)
-: scope_handler(driver_file, dma_buffer_size, emulate_control, log, log_level) {
+fpga_bridge::fpga_bridge(const std::string& driver_file, bool emulate_control, bool log, int log_level)
+: scope_handler(driver_file, emulate_control, log, log_level) {
 
     if(log){
         std::cout << "fpga_bridge initialization started"<< std::endl;
@@ -361,6 +361,7 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
                 + std::to_string(data.buffer_address)<< std::endl;
     }
     registers[register_address_to_index(data.buffer_address)] = buffer;
+    registers[register_address_to_index(data.enable_address)] = 1;
     return responses::ok;
 }
 

@@ -14,8 +14,8 @@
 // limitations under the License.
 #include "server_frontend/command_processor.hpp"
 
-command_processor::command_processor(const std::string &driver_file, unsigned int dma_buffer_size, bool emulate_control, bool log, int log_level)
-: hw(driver_file, dma_buffer_size, emulate_control, log, log_level) {
+command_processor::command_processor(const std::string &driver_file, bool emulate_control, bool log, int log_level)
+: hw(driver_file, emulate_control, log, log_level) {
     logging_enabled = log;
 }
 
@@ -324,10 +324,8 @@ nlohmann::json command_processor::process_get_version(nlohmann::json &arguments)
 nlohmann::json command_processor::process_set_scope_data(nlohmann::json &arguments) {
     nlohmann::json resp;
     commands::scope_data sd;
-    sd.data_length_address = arguments["length"];
     sd.enable_address = arguments["enable"];
     sd.buffer_address = arguments["buffer_address"];
-    sd.mux_address = arguments["mux"];
 
     resp["response_code"] = hw.set_scope_data(sd);
     return resp;

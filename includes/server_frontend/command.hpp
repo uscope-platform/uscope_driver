@@ -72,8 +72,6 @@ namespace commands {
     struct scope_data {
         uint64_t buffer_address = 0;
         uint64_t enable_address = 0;
-        uint64_t data_length_address = 0;
-        uint64_t mux_address = 0;
     };
 
     static nlohmann::json command = R"(
