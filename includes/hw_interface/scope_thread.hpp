@@ -80,7 +80,7 @@ private:
     static constexpr int buffer_size = 1024;
 
     std::vector<std::vector<float>> shunt_data(const volatile uint64_t * buffer_in);
-    float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status);
+    float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float);
 
     std::vector<uint32_t> channel_sizes;
     std::vector<float> scaling_factors;

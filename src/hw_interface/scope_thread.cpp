@@ -108,9 +108,9 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
         auto metadata = channel_metadata(GET_METADATA(raw_sample));
         float data_sample;
         if(manual_metadata){
-            data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base]);
+            data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base], false);
         } else {
-            data_sample = scale_data(sample, metadata.get_size(), scaling_factors[channel_base], metadata.is_signed());
+            data_sample = scale_data(sample, metadata.get_size(), scaling_factors[channel_base], metadata.is_signed(), metadata.is_float());
         }
 
         ret_data[channel_base].push_back(data_sample);
@@ -118,16 +118,22 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
     return ret_data;
 }
 
-float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool signed_status) {
+float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float) {
+
+    float ret;
+
     int32_t sample;
-    if(!signed_status){
-        sample = raw_sample & ((1<<size)-1);
+    if(!is_signed) {
+        sample = raw_sample & ((1 << size) - 1);
     } else {
         auto masked_sample = raw_sample & ((1<<size)-1);
         sample = sign_extend(masked_sample, size);
     }
-
-    return scaling_factor*(float)sample;
+    ret = scaling_factor*(float)sample;;
+    if(is_float){
+        memcpy(ret, )
+    }
+    return ret
 }
 
 void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
