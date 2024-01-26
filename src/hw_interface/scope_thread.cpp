@@ -131,9 +131,9 @@ float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float sca
     }
     ret = scaling_factor*(float)sample;;
     if(is_float){
-        memcpy(ret, )
+        memcpy(&ret, &raw_sample, sizeof(float));
     }
-    return ret
+    return ret;
 }
 
 void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
