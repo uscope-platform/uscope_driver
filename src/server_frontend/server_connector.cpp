@@ -21,8 +21,8 @@ std::atomic_bool server_stop_req;
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(int port, const std::string &driver_file,  bool emulate_control, bool log, int log_level)
-: core_processor(driver_file, emulate_control,log, log_level) {
+server_connector::server_connector(int port,  bool emulate_control, bool log, int log_level)
+: core_processor(emulate_control,log, log_level) {
 
     if(log){
         std::cout << "server_connector initialization started"<< std::endl;

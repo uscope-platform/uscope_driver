@@ -20,16 +20,44 @@
 
 class channel_metadata {
 public:
+    channel_metadata() {
+        raw_metadata = 0;
+    };
     explicit channel_metadata(uint16_t r) {raw_metadata = r;};
     uint16_t get_size() const {
         return (raw_metadata & 0xf) + 8;
     };
-    bool is_signed() { return (raw_metadata & 0x10)>>4;};
-    bool is_float() {return (raw_metadata & 0x20)>>5;}
+    bool is_signed() const { return (raw_metadata & 0x10)>>4;};
+    bool is_float() const {return (raw_metadata & 0x20)>>5;}
+
+    void set_signed(const bool &s) {
+        if(s){
+            raw_metadata |= 0x10;
+        } else {
+            raw_metadata &= ~0x10;
+        }
+    };
+    void set_size(const uint16_t &s) {
+        raw_metadata &= 0xfff0;
+        raw_metadata |= (s-8)&0x000F;
+    };
+    void set_float(const bool &f) {
+        if(f){
+            raw_metadata |= 0x20;
+        } else {
+            raw_metadata &= ~0x20;
+        }
+    };
+    uint64_t get_high_side_field(uint16_t dest) const{
+        uint32_t  metadata = (raw_metadata<<16);
+        uint32_t  combined_hsf = metadata | dest;
+        uint64_t res = ((uint64_t) combined_hsf)<<32;
+        return res;
+    };
 private:
     uint16_t raw_metadata;
 
 };
 
 
-#endif //USCOPE_DRIVER_CHANNEL_METADATA_HPP
+#endif //USCOPE_DRIVER_CHANNEL_METADATA_HPP6

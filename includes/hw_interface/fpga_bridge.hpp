@@ -33,7 +33,7 @@
 #include "server_frontend/command.hpp"
 #include "server_frontend/response.hpp"
 #include "hw_interface/scope_thread.hpp"
-
+#include "hw_interface/interfaces_dictionary.hpp"
 
 #define ZYNQ_REGISTERS_BASE_ADDR 0x43c00000
 #define ZYNQ_FCORE_BASE_ADDR 0x83c00000
@@ -45,7 +45,7 @@ void sigbus_handler(int dummy);
 
 class fpga_bridge {
 public:
-    fpga_bridge(const std::string& driver_file, bool emulate_control, bool log, int log_level);
+    fpga_bridge(bool emulate_control, bool log, int log_level);
     responses::response_code load_bitstream(const std::string& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint64_t address);

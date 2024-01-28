@@ -40,6 +40,7 @@
 
 #include "emulated_data_generator.hpp"
 #include "channel_metadata.hpp"
+#include "interfaces_dictionary.hpp"
 
 #define SCOPE_MODE_RUN 1
 #define SCOPE_MODE_CAPTURE 2
@@ -65,7 +66,7 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
 class scope_thread {
 
 public:
-    scope_thread(const std::string& driver_file, bool emulate_control, bool log, int log_level);
+    scope_thread(bool emulate_control, bool log, int log_level);
     void start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     void read_data(std::vector<nlohmann::json> &data_vector);

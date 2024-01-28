@@ -31,8 +31,8 @@ void sigbus_handler(int dummy) {
 }
 
 
-fpga_bridge::fpga_bridge(const std::string& driver_file, bool emulate_control, bool log, int log_level)
-: scope_handler(driver_file, emulate_control, log, log_level) {
+fpga_bridge::fpga_bridge(bool emulate_control, bool log, int log_level)
+: scope_handler(emulate_control, log, log_level) {
 
     if(log){
         std::cout << "fpga_bridge initialization started"<< std::endl;
@@ -59,27 +59,27 @@ fpga_bridge::fpga_bridge(const std::string& driver_file, bool emulate_control, b
 
     char const* t = getenv("MMAP_N_PAGES_CTRL");
     if(t == nullptr){
-        n_pages_ctrl = 10;
+        n_pages_ctrl = 344000;
     } else {
         n_pages_ctrl = std::stoi(std::string(t));
     }
 
     t = getenv("MMAP_N_PAGES_FCORE");
     if(t == nullptr){
-        n_pages_fcore = 16;
+        n_pages_fcore = 344000;
     } else {
         n_pages_fcore = std::stoi(std::string(t));
     }
 
     std::string file_path;
     if(!emulate_control){
-        registers_fd = open("/dev/uscope_BUS_0", O_RDWR | O_SYNC);
+        registers_fd = open(if_dict.get_control_bus().c_str(), O_RDWR | O_SYNC);
         if(registers_fd == -1){
             std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
             exit(1);
         }
 
-        fcore_fd = open("/dev/uscope_BUS_1", O_RDWR | O_SYNC);
+        fcore_fd = open(if_dict.get_cores_bus().c_str(), O_RDWR | O_SYNC);
         if(fcore_fd == -1){
             std::cerr << "error while mapping the fcore rom bus (M_GP1)" <<std::endl;
             exit(1);
@@ -290,7 +290,7 @@ responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> 
     std::string command;
 
     if(arch=="zynq"){
-        command = "echo " + std::to_string(freq[1]) + " > /sys/devices/soc0/fffc0000.uScope/fclk_" + std::to_string(freq[0]);
+        command = "echo " + std::to_string(freq[1]) + " > " + if_dict.get_clock_if(freq[0]);
     } else{
         return responses::ok;
     }
@@ -349,7 +349,7 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
     uint64_t buffer;
 
     if(!debug_mode){
-        std::ifstream fs("/sys/devices/platform/fffc000000008000.uScope/dma_addr");
+        std::ifstream fs(if_dict.get_buffer_address_if());
         fs >> buffer;
     }
 

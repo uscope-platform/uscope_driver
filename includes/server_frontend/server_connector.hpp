@@ -35,7 +35,7 @@
 
 class server_connector {
 public:
-    server_connector(int port, const std::string &driver_file, bool emulate_control, bool log, int log_level);
+    server_connector(int port, bool emulate_control, bool log, int log_level);
     void start_server();
     void stop_server();
     ~server_connector();

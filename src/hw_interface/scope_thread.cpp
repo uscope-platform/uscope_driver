@@ -21,7 +21,7 @@ thread_local volatile int fd_data; /// Scope driver file descriptor
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(const std::string& driver_file, bool emulate_control, bool log, int ll) : data_gen(buffer_size){
+scope_thread::scope_thread(bool emulate_control, bool log, int ll) : data_gen(buffer_size){
     std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control << std::endl;
     std::cout<< "scope_thread logging: "<< std::boolalpha <<log << std::endl;
 
@@ -46,7 +46,7 @@ scope_thread::scope_thread(const std::string& driver_file, bool emulate_control,
     log_level = ll;
 
     //mmap buffer
-    fd_data = open(driver_file.c_str(), O_RDWR| O_SYNC);
+    fd_data = open(if_dict.get_data_bus().c_str(), O_RDWR| O_SYNC);
     if(fd_data == -1){
         std::cerr << std::strerror(errno);
     }

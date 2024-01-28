@@ -20,6 +20,8 @@
 
 server_connector *connector;
 
+interfaces_dictionary if_dict;
+
 /// Handler for SIGINT in order to stop the event loop on CTRL+C
 /// \param args
 void intHandler(int args) {
@@ -66,33 +68,24 @@ int main (int argc, char **argv) {
     signal(SIGTERM,intHandler);
     signal(SIGKILL,intHandler);
 
-    std::string scope_driver_file  = "/dev/uscope_data";;
-
-
-
-    if(!scope_data_source.empty()){
-        scope_driver_file = scope_data_source;
-    }
     std::jthread ctrl_thread;
     std::jthread cores_thread;
     std::jthread scope_thread;
 
-
-    if(!external_emu){
-        std::string emulator = "./kernel_emulator";
-         emulator_fd = popen(emulator.c_str(), "w");
-         if(emulator_fd == nullptr){
-             std::cerr<< "An error occurred while launching the kernel emulator executable";
-         }
-        usleep(100*1000);
+    if(emulate_hw){
+        if_dict.set_arch("emulate");
+    } else{
+        auto arch = std::getenv("ARCH");
+        if_dict.set_arch(arch);
     }
+
 
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
 
-    connector = new server_connector(6666, scope_driver_file, emulate_hw,log_command, log_level);
+    connector = new server_connector(6666, emulate_hw,log_command, log_level);
 
     connector->start_server();
 

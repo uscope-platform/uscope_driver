@@ -75,9 +75,9 @@ void kernel_emulator::open(fuse_req_t req, struct fuse_file_info *fi) {
 void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_file_info *fi) {
     (void)fi;
     std::cout<<"HERE!!"<< std::endl;
-    const int n_channels = 7;
+    const int n_channels = 6;
     const int n_datapoints = 1024;
-    uint32_t data_array[n_channels*n_datapoints];
+    uint64_t data_array[n_channels*n_datapoints];
     // Generate channel_data
 
     std::array<std::vector<int32_t>, n_channels> channel_data;
@@ -91,17 +91,23 @@ void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_f
     for(int j = 0; j<n_channels;j++){
         channel_data[j] = generate_sinusoid(n_datapoints, 20, 500, 0, j+100);
     }
+    channel_metadata m;
+    m.set_signed(true);
+    m.set_size(16);
+
+
 
     // Interleave channels and add id to MSB
     for(int i = 0; i<n_datapoints;i++){
         for(int j = 0; j<n_channels;j++){
-            uint32_t channel_id = (j<<24);
-            uint32_t  raw_data = 0xFFFFFF & channel_data[j][i];
-            data_array[i*n_channels+j] =  channel_id | raw_data;
+            uint64_t metadata = m.get_high_side_field(j);
+            uint64_t data = 0xFFFFFFFF & channel_data[j][i];
+            data_array[i*n_channels+j] =  metadata | data;
         }
     }
+
     char *data_array_raw = (char *) &data_array;
-    fuse_reply_buf(req, data_array_raw, size > n_channels*n_datapoints*sizeof(uint32_t) ?  n_channels*n_datapoints*sizeof(uint32_t) : size);
+    fuse_reply_buf(req, data_array_raw, size > n_channels*n_datapoints*sizeof(uint64_t) ?  n_channels*n_datapoints*sizeof(uint64_t) : size);
 }
 
 void kernel_emulator::write(fuse_req_t req, const char *buf, size_t size, off_t off, struct fuse_file_info *fi) {

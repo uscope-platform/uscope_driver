@@ -24,6 +24,7 @@
 #include <array>
 #include <iostream>
 
+#include "hw_interface/channel_metadata.hpp"
 
 
 #define FUSE_USE_VERSION 31
