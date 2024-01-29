@@ -31,20 +31,19 @@
 
 #include "command_processor.hpp"
 #include "response.hpp"
+#include "configuration.hpp"
 
 
 class server_connector {
 public:
-    server_connector(int port, bool emulate_control, bool log, int log_level);
+    server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_thread> &sc);
     void start_server();
-    void stop_server();
     ~server_connector();
 private:
     void send_response(nlohmann::json &resp, int connection_fd);
     void process_connection(int connection_fd);
     int sockfd;
     command_processor core_processor;
-    bool logging;
     struct sockaddr_in servaddr{};
 };
 

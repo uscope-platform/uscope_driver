@@ -43,9 +43,12 @@ find_package(CLI11 REQUIRED)
 
 set(DRIVER_SOURCES /
         src/uscope_driver.cpp
-        src/server_frontend/server_connector.cpp
-        src/server_frontend/command_processor.cpp
-        src/server_frontend/schema_validator.cpp
+        src/server_frontend/infrastructure/server_connector.cpp
+        src/server_frontend/infrastructure/command_processor.cpp
+        src/server_frontend/infrastructure/schema_validator.cpp
+        src/server_frontend/endpoints/cores_endpoints.cpp
+        src/server_frontend/endpoints/control_endpoints.cpp
+        src/server_frontend/endpoints/scope_endpoints.cpp
         src/hw_interface/fpga_bridge.cpp
         src/hw_interface/scope_thread.cpp
         src/hw_interface/channel_metadata.cpp
@@ -54,7 +57,6 @@ set(DRIVER_SOURCES /
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
 target_link_libraries(uscope_driver PRIVATE
-        pthread
         rt
         ValiJSON::valijson
         nlohmann_json::nlohmann_json

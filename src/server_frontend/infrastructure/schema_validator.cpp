@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-#include "server_frontend/schema_validator.h"
+#include "server_frontend/infrastructure/schema_validator.h"
 
 schema_validator::schema_validator(nlohmann::json &chosen_schema_doc) {
 

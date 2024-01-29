@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "server_frontend/server_connector.hpp"
+#include "server_frontend/infrastructure/server_connector.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"
 #include "version.h"
 

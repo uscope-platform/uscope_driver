@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "server_frontend/server_connector.hpp"
+#include "server_frontend/infrastructure/server_connector.hpp"
 
 
 std::atomic_bool server_stop_req;
@@ -21,13 +21,12 @@ std::atomic_bool server_stop_req;
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(int port,  bool emulate_control, bool log, int log_level)
-: core_processor(emulate_control,log, log_level) {
+server_connector::server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_thread> &sc)
+: core_processor(hw, sc) {
 
-    if(log){
+    if(runtime_config.log){
         std::cout << "server_connector initialization started"<< std::endl;
     }
-    logging = log;
     server_stop_req = false;
 
     // socket create and verification
@@ -44,7 +43,7 @@ server_connector::server_connector(int port,  bool emulate_control, bool log, in
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(port);
+    servaddr.sin_port = htons(runtime_config.server_port);
 
     if ((bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr))) != 0) {
         std::cerr << "socket bind failed" << std::endl;
@@ -124,9 +123,9 @@ void server_connector::process_connection(int connection_fd) {
         return;
     }
 
-    uint32_t command = command_obj["cmd"];
+    std::string command = command_obj["cmd"];
     auto arguments = command_obj["args"];
-    nlohmann::json resp = core_processor.process_command(static_cast<commands::command_code>(command), arguments);
+    nlohmann::json resp = core_processor.process_command(command, arguments);
     send_response(resp, connection_fd);
 
 }
@@ -145,10 +144,6 @@ server_connector::~server_connector() {
     close(sockfd);
 }
 
-void server_connector::stop_server() {
-    core_processor.stop_scope();
-    server_stop_req = true;
-}
 
 
 

@@ -16,7 +16,10 @@
 #define _FILE_OFFSET_BITS 64
 
 #include "uscope_driver.hpp"
+#include "configuration.hpp"
 
+
+configuration runtime_config;
 
 server_connector *connector;
 
@@ -25,7 +28,6 @@ interfaces_dictionary if_dict;
 /// Handler for SIGINT in order to stop the event loop on CTRL+C
 /// \param args
 void intHandler(int args) {
-    connector->stop_server();
     pclose(emulator_fd);
     exit(0);
 }
@@ -61,16 +63,11 @@ int main (int argc, char **argv) {
         return 0;
     }
 
-
-
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, intHandler);
     signal(SIGTERM,intHandler);
     signal(SIGKILL,intHandler);
 
-    std::jthread ctrl_thread;
-    std::jthread cores_thread;
-    std::jthread scope_thread;
 
     if(emulate_hw){
         if_dict.set_arch("emulate");
@@ -80,12 +77,17 @@ int main (int argc, char **argv) {
     }
 
 
+    runtime_config.emulate_hw = emulate_hw;
+    runtime_config.log = log_command;
+    runtime_config.log_level = log_level;
+    runtime_config.server_port = 6666;
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
-
-    connector = new server_connector(6666, emulate_hw,log_command, log_level);
+    auto hw_bridge = std::make_shared<fpga_bridge>();
+    auto scope_conn = std::make_shared<scope_thread>();
+    connector = new server_connector(hw_bridge, scope_conn);
 
     connector->start_server();
 

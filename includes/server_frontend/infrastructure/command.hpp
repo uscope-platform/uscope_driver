@@ -1,17 +1,16 @@
-// Copyright 2021 University of Nottingham Ningbo China
-// Author: Filippo Savi <filssavi@gmail.com>
+//   Copyright 2024 Filippo Savi <filssavi@gmail.com>
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
 
 #ifndef USCOPE_DRIVER_COMMAND_HPP
 #define USCOPE_DRIVER_COMMAND_HPP
@@ -20,56 +19,19 @@
 #include <string>
 #include <unordered_map>
 
-#include "server_frontend/schema_validator.h"
+#include "schema_validator.h"
 
 namespace commands {
 
-    typedef enum {
-        null = 0,
-        load_bitstream = 1,
-        register_write = 2,
-        set_frequency = 3,
-        register_read = 4,
-        start_capture = 6,
-        read_data = 8,
-        check_capture = 9,
-        set_channel_widths=10,
-        apply_program=11,
-        set_scaling_factors = 12,
-        set_channel_status = 13,
-        apply_filter = 14,
-        set_channel_signs = 15,
-        get_version = 16,
-        set_scope_data = 17,
-        enable_manual_metadata = 18
-    } command_code;
+    static std::set<std::string> infrastructure_commands = {"null", "get_varsion"};
+    static std::set<std::string> control_commands = {"load_bitstream", "register_write", "set_frequency", "register_read",
+                                              "apply_filter","set_scope_data"};
 
-    template <typename command_code>
-    auto as_integer(command_code const value)
-    -> typename std::underlying_type<command_code>::type
-    {
-        return static_cast<typename std::underlying_type<command_code>::type>(value);
-    }
+    static std::set<std::string> scope_commands = {"start_capture", "read_data", "check_capture", "set_channel_widths",
+                                            "set_scaling_factors", "set_channel_status", "set_channel_signs",
+                                            "enable_manual_metadata"};
 
-
-    static std::unordered_map<command_code, std::string> commands_name_map = {
-        {null, "C_NULL_COMMAND"},
-        {load_bitstream, "C_LOAD_BITSTREAM"},
-        {register_write, "C_SINGLE_REGISTER_WRITE"},
-        {register_read, "C_SINGLE_REGISTER_READ"},
-        {start_capture, "C_START_CAPTURE"},
-        {read_data, "C_READ_DATA"},
-        {check_capture, "C_CHECK_CAPTURE_PROGRESS"},
-        {apply_program, "C_APPLY_PROGRAM"},
-        {set_channel_widths, "C_SET_CHANNEL_WIDTHS"},
-        {set_scaling_factors, "C_SET_SCALING_FACTORS"},
-        {set_channel_status, "C_SET_CHANNEL_STATUS"},
-        {set_channel_signs, "C_SET_CHANNEL_SIGNS"},
-        {apply_filter, "C_APPLY_FILTER"},
-        {set_scope_data,"C_SET_SCOPE_DATA"},
-        {get_version, "C_GET_VERSION"},
-        {enable_manual_metadata, "C_ENABLE_MANUAL_METADATA"}
-    };
+    static std::set<std::string> core_commands = {"apply_program"};
 
     struct scope_data {
         uint64_t buffer_address = 0;
@@ -82,7 +44,7 @@ namespace commands {
         "title": "Command Schema",
         "properties": {
             "cmd": {
-                "type": "integer",
+                "type": "string",
                 "default": 0,
                 "title": "The cmd Schema",
                 "examples": [

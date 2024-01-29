@@ -41,9 +41,8 @@
 #include "emulated_data_generator.hpp"
 #include "channel_metadata.hpp"
 #include "interfaces_dictionary.hpp"
-
-#define SCOPE_MODE_RUN 1
-#define SCOPE_MODE_CAPTURE 2
+#include "configuration.hpp"
+#include "server_frontend/infrastructure/response.hpp"
 
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
@@ -66,16 +65,15 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
 class scope_thread {
 
 public:
-    scope_thread(bool emulate_control, bool log, int log_level);
-    void start_capture(unsigned int n_buffers);
+    scope_thread();
+    responses::response_code start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
-    void read_data(std::vector<nlohmann::json> &data_vector);
-    void stop_thread();
-    void set_channel_widths(std::vector<uint32_t> &widths);
-    void set_scaling_factors(std::vector<float> &sf);
-    void set_channel_status(std::unordered_map<int, bool>status);
-    void set_channel_signed(std::unordered_map<int, bool>signed_status);
-    void enable_manual_metadata() {manual_metadata = true;};
+    responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
+    responses::response_code  set_channel_widths(std::vector<uint32_t> &widths);
+    responses::response_code  set_scaling_factors(std::vector<float> &sf);
+    responses::response_code set_channel_status(std::unordered_map<int, bool>status);
+    responses::response_code set_channel_signed(std::unordered_map<int, bool>signed_status);
+    responses::response_code enable_manual_metadata();
 private:
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
@@ -88,7 +86,6 @@ private:
     int internal_buffer_size;
     unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
-    int log_level;
     volatile uint64_t * dma_buffer;  ///mmapped buffer
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;

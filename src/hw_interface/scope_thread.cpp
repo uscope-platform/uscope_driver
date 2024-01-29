@@ -21,11 +21,11 @@ thread_local volatile int fd_data; /// Scope driver file descriptor
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread(bool emulate_control, bool log, int ll) : data_gen(buffer_size){
-    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << emulate_control << std::endl;
-    std::cout<< "scope_thread logging: "<< std::boolalpha <<log << std::endl;
+scope_thread::scope_thread() : data_gen(buffer_size){
+    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << runtime_config.emulate_hw << std::endl;
+    std::cout<< "scope_thread logging: "<< std::boolalpha <<runtime_config.log << std::endl;
 
-    if(log){
+    if(runtime_config.log){
         std::cout << "scope_thread initialization started"<< std::endl;
     }
 
@@ -43,7 +43,6 @@ scope_thread::scope_thread(bool emulate_control, bool log, int ll) : data_gen(bu
             {4,true},
             {5,true},
     };
-    log_level = ll;
 
     //mmap buffer
     fd_data = open(if_dict.get_data_bus().c_str(), O_RDWR| O_SYNC);
@@ -52,18 +51,16 @@ scope_thread::scope_thread(bool emulate_control, bool log, int ll) : data_gen(bu
     }
     dma_buffer = (uint64_t * ) malloc(n_channels*buffer_size*sizeof(uint64_t));
 
-    if(log){
+    if(runtime_config.log){
         std::cout << "scope_thread initialization ended"<< std::endl;
     }
 }
 
-void scope_thread::stop_thread() {
-    ioctl(fd_data,4);
-    close(fd_data);
-}
 
-void scope_thread::start_capture(unsigned int n_buffers) {
+responses::response_code scope_thread::start_capture(unsigned int n_buffers) {
+    if(runtime_config.log) std::cout << "START CAPTURE: n_buffers "<< n_buffers<<std::endl;
     n_buffers_left = n_buffers;
+    return responses::ok;
 }
 
 /// This function returns the number of data buffers left to capture
@@ -72,15 +69,15 @@ unsigned int scope_thread::check_capture_progress() const {
     return n_buffers_left;
 }
 
-void scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
+responses::response_code scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
 
     std::vector<std::vector<float>> data;
 
-    if(log_level > 2) std::cout<<"READ_DATA: STARTING"<<std::endl;
+    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: STARTING"<<std::endl;
     read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(uint64_t));
-    if(log_level > 2) std::cout<<"READ_DATA: KERNEL COPY DEFINED"<<std::endl;
+    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: KERNEL COPY DEFINED"<<std::endl;
     data = shunt_data(dma_buffer);
-    if(log_level > 2) std::cout<<"READ_DATA: SHUNTING ENDED"<<std::endl;
+    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: SHUNTING ENDED"<<std::endl;
 
     for(int i = 0; i<n_channels; i++){
         nlohmann::json ch_obj;
@@ -90,6 +87,7 @@ void scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
             data_vector.push_back(ch_obj);
         }
     }
+    return responses::ok;
 }
 
 
@@ -99,7 +97,7 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
     for(int i = 0; i<n_channels; i++){
         ret_data.emplace_back();
     }
-    if(log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
+    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
 
         auto raw_sample = buffer_in[i];
@@ -136,19 +134,50 @@ float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float sca
     return ret;
 }
 
-void scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
+responses::response_code scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
+    if(runtime_config.log)
+        std::cout << "SET_CHANNEL_WIDTHS:"<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
     channel_sizes = widths;
+    return responses::ok;
 }
 
-void scope_thread::set_scaling_factors(std::vector<float> &sf) {
+responses::response_code  scope_thread::set_scaling_factors(std::vector<float> &sf) {
+    if(runtime_config.log){
+        std::cout << "SET_SCALING_FACTORS: ";
+        for(auto &s:sf){
+            std::cout << std::to_string(s) << " ";
+        }
+        std::cout << std::endl;
+    }
     scaling_factors = sf;
+    return responses::ok;
 }
 
-void scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
+responses::response_code scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
     channel_status = std::move(status);
+    return responses::ok;
 }
 
-void scope_thread::set_channel_signed(std::unordered_map<int, bool> ss) {
+responses::response_code scope_thread::set_channel_signed(std::unordered_map<int, bool> ss) {
+    if(runtime_config.log){
+        std::cout << "SET_CHANNEL_SIGNS: ";
+        for(auto &s:ss){
+            if(s.second){
+                std::cout << "s ";
+            } else {
+                std::cout << "u ";
+            }
+
+        }
+        std::cout << std::endl;
+    }
     signed_status = std::move(ss);
+    return responses::ok;
+}
+
+responses::response_code scope_thread::enable_manual_metadata() {
+    std::cout << "ENABLE MANUAL METATADA\n";
+    manual_metadata = true;
+    return responses::ok;
 }
 
