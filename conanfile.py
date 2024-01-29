@@ -15,6 +15,10 @@ class BasicConanfile(ConanFile):
         self.requires("cli11/2.3.2")
         self.requires("nlohmann_json/3.11.2")
         self.requires("valijson/1.0.1")
+        self.requires("gtest/1.14.0")
+        self.requires("spdlog/1.13.0")
+        self.requires("antlr4-cppruntime/4.13.1")
+
         if self.settings.arch == "x86_64":
             self.requires("libfuse/3.10.5")
 

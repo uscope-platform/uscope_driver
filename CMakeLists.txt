@@ -11,6 +11,15 @@ if(${VERBOSE_LOGGING})
     add_compile_definitions(VERBOSE_LOGGING)
 endif(${VERBOSE_LOGGING})
 
+include(FetchContent)
+
+FetchContent_Declare(
+        fCore_toolchain
+        GIT_REPOSITORY https://github.com/uscope-platform/fCore_toolchain.git
+        GIT_TAG        main
+)
+
+FetchContent_MakeAvailable(fCore_toolchain)
 
 #
 # Common settings
@@ -44,10 +53,14 @@ set(DRIVER_SOURCES /
 )
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
-target_link_libraries(uscope_driver PRIVATE pthread rt
+target_link_libraries(uscope_driver PRIVATE
+        pthread
+        rt
         ValiJSON::valijson
         nlohmann_json::nlohmann_json
         CLI11::CLI11
+        fcore_cc_lib
+        fcore_emu_lib
 )
 
 add_custom_target(update_version
