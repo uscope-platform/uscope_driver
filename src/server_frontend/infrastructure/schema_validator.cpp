@@ -22,7 +22,6 @@ schema_validator::schema_validator(nlohmann::json &chosen_schema_doc) {
     valijson::adapters::NlohmannJsonAdapter schema_adapter(chosen_schema_doc);
     parser.populateSchema(schema_adapter, schema);
 
-
 }
 
 

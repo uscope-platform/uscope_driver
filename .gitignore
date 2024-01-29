@@ -71,7 +71,7 @@ CMakeFiles/
 
 CMakeUserPresets.json
 
-includes/version.h
+includes/driver_version.h
 
 cmake-build-release/
 

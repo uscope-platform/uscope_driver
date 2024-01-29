@@ -20,7 +20,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(fCore_toolchain)
-
 #
 # Common settings
 #
@@ -32,6 +31,14 @@ include_directories(/usr/local/include/pthread)
 include_directories(/usr/local/include/event2)
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-fsanitize=undefined -fsanitize=address)
+    add_link_options(-fsanitize=undefined -fsanitize=address)
+    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
+else()
+    set(schema_folder "/usr/local/etc/fcore_toolchain")
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 # compiles code files from ./src folder
 file(GLOB INC_SOURCES "includes/*.h*")
@@ -53,6 +60,7 @@ set(DRIVER_SOURCES /
         src/hw_interface/scope_thread.cpp
         src/hw_interface/channel_metadata.cpp
         src/emulated_data_generator.cpp
+        src/hil/hil_deployer.cpp
 )
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
@@ -65,6 +73,10 @@ target_link_libraries(uscope_driver PRIVATE
         fcore_emu_lib
 )
 
+target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
+target_compile_definitions(uscope_driver PRIVATE SCHEMAS_FOLDER="${schema_folder}")
+
+
 add_custom_target(update_version
     COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Version Header Update"
 )
@@ -72,7 +84,7 @@ add_custom_target(update_version
 add_custom_command(
         TARGET update_version
         PRE_BUILD
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py  ${CMAKE_SOURCE_DIR}/includes/version.h
+        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py  ${CMAKE_SOURCE_DIR}/includes/driver_version.h
         VERBATIM
 )
 

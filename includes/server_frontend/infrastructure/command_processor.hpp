@@ -20,7 +20,7 @@
 #include "response.hpp"
 #include "command.hpp"
 #include "configuration.hpp"
-#include "version.h"
+#include "driver_version.h"
 
 #include "server_frontend/endpoints/control_endpoints.hpp"
 #include "server_frontend/endpoints/cores_endpoints.hpp"

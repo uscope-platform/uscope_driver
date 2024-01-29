@@ -22,8 +22,10 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) {
 }
 
 nlohmann::json cores_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
-    if(command_string == "apply_program"){
+    if(command_string == "apply_program") {
         return process_apply_program(arguments);
+    } else if(command_string=="deploy_hil"){
+        return process_deploy_hil(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -48,6 +50,13 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
     uint64_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
     resp["response_code"] = hw->apply_program(address, program);
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    hil.deploy(arguments);
+    resp["response_code"] = responses::ok;
     return resp;
 }
 

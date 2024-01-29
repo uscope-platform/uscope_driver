@@ -67,7 +67,7 @@ private:
     uint64_t core_addr;
 
     std::string arch;
-    
+
 };
 
 

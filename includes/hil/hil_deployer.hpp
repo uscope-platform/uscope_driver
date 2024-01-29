@@ -1,3 +1,5 @@
+
+
 //   Copyright 2024 Filippo Savi <filssavi@gmail.com>
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,32 +14,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef FCORE_TOOLCHAIN_SCHEMA_VALIDATOR_H
-#define FCORE_TOOLCHAIN_SCHEMA_VALIDATOR_H
-
-#include <string>
-#include <fstream>
-#include <utility>
-#include <filesystem>
+#ifndef USCOPE_DRIVER_HIL_DEPLOYER_HPP
+#define USCOPE_DRIVER_HIL_DEPLOYER_HPP
 
 #include <nlohmann/json.hpp>
+#include "frontend/emulator_manager.hpp"
 
-#include <valijson/adapters/nlohmann_json_adapter.hpp>
-#include <valijson/utils/nlohmann_json_utils.hpp>
-#include <valijson/schema.hpp>
-#include <valijson/schema_parser.hpp>
-#include <valijson/validator.hpp>
-
-
-
-class schema_validator {
-    public:
-        schema_validator(nlohmann::json &schema);
-        bool validate(nlohmann::json &spec_file, std::string &error);
-    private:
-        valijson::Schema schema;
-        std::string schema_name;
+class hil_deployer {
+public:
+    hil_deployer() = default;
+    void deploy(nlohmann::json &spec);
+private:
 };
 
 
-#endif //FCORE_TOOLCHAIN_SCHEMA_VALIDATOR_H
+#endif //USCOPE_DRIVER_HIL_DEPLOYER_HPP

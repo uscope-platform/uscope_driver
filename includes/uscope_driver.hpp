@@ -31,7 +31,6 @@
 
 #include "server_frontend/infrastructure/server_connector.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"
-#include "version.h"
 
 
 
