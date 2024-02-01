@@ -32,6 +32,14 @@ private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
 
+
+    uint64_t cores_base;
+    uint64_t cores_offset;
+
+    uint64_t dma_base;
+    uint64_t dma_offset;
+
+
     std::shared_ptr<fpga_bridge> hw;
     hil_deployer hil;
 };

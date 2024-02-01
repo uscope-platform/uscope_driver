@@ -17,8 +17,15 @@
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 
 
-cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) {
+cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     hw = h;
+    cores_base = 0x5'0000'0000;
+    cores_offset = 0x1000'0000;
+
+    dma_base =   0x4'43c0'0000;
+    dma_offset =      0x1'0000;
+    hil.set_cores_location(cores_base, cores_offset);
+    hil.set_dma_location(dma_base, dma_offset);
 }
 
 nlohmann::json cores_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {

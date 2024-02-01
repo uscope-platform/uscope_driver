@@ -82,14 +82,14 @@ fpga_bridge::fpga_bridge() {
             exit(1);
         }
 
-        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< control_addr <<std::endl;
+        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< to_hex(control_addr) <<std::endl;
         registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
         if(registers == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
             exit(1);
         }
 
-        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< control_addr <<std::endl;
+        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< to_hex(core_addr) <<std::endl;
         fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
         if(fCore == MAP_FAILED) {
             std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
@@ -158,12 +158,12 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
     if(write_obj["type"] == "direct"){
-        if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+        if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< to_hex(write_obj["address"]) <<" value "<< write_obj["value"]<<std::endl;
 
         registers[register_address_to_index(write_obj["address"])] = write_obj["value"];
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
-            if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (AXIS PROXIED) : proxy_addr "<< std::hex<< write_obj["proxy_address"] <<" addr "<< std::hex<< write_obj["address"] <<" value "<< std::dec<< write_obj["value"]<<std::endl;
+            if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (AXIS PROXIED) : proxy_addr "<<to_hex(write_obj["proxy_address"]) <<" addr "<< to_hex(write_obj["address"]) <<" value "<< write_obj["value"]<<std::endl;
             uint32_t proxy_addr = write_obj["proxy_address"];
             registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
             registers[register_address_to_index(proxy_addr)] = write_obj["value"];
@@ -184,7 +184,7 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 /// \return #RESP_OK
 nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
     nlohmann::json response_body;
-    if(runtime_config.log) std::cout << "READ SINGLE REGISTER: addr "<< std::hex << address <<std::endl;
+    if(runtime_config.log) std::cout << "READ SINGLE REGISTER: addr "<< to_hex(address) <<std::endl;
     if(runtime_config.emulate_hw) {
         response_body["data"] = rand() % 32767;
     } else{
@@ -213,7 +213,7 @@ uint64_t fpga_bridge::register_address_to_index(uint64_t address) const {
 /// \param program Vector with the instructions of the program to load
 /// \return #RESP_OK
 responses::response_code fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
-    std::cout<< "APPLY PROGRAM: address: " << std::hex << address << " program_size: "<< std::dec << program.size()<<std::endl;
+    std::cout<< "APPLY PROGRAM: address: " <<  to_hex(address) << " program_size: "<< program.size()<<std::endl;
     uint32_t offset =  fcore_address_to_index(address);
 
     if(!runtime_config.emulate_hw) {
@@ -242,7 +242,7 @@ responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> 
 
 
 responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
-    std::cout<< "APPLY FILTER: address: " << std::hex << address << " N. Filter Taps "<< std::dec << taps.size()<<std::endl;
+    std::cout<< "APPLY FILTER: address: " << to_hex(address) << " N. Filter Taps " << taps.size()<<std::endl;
 
     auto filter_address= register_address_to_index(address);
 

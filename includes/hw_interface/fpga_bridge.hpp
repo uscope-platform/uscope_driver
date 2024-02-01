@@ -60,6 +60,10 @@ public:
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;
 
+    std::string to_hex(uint64_t i) const {
+        return std::format("0x{:x}", i);
+    }
+
 private:
     volatile uint32_t *registers;
     volatile uint32_t *fCore;

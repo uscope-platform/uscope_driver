@@ -61,6 +61,7 @@ set(DRIVER_SOURCES /
         src/hw_interface/channel_metadata.cpp
         src/emulated_data_generator.cpp
         src/hil/hil_deployer.cpp
+        src/hil/hil_bus_map.cpp
 )
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
@@ -101,4 +102,23 @@ if(NOT ${EXCLUDE_KERNEL_EMU})
     )
 endif(NOT ${EXCLUDE_KERNEL_EMU})
 
+
+add_executable(test_hil_deployer
+        testing/deployer/hil_depoyer_standalone.cpp
+        src/server_frontend/infrastructure/schema_validator.cpp
+        src/hil/hil_deployer.cpp
+        src/hil/hil_bus_map.cpp
+        src/hw_interface/fpga_bridge.cpp
+)
+
+target_link_libraries(test_hil_deployer PRIVATE
+        nlohmann_json::nlohmann_json
+        ValiJSON::valijson
+        fcore_cc_lib
+        fcore_emu_lib
+        CLI11::CLI11
+)
+
+target_include_directories(test_hil_deployer PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
+target_compile_definitions(test_hil_deployer PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 
