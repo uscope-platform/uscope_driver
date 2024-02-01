@@ -18,6 +18,7 @@
 
 hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
+    n_channels = 8;
 }
 
 void hil_deployer::deploy(nlohmann::json &spec) {
@@ -33,61 +34,25 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     auto programs = em.get_programs();
     auto interconnects = em.load_interconnects(spec["interconnect"]);
 
-    hil_bus_map output_bus_map;
-    hil_bus_map memory_bus_map;
-    // TODO: THERE ARE CONNECTIONS THAT GO FROM A MEMORY CELL TO AN INPUT, IN THIS CASE I NEED TO DMA OUT THE MEMORY AS WELL
-    for(auto &p:programs){
-        for(auto &io:p.io){
-            if(io.type == "o"){
-                bus_map_entry e;
-                e.core_name = p.name;
-                e.bus_address = get_free_address(io.io_addr, p.name);
-                e.io_address = io.io_addr;
-                e.type = io.type;
-                output_bus_map.push_back(e);
-            } else if (io.type == "m"){
-                bus_map_entry e;
-                e.core_name = p.name;
-                e.bus_address = get_free_address(io.io_addr, p.name);
-                e.io_address = io.io_addr;
-                e.type = io.type;
-                memory_bus_map.push_back(e);
-            }
-        }
-    }
+
+    reserve_inputs(interconnects);
+    reserve_outputs(programs);
 
     std::cout << "------------------------------------------------------------------"<<std::endl;
     for(int i = 0; i<programs.size(); i++){
-        std::cout<<"SETUP PROGRAM FOR CORE: "<<programs[i].name <<" AT ADDRESS: "<< to_hex(get_core_address(i)) <<std::endl;
-        load_core(get_core_address(i), programs[i].program);
+        std::cout<<"SETUP PROGRAM FOR CORE: "<<programs[i].name <<" AT ADDRESS: "<< to_hex(get_core_rom_address(i)) <<std::endl;
+        load_core(get_core_rom_address(i), programs[i].program);
     }
     std::cout << "------------------------------------------------------------------"<<std::endl;
 
 
-
-
-    hil_bus_map input_bus_map;
-    for(auto &i:interconnects){
-        for(auto &c:i.connections){
-            if(auto item = output_bus_map.at_bus(c.first.address, i.source)){
-                // Nothing to do in this case
-                continue;
-            } else if(auto item = memory_bus_map.at_bus(c.first.address, i.source)){
-                // Nothing to do in this case
-                bus_map_entry e = item.value();
-                e.type = "o";
-                output_bus_map.push_back(e);
-                continue;
-            } else{
-                std::cout<< "WARNING: Input remapping is not currently supported, thus the io address space must be de-conflicted manually"<< std::endl;
-            }
-        }
-
-    }
-
     for(int i = 0; i<programs.size(); i++){
-        setup_output_dma(get_dma_address(i), output_bus_map, programs[i].io, programs[i].name);
+        setup_output_dma(get_dma_address(i), programs[i].name);
     }
+
+    setup_sequencer(sequencer_address, programs.size());
+    setup_cores(programs.size());
+
 }
 
 uint16_t hil_deployer::get_free_address(uint16_t original_addr, const std::string &c_n) {
@@ -107,17 +72,22 @@ uint16_t hil_deployer::get_free_address(uint16_t original_addr, const std::strin
     return idx;
 }
 
-uint64_t hil_deployer::get_core_address(uint16_t core_address) const {
-    return cores_base_address +  core_address*cores_offset;
+uint64_t hil_deployer::get_core_rom_address(uint16_t core_address) const {
+    return cores_rom_base_address + core_address * cores_rom_offset;
 }
+
+uint64_t hil_deployer::get_core_control_address(uint16_t core_idx) const {
+    return cores_control_base_address + core_idx * cores_control_offset;
+}
+
 
 uint64_t hil_deployer::get_dma_address(uint16_t dma_address) const {
     return dma_base_address + dma_address*dma_offset;
 }
 
-void hil_deployer::set_cores_location(uint64_t base, uint64_t offset) {
-    cores_base_address = base;
-    cores_offset = offset;
+void hil_deployer::set_cores_rom_location(uint64_t base, uint64_t offset) {
+    cores_rom_base_address = base;
+    cores_rom_offset = offset;
 }
 
 void hil_deployer::set_dma_location(uint64_t base, uint64_t offset) {
@@ -129,26 +99,17 @@ void hil_deployer::load_core(uint64_t address, const std::vector<uint32_t> &prog
     hw->apply_program(address, program);
 }
 
-void hil_deployer::setup_output_dma(uint64_t address, hil_bus_map &bus_map, std::set<io_map_entry> io_map, std::string core_name) {
+void hil_deployer::setup_output_dma(uint64_t address, const std::string& core_name) {
     std::cout<<"SETUP DMA FOR CORE: "<<core_name<<" AT ADDRESS: "<< to_hex(address) <<std::endl;
     std::cout << "------------------------------------------------------------------"<<std::endl;
     int current_io = 0;
-    for(auto &i:io_map){
-        if(i.type == "o"){
-           if(auto entry = bus_map.at_io(i.io_addr, core_name)){
-               setup_output_entry(i.io_addr, entry->bus_address, address, current_io);
-               current_io++;
-           } else{
-               throw std::runtime_error("INTERNAL ERROR: unable to setup dma addresses");
-           }
-        }else if(i.type == "m"){
-            if(auto entry = bus_map.at_io(i.io_addr, core_name)){
-                setup_output_entry(i.io_addr, entry->bus_address, address, current_io);
-                current_io++;
-            }
+    for(auto &i:bus_map){
+        if(i.core_name == core_name){
+            setup_output_entry(i.io_address, i.bus_address, address, current_io);
+            current_io++;
         }
     }
-    write_register(address, current_io+1);
+    write_register(address, current_io);
     std::cout << "------------------------------------------------------------------"<<std::endl;
 }
 
@@ -177,4 +138,70 @@ void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, ui
     write_register(current_address, mapping);
 }
 
+void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores) {
+    std::cout<<"SETUP SEQUENCER" <<std::endl;
+    std::cout << "------------------------------------------------------------------"<<std::endl;
+    write_register(seq, n_cores);
+    write_register(seq + 0x4, 0);
+    write_register(seq + 0x8, 20); // TODO: TIE THIS THE THE MAX NUMBER OF OUTPUTS OF A CORE
 
+    for(int i = 0; i<n_cores; i++){
+        write_register(seq + 0xC + 4*i, i);
+    }
+
+}
+
+void hil_deployer::set_sequencer_location(uint64_t sequencer) {
+    sequencer_address = sequencer;
+}
+
+void hil_deployer::setup_cores(uint16_t n_cores) {
+    std::cout<<"SETUP CORES" <<std::endl;
+    std::cout << "------------------------------------------------------------------"<<std::endl;
+    for(int i = 0; i<n_cores; i++){
+        write_register(get_core_control_address(i), n_channels);
+    }
+
+}
+
+void hil_deployer::set_cores_control_location(uint64_t base, uint64_t offset) {
+    cores_control_base_address = base;
+    cores_control_offset = offset;
+}
+
+void hil_deployer::reserve_inputs(std::vector<interconnect_t> &ic) {
+    hil_bus_map input_bus_map;
+    for(auto &i:ic){
+        for(auto &c:i.connections){
+            if(!bus_map.has_bus(c.first.address)){
+                bus_map_entry e;
+                e.core_name = i.source;
+                e.bus_address =  c.second.address;
+                e.io_address = c.first.address;
+                e.type = "o";
+                bus_map.push_back(e);
+                bus_address_index.insert({(uint16_t) c.second.address, {i.source, c.first.address}});
+            } else {
+                std::cout << "WARNING: Unsolvable input bus address conflict detected"<<std::endl;
+            }
+        }
+    }
+
+}
+
+void hil_deployer::reserve_outputs(std::vector<program_bundle> &programs) {
+    for(auto &p:programs){
+        for(auto &io:p.io){
+            if(io.type == "o"){
+                if(!bus_map.has_io(io.io_addr, p.name)){
+                    bus_map_entry e;
+                    e.core_name = p.name;
+                    e.bus_address = get_free_address(io.io_addr, p.name);
+                    e.io_address = io.io_addr;
+                    e.type = io.type;
+                    bus_map.push_back(e);
+                }
+            }
+        }
+    }
+}

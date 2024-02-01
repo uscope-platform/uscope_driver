@@ -43,19 +43,26 @@ int main (int argc, char **argv) {
     std::ifstream ifs(input_file);
     nlohmann::json spec = nlohmann::json::parse(ifs);
 
-    uint64_t cores_base = 0x5'0000'0000;
-    uint64_t cores_offset = 0x1000'0000;
+    uint64_t cores_rom_base = 0x5'0000'0000;
+    uint64_t cores_rom_offset = 0x1000'0000;
 
-    uint64_t dma_base =   0x4'43c0'0000;
+    uint64_t cores_control_base = 0x4'43c2'0000;
+    uint64_t cores_control_offset =    0x1'0000;
+
+    uint64_t dma_base =   0x4'43c2'1000;
     uint64_t dma_offset =      0x1'0000;
+
+    uint64_t sequencer_base =   0x4'43c1'0000;
 
     auto hw_bridge = std::make_shared<fpga_bridge>();
     hil_deployer d(hw_bridge);
 
 
 
-    d.set_cores_location(cores_base, cores_offset);
+    d.set_cores_rom_location(cores_rom_base, cores_rom_offset);
     d.set_dma_location(dma_base, dma_offset);
+    d.set_sequencer_location(sequencer_base);
+    d.set_cores_control_location(cores_control_base, cores_control_offset);
     d.deploy(spec);
 
 

@@ -27,26 +27,42 @@ class hil_deployer {
 public:
     hil_deployer(std::shared_ptr<fpga_bridge>  &h);
     void deploy(nlohmann::json &spec);
-    void set_cores_location(uint64_t base, uint64_t offset);
+    void set_cores_rom_location(uint64_t base, uint64_t offset);
+    void set_cores_control_location(uint64_t base, uint64_t offset);
     void set_dma_location(uint64_t base, uint64_t offset);
+    void set_sequencer_location(uint64_t sequencer);
 private:
     std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
-    void load_core(uint64_t address, const std::vector<uint32_t> &program);
-    void setup_output_dma(uint64_t address, hil_bus_map &bm, std::set<io_map_entry> cm, std::string core_name);
-    void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
 
-    uint64_t get_core_address(uint16_t core_idx) const;
+    void reserve_inputs(std::vector<interconnect_t> &ic);
+    void reserve_outputs(std::vector<program_bundle> &programs);
+
+    void load_core(uint64_t address, const std::vector<uint32_t> &program);
+    void setup_output_dma(uint64_t address, const std::string& core_name);
+    void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
+    void setup_sequencer(uint64_t seq, uint16_t n_cores);
+    void setup_cores(uint16_t n_cores);
+
+
+    uint64_t get_core_rom_address(uint16_t core_idx) const;
+    uint64_t get_core_control_address(uint16_t core_idx) const;
     uint64_t get_dma_address(uint16_t dma_idx) const;
     uint32_t pack_address_mapping(uint16_t, uint16_t) const;
     std::string to_hex(uint64_t)const;
     void write_register(uint64_t addr, uint32_t val);
 
-    uint64_t cores_base_address;
-    uint64_t dma_base_address;
+    hil_bus_map bus_map;
 
-    uint64_t cores_offset;
+    uint64_t cores_rom_base_address;
+    uint64_t cores_control_base_address;
+    uint64_t dma_base_address;
+    uint64_t sequencer_address;
+
+    uint64_t cores_rom_offset;
+    uint64_t cores_control_offset;
     uint64_t dma_offset;
+    uint64_t n_channels;
     std::shared_ptr<fpga_bridge> hw;
 };
 

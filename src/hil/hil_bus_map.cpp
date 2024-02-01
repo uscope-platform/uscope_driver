@@ -53,3 +53,21 @@ std::optional<bus_map_entry> hil_bus_map::at_bus(uint16_t i, const std::string &
     }
     return {};
 }
+
+bool hil_bus_map::has_bus(uint16_t addr) {
+    for(auto &e:bus_map){
+        if(e.bus_address == addr){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hil_bus_map::has_io(uint16_t addr, const std::string &p_n) {
+    if (std::ranges::any_of(bus_map,  [&addr, &p_n](const bus_map_entry& e) { return e.io_address == addr && e.core_name == p_n; })){
+        return true;
+    } else{
+        return false;
+    }
+
+}
