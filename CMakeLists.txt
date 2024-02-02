@@ -102,6 +102,7 @@ if(NOT ${EXCLUDE_KERNEL_EMU})
     )
 endif(NOT ${EXCLUDE_KERNEL_EMU})
 
+install(TARGETS uscope_driver DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 add_executable(test_hil_deployer
         testing/deployer/hil_depoyer_standalone.cpp
