@@ -32,7 +32,7 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     sequencer_base =   0x4'43c1'0000;
 
     hil.set_cores_rom_location(cores_rom_base, cores_rom_offset);
-    hil.set_cores_rom_location(cores_control_base, cores_control_offset);
+    hil.set_cores_control_location(cores_control_base, cores_control_offset);
     hil.set_dma_location(dma_base, dma_offset);
     hil.set_sequencer_location(sequencer_base);
 }
