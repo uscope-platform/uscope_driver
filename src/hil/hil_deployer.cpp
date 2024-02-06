@@ -45,12 +45,13 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     }
     std::cout << "------------------------------------------------------------------"<<std::endl;
 
-
+    uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
-        setup_output_dma(get_dma_address(i), programs[i].name);
+        auto n_transfers = setup_output_dma(get_dma_address(i), programs[i].name);
+        if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
-    setup_sequencer(sequencer_address, programs.size());
+    setup_sequencer(sequencer_address, programs.size(), max_transfers);
     setup_cores(programs.size());
 
 }
@@ -99,7 +100,7 @@ void hil_deployer::load_core(uint64_t address, const std::vector<uint32_t> &prog
     hw->apply_program(address, program);
 }
 
-void hil_deployer::setup_output_dma(uint64_t address, const std::string& core_name) {
+uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& core_name) {
     std::cout<<"SETUP DMA FOR CORE: "<<core_name<<" AT ADDRESS: "<< to_hex(address) <<std::endl;
     std::cout << "------------------------------------------------------------------"<<std::endl;
     int current_io = 0;
@@ -111,6 +112,7 @@ void hil_deployer::setup_output_dma(uint64_t address, const std::string& core_na
     }
     write_register(address, current_io);
     std::cout << "------------------------------------------------------------------"<<std::endl;
+    return current_io;
 }
 
 uint32_t hil_deployer::pack_address_mapping(uint16_t upper, uint16_t lower) const {
@@ -138,12 +140,12 @@ void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, ui
     write_register(current_address, mapping);
 }
 
-void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores) {
+void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers) {
     std::cout<<"SETUP SEQUENCER" <<std::endl;
     std::cout << "------------------------------------------------------------------"<<std::endl;
     write_register(seq, n_cores);
     write_register(seq + 0x4, 0);
-    write_register(seq + 0x8, 20); // TODO: TIE THIS THE THE MAX NUMBER OF OUTPUTS OF A CORE
+    write_register(seq + 0x8, 20*n_transfers);
 
     for(int i = 0; i<n_cores; i++){
         write_register(seq + 0xC + 4*i, i);
