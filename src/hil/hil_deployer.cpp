@@ -18,7 +18,7 @@
 
 hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
-    full_cores_override = true // FOR NOW ALL CORES ARE COMPILED WITH RECIPROCAL ENABLED
+    full_cores_override = true; // FOR NOW ALL CORES ARE COMPILED WITH RECIPROCAL ENABLED
 }
 
 void hil_deployer::deploy(nlohmann::json &spec) {
