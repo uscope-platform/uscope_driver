@@ -18,7 +18,7 @@
 
 hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
-    n_channels = 8;
+    full_cores_override = true // FOR NOW ALL CORES ARE COMPILED WITH RECIPROCAL ENABLED
 }
 
 void hil_deployer::deploy(nlohmann::json &spec) {
@@ -42,6 +42,7 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     for(int i = 0; i<programs.size(); i++){
         std::cout<<"SETUP PROGRAM FOR CORE: "<<programs[i].name <<" AT ADDRESS: "<< to_hex(get_core_rom_address(i)) <<std::endl;
         load_core(get_core_rom_address(i), programs[i].program);
+        check_reciprocal(programs[i].program);
     }
     std::cout << "------------------------------------------------------------------"<<std::endl;
 
@@ -161,7 +162,7 @@ void hil_deployer::setup_cores(uint16_t n_cores) {
     std::cout<<"SETUP CORES" <<std::endl;
     std::cout << "------------------------------------------------------------------"<<std::endl;
     for(int i = 0; i<n_cores; i++){
-        write_register(get_core_control_address(i), n_channels);
+        write_register(get_core_control_address(i), n_channels[i]);
     }
 
 }
@@ -205,5 +206,23 @@ void hil_deployer::reserve_outputs(std::vector<program_bundle> &programs) {
                 }
             }
         }
+    }
+}
+
+void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
+    bool rec_present = false;
+    int section;
+    for(auto &instr:program){
+        if(section <2){
+            if(instr==0xC) section++;
+        } else {
+            if((instr & ((1<<fcore_opcode_width)-1)) == fcore_opcodes["rec"]) rec_present = true;
+        }
+    }
+    // SET THE NUMBER OF CHANNELS DEPENDING ON THE PIPELINE LENGTH OF THE PROCESSOR TO AVOID WAIT STATES
+    if(rec_present | full_cores_override){
+        n_channels.push_back(11);
+    } else {
+        n_channels.push_back(8);
     }
 }

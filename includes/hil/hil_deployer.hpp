@@ -21,6 +21,7 @@
 #include "hil/hil_bus_map.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "frontend/emulator_manager.hpp"
+#include "fCore_isa.hpp"
 
 
 class hil_deployer {
@@ -31,6 +32,7 @@ public:
     void set_cores_control_location(uint64_t base, uint64_t offset);
     void set_dma_location(uint64_t base, uint64_t offset);
     void set_sequencer_location(uint64_t sequencer);
+
 private:
     std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
@@ -44,6 +46,7 @@ private:
     void setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers);
     void setup_cores(uint16_t n_cores);
 
+    void check_reciprocal(const std::vector<uint32_t> &program);
 
     uint64_t get_core_rom_address(uint16_t core_idx) const;
     uint64_t get_core_control_address(uint16_t core_idx) const;
@@ -62,7 +65,8 @@ private:
     uint64_t cores_rom_offset;
     uint64_t cores_control_offset;
     uint64_t dma_offset;
-    uint64_t n_channels;
+    std::vector<uint32_t> n_channels;
+    bool full_cores_override;
 
     std::shared_ptr<fpga_bridge> hw;
 };
