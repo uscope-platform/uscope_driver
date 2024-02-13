@@ -51,6 +51,7 @@ public:
     std::optional<bus_map_entry>  at_bus(uint16_t, const std::string& p_n);
     bool has_io(uint16_t addr, const std::string& p_n);
     bool has_bus(uint16_t addr);
+    void clear() {bus_map.clear();};
 
 private:
     std::vector<bus_map_entry> bus_map;

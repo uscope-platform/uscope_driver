@@ -34,7 +34,6 @@ public:
     void set_sequencer_location(uint64_t sequencer);
 
 private:
-    std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
 
     void reserve_inputs(std::vector<interconnect_t> &ic);
@@ -56,6 +55,8 @@ private:
     std::string to_hex(uint64_t)const;
     void write_register(uint64_t addr, uint32_t val);
 
+    std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
+
     hil_bus_map bus_map;
 
     uint64_t cores_rom_base_address;
@@ -66,6 +67,7 @@ private:
     uint64_t cores_rom_offset;
     uint64_t cores_control_offset;
     uint64_t dma_offset;
+
     std::vector<uint32_t> n_channels;
     bool full_cores_override;
 

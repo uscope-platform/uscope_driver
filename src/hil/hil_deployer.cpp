@@ -60,6 +60,9 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     setup_sequencer(sequencer_address, programs.size(), max_transfers);
     setup_cores(programs.size());
 
+    //cleanup leftovers from deployment process
+    bus_map.clear();
+    bus_address_index.clear();
 }
 
 uint16_t hil_deployer::get_free_address(uint16_t original_addr, const std::string &c_n) {
