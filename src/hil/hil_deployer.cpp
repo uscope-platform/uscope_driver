@@ -52,6 +52,11 @@ void hil_deployer::deploy(nlohmann::json &spec) {
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
+    for(int i = 0; i<programs.size(); i++){
+        std::cout<<"SETUP INITIAL STATE FOR CORE: "<<programs[i].name <<std::endl;
+        setup_initial_state(get_core_control_address(i), programs[i].mem_init);
+    }
+
     setup_sequencer(sequencer_address, programs.size(), max_transfers);
     setup_cores(programs.size());
 
@@ -225,4 +230,13 @@ void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     } else {
         n_channels.push_back(8);
     }
+}
+
+void hil_deployer::setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val) {
+    std::cout << "------------------------------------------------------------------"<<std::endl;
+
+    for(auto &i:init_val){
+        write_register(address+i.first*4, i.second);
+    }
+    std::cout << "------------------------------------------------------------------"<<std::endl;
 }

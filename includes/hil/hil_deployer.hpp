@@ -45,6 +45,7 @@ private:
     void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
     void setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers);
     void setup_cores(uint16_t n_cores);
+    void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
 
