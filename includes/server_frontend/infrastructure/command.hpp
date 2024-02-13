@@ -23,7 +23,7 @@
 
 namespace commands {
 
-    static std::set<std::string> infrastructure_commands = {"null", "get_varsion"};
+    static std::set<std::string> infrastructure_commands = {"null", "get_version"};
     static std::set<std::string> control_commands = {"load_bitstream", "register_write", "set_frequency", "register_read",
                                               "apply_filter","set_scope_data"};
 
