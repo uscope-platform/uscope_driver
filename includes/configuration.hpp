@@ -21,6 +21,7 @@ class configuration {
 public:
     bool log;
     bool emulate_hw;
+    bool debug_hil;
     int log_level;
     unsigned int server_port;
 };

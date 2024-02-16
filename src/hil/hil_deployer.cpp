@@ -30,7 +30,7 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     } catch(std::invalid_argument &ex){
         throw std::runtime_error(ex.what());
     }
-    emulator_manager em(spec, false, s_f);
+    emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
     auto interconnects = em.load_interconnects(spec["interconnect"]);
 
