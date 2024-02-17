@@ -31,7 +31,7 @@ namespace commands {
                                             "set_scaling_factors", "set_channel_status", "set_channel_signs",
                                             "enable_manual_metadata"};
 
-    static std::set<std::string> core_commands = {"apply_program", "deploy_hil"};
+    static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil"};
 
     struct scope_data {
         uint64_t buffer_address = 0;

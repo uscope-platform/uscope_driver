@@ -40,8 +40,10 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
 nlohmann::json cores_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
     if(command_string == "apply_program") {
         return process_apply_program(arguments);
-    } else if(command_string=="deploy_hil"){
+    } else if(command_string=="deploy_hil") {
         return process_deploy_hil(arguments);
+    } else if(command_string=="emulate_hil"){
+        return process_emulate_hil(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -73,6 +75,19 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     hil.deploy(arguments);
     resp["response_code"] = responses::ok;
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
+
+    nlohmann::json resp;
+    try{
+        resp["response_code"] = responses::ok;
+        resp["data"] = emulator.emulate(arguments);
+    } catch (std::runtime_error &e) {
+        resp["response_code"] = responses::as_integer(responses::emulation_error);
+        resp["data"] = std::string("EMULTION ERROR:\n") + e.what();
+    }
     return resp;
 }
 

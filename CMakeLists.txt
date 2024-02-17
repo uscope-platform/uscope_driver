@@ -61,6 +61,7 @@ set(DRIVER_SOURCES /
         src/hw_interface/channel_metadata.cpp
         src/emulated_data_generator.cpp
         src/hil/hil_deployer.cpp
+        src/hil/hil_emulator.cpp
         src/hil/hil_bus_map.cpp
 )
 

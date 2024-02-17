@@ -27,7 +27,8 @@ namespace responses {
         invalid_cmd_schema = 3,
         invalid_arg = 4,
         bitstream_load_failed =5,
-        internal_erorr = 6
+        internal_erorr = 6,
+        emulation_error = 7
     } response_code;
 
     template<typename response_code>

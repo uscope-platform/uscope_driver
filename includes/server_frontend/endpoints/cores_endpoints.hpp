@@ -22,7 +22,7 @@
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "hil/hil_deployer.hpp"
-
+#include "hil/hil_emulator.hpp"
 
 class cores_endpoints {
 public:
@@ -30,6 +30,7 @@ public:
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
+    nlohmann::json process_emulate_hil(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
 
 
@@ -47,6 +48,7 @@ private:
 
     std::shared_ptr<fpga_bridge> hw;
     hil_deployer hil;
+    hil_emulator emulator;
 };
 
 
