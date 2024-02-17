@@ -25,7 +25,7 @@
 
 class hil_emulator {
 public:
-    nlohmann::json emulate(nlohmann::json &specs);
+    std::string emulate(nlohmann::json &specs);
 private:
 };
 

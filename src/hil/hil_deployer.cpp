@@ -21,8 +21,7 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     full_cores_override = true; // FOR NOW ALL CORES ARE COMPILED WITH RECIPROCAL ENABLED
 }
 
-void hil_deployer::deploy(nlohmann::json &spec) {
-
+responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     std::string s_f = SCHEMAS_FOLDER;
     try{
         fcore_toolchain::schema_validator_base validator(s_f + "/emulator_spec_schema.json");
@@ -63,6 +62,7 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     //cleanup leftovers from deployment process
     bus_map.clear();
     bus_address_index.clear();
+    return responses::ok;
 }
 
 uint16_t hil_deployer::get_free_address(uint16_t original_addr, const std::string &c_n) {

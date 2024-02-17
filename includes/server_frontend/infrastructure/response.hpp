@@ -28,7 +28,9 @@ namespace responses {
         invalid_arg = 4,
         bitstream_load_failed =5,
         internal_erorr = 6,
-        emulation_error = 7
+        emulation_error = 7,
+        deployment_error= 8,
+        hil_bus_conflict_warning = 9
     } response_code;
 
     template<typename response_code>

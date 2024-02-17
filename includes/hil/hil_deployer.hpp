@@ -29,7 +29,7 @@
 class hil_deployer {
 public:
     hil_deployer(std::shared_ptr<fpga_bridge>  &h);
-    void deploy(nlohmann::json &spec);
+    responses::response_code deploy(nlohmann::json &spec);
     void set_cores_rom_location(uint64_t base, uint64_t offset);
     void set_cores_control_location(uint64_t base, uint64_t offset);
     void set_dma_location(uint64_t base, uint64_t offset);

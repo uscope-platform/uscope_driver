@@ -73,8 +73,15 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
-    hil.deploy(arguments);
-    resp["response_code"] = responses::ok;
+    try{
+        resp["response_code"] = hil.deploy(arguments);
+    } catch (std::domain_error &e) {
+        resp["response_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
+        resp["data"] = std::string("HIL BUS CONFLICT DETECTED:\n") + e.what();
+    } catch (std::runtime_error &e){
+        resp["response_code"] = responses::as_integer(responses::deployment_error);
+        resp["data"] = std::string("HIL DEPLOYMENT ERROR:\n") + e.what();
+    }
     return resp;
 }
 
@@ -86,7 +93,7 @@ nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
         resp["data"] = emulator.emulate(arguments);
     } catch (std::runtime_error &e) {
         resp["response_code"] = responses::as_integer(responses::emulation_error);
-        resp["data"] = std::string("EMULTION ERROR:\n") + e.what();
+        resp["data"] = std::string("EMULATION ERROR:\n") + e.what();
     }
     return resp;
 }

@@ -14,8 +14,8 @@
 
 #include "hil/hil_emulator.hpp"
 
-nlohmann::json hil_emulator::emulate(nlohmann::json &specs) {
-    nlohmann::json ret;
+std::string hil_emulator::emulate(nlohmann::json &specs) {
+
     spdlog::info("EMULATE HIL");
 
     std::string results;
@@ -26,3 +26,5 @@ nlohmann::json hil_emulator::emulate(nlohmann::json &specs) {
 
     return results;
 }
+
+
