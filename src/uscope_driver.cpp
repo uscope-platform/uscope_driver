@@ -80,8 +80,6 @@ int main (int argc, char **argv) {
 
 
     runtime_config.emulate_hw = emulate_hw;
-    runtime_config.log = log_command;
-    runtime_config.log_level = log_level;
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
 
