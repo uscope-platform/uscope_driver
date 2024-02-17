@@ -22,12 +22,8 @@ thread_local volatile int fd_data; /// Scope driver file descriptor
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
 scope_thread::scope_thread() : data_gen(buffer_size){
-    std::cout << "scope_thread emulate_control mode: " << std::boolalpha << runtime_config.emulate_hw << std::endl;
-    std::cout<< "scope_thread logging: "<< std::boolalpha <<runtime_config.log << std::endl;
-
-    if(runtime_config.log){
-        std::cout << "scope_thread initialization started"<< std::endl;
-    }
+    spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
+    spdlog::info("Scope Handler initialization started");
 
     n_buffers_left = 0;
     internal_buffer_size = n_channels*buffer_size;
@@ -51,14 +47,12 @@ scope_thread::scope_thread() : data_gen(buffer_size){
     }
     dma_buffer = (uint64_t * ) malloc(n_channels*buffer_size*sizeof(uint64_t));
 
-    if(runtime_config.log){
-        std::cout << "scope_thread initialization ended"<< std::endl;
-    }
+    spdlog::info("Scope handler initialization done");
 }
 
 
 responses::response_code scope_thread::start_capture(unsigned int n_buffers) {
-    if(runtime_config.log) std::cout << "START CAPTURE: n_buffers "<< n_buffers<<std::endl;
+    spdlog::info("START CAPTURE: n_buffers {0}", n_buffers);
     n_buffers_left = n_buffers;
     return responses::ok;
 }
@@ -73,11 +67,11 @@ responses::response_code scope_thread::read_data(std::vector<nlohmann::json> &da
 
     std::vector<std::vector<float>> data;
 
-    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: STARTING"<<std::endl;
+    spdlog::trace("READ_DATA: STARTING");
     read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(uint64_t));
-    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: KERNEL COPY DEFINED"<<std::endl;
+    spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL");
     data = shunt_data(dma_buffer);
-    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: SHUNTING ENDED"<<std::endl;
+    spdlog::trace("READ_DATA: SHUNTING DONE");
 
     for(int i = 0; i<n_channels; i++){
         nlohmann::json ch_obj;
@@ -97,7 +91,6 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
     for(int i = 0; i<n_channels; i++){
         ret_data.emplace_back();
     }
-    if(runtime_config.log_level > 2) std::cout<<"READ_DATA: ALLOCATED RETURN VECTORS"<<std::endl;
     for(int i = 0; i<internal_buffer_size; i++){
 
         auto raw_sample = buffer_in[i];
@@ -135,20 +128,14 @@ float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float sca
 }
 
 responses::response_code scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
-    if(runtime_config.log)
-        std::cout << "SET_CHANNEL_WIDTHS:"<< std::to_string(widths[0]) << " " << std::to_string(widths[1]) << " " << std::to_string(widths[2]) << " " << std::to_string(widths[3]) << " " << std::to_string(widths[4]) << " " << std::to_string(widths[5]) <<std::endl;
+    spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
+
     channel_sizes = widths;
     return responses::ok;
 }
 
 responses::response_code  scope_thread::set_scaling_factors(std::vector<float> &sf) {
-    if(runtime_config.log){
-        std::cout << "SET_SCALING_FACTORS: ";
-        for(auto &s:sf){
-            std::cout << std::to_string(s) << " ";
-        }
-        std::cout << std::endl;
-    }
+    spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",sf[0], sf[1], sf[2], sf[3], sf[4], sf[5]);
     scaling_factors = sf;
     return responses::ok;
 }
@@ -159,24 +146,13 @@ responses::response_code scope_thread::set_channel_status(std::unordered_map<int
 }
 
 responses::response_code scope_thread::set_channel_signed(std::unordered_map<int, bool> ss) {
-    if(runtime_config.log){
-        std::cout << "SET_CHANNEL_SIGNS: ";
-        for(auto &s:ss){
-            if(s.second){
-                std::cout << "s ";
-            } else {
-                std::cout << "u ";
-            }
-
-        }
-        std::cout << std::endl;
-    }
+    spdlog::info("SET_CHANNEL_SIGNS: {0} {1} {2} {3} {4} {5}",ss[0], ss[1], ss[2], ss[3], ss[4], ss[5]);
     signed_status = std::move(ss);
     return responses::ok;
 }
 
 responses::response_code scope_thread::enable_manual_metadata() {
-    std::cout << "ENABLE MANUAL METATADA\n";
+    spdlog::info("ENABLE MANUAL METADATA");
     manual_metadata = true;
     return responses::ok;
 }

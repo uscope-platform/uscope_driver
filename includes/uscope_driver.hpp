@@ -25,9 +25,10 @@
 #include <regex.h>
 #include <argp.h>
 #include <thread>
-
 #include <unistd.h>
 #include <sys/mman.h>
+
+#include <spdlog/spdlog.h>
 
 #include "server_frontend/infrastructure/server_connector.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"

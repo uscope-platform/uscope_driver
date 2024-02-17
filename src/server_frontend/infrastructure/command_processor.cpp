@@ -29,9 +29,7 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
     nlohmann::json response_obj;
     response_obj["cmd"] = command_string;
 
-    if(runtime_config.log && runtime_config.log_level>1){
-        std::cout << "Received command: " <<command_string << std::endl;
-    }
+    spdlog::trace("Received command: {0}", command_string);
 
     if(commands::control_commands.contains(command_string)){
         response_obj["body"] = control_ep.process_command(command_string, arguments);

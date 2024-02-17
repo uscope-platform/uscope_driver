@@ -24,18 +24,16 @@ std::atomic_bool server_stop_req;
 server_connector::server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_thread> &sc)
 : core_processor(hw, sc) {
 
-    if(runtime_config.log){
-        std::cout << "server_connector initialization started"<< std::endl;
-    }
+    spdlog::info("Server connector initialization started");
+
     server_stop_req = false;
 
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        std::cerr << "socket creation failed" << std::endl;
+        spdlog::error("Socket creation failed");
         exit(0);
     }
-
 
     int optval = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
@@ -46,18 +44,17 @@ server_connector::server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared
     servaddr.sin_port = htons(runtime_config.server_port);
 
     if ((bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr))) != 0) {
-        std::cerr << "socket bind failed" << std::endl;
+        spdlog::error("socket bind failed");
         exit(-1);
     }
 
     if(listen(sockfd, 2)) {
-        std::cerr << "Error listening to listening socket" << std::endl;
+        spdlog::error("Error listening to listening socket");
         exit(-1);
     }
 
-    if(log){
-        std::cout << "server_connector initialization ended"<< std::endl;
-    }
+
+    spdlog::info("Server connector initialization done");
 
 }
 
@@ -71,7 +68,7 @@ void server_connector::start_server() {
         connfd = accept(sockfd, (struct sockaddr *)&servaddr, &addrlen);
         if(connfd < 0) {
             if(errno != EWOULDBLOCK && errno != EAGAIN) {
-                std::cerr <<"Error accepting an incoming connection" <<std::endl;
+                spdlog::error("Error accepting an incoming connection");
                 exit(-1);
             }
         }

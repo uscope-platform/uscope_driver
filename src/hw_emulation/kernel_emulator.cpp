@@ -74,7 +74,6 @@ void kernel_emulator::open(fuse_req_t req, struct fuse_file_info *fi) {
 
 void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_file_info *fi) {
     (void)fi;
-    std::cout<<"HERE!!"<< std::endl;
     const int n_channels = 6;
     const int n_datapoints = 1024;
     uint64_t data_array[n_channels*n_datapoints];

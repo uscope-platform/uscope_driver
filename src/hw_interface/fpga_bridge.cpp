@@ -21,21 +21,19 @@ volatile int registers_fd, fcore_fd;
 using namespace std::chrono_literals;
 
 void sigsegv_handler(int dummy) {
-    std::cerr << "ERROR:A Segmentation fault happened while writing to an mmapped region" <<std::endl;
+    spdlog::error("Segmentation fault encounteded while communicating with FPGA");
     exit(-1);
 }
 
 void sigbus_handler(int dummy) {
-    std::cerr << "ERROR:A bus error happened while writing to an mmapped region" <<std::endl;
+    spdlog::error("Bus error encountered while communicating with FPGA");
     exit(-1);
 }
 
 
 fpga_bridge::fpga_bridge() {
 
-    if(runtime_config.log){
-        std::cout << "fpga_bridge initialization started"<< std::endl;
-    }
+    spdlog::info("fpga_bridge initialization started");
 
     arch = std::getenv("ARCH");
 
@@ -72,49 +70,47 @@ fpga_bridge::fpga_bridge() {
     if(!runtime_config.emulate_hw){
         registers_fd = open(if_dict.get_control_bus().c_str(), O_RDWR | O_SYNC);
         if(registers_fd == -1){
-            std::cerr << "error while mapping the axi control bus (M_GP0)" <<std::endl;
+            spdlog::error( "Error while mapping the axi control bus");
             exit(1);
         }
 
         fcore_fd = open(if_dict.get_cores_bus().c_str(), O_RDWR | O_SYNC);
         if(fcore_fd == -1){
-            std::cerr << "error while mapping the fcore rom bus (M_GP1)" <<std::endl;
+            spdlog::error("Error while mapping the fcore rom bus");
             exit(1);
         }
 
-        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< to_hex(control_addr) <<std::endl;
+        spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl, control_addr);
         registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
         if(registers == MAP_FAILED) {
-            std::cerr << "Cannot mmap AXI GP0 bus: "<< strerror(errno) << std::endl;
+            spdlog::error("Cannot mmap control bus: {0}", strerror(errno));
             exit(1);
         }
 
-        std::cout << "Mapping " <<std::to_string(n_pages_ctrl)<<" memory pages from the axi control bus, starting at address: "<< to_hex(core_addr) <<std::endl;
+        spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
         fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
         if(fCore == MAP_FAILED) {
-            std::cerr << "Cannot mmap AXI GP1 bus: "<< strerror(errno) << std::endl;
+            spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
             exit(1);
         }
 
     } else {
         registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
         if(registers == MAP_FAILED) {
-            std::cerr << "Cannot create /dev/mem emulator anonymous mapping: "<< strerror(errno) << std::endl;
+            spdlog::error("Cannot create /dev/mem emulator anonymous mapping: {0}", strerror(errno));
             exit(1);
         }
     }
 
-    if(log){
-        std::cout << "fpga_bridge initialization started"<< std::endl;
-    }
+    spdlog::info("fpga_bridge initialization done");
 }
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
-    if(runtime_config.log) std::cout << "LOAD BITSTREAM: " << bitstream<<std::endl;
 
+    spdlog::info("LOAD BITSTREAM: {0}", bitstream);
     if(!runtime_config.emulate_hw){
         std::ofstream ofs("/sys/class/fpga_manager/fpga0/flags");
         ofs << "0";
@@ -137,13 +133,13 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
             } while (state != "operating" && timeout_counter>=0);
 
             if(timeout_counter <0){
-                if(runtime_config.log) std::cout << "ERROR: Bitstream load failed to complete in time";
+                spdlog::error("Bitstream load failed to complete in time");
                 return responses::bitstream_load_failed;
             } else{
                 return responses::ok;
             }
         } else {
-            std::cerr << "ERROR: Bitstream not found" << filename << std::endl;
+            spdlog::error("Bitstream not found {0}", filename);
             return responses::bitstream_not_found;
         }
     } else{
@@ -158,15 +154,21 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
     if(write_obj["type"] == "direct"){
-        if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (DIRECT) : addr "<< to_hex(write_obj["address"]) <<" value "<< write_obj["value"]<<std::endl;
+        uint64_t address = write_obj["address"];
+        uint32_t value = write_obj["value"];
+        spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", address, value);
 
-        registers[register_address_to_index(write_obj["address"])] = write_obj["value"];
+        registers[register_address_to_index(address)] =value;
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
-            if(runtime_config.log) std::cout << "WRITE SINGLE REGISTER (AXIS PROXIED) : proxy_addr "<<to_hex(write_obj["proxy_address"]) <<" addr "<< to_hex(write_obj["address"]) <<" value "<< write_obj["value"]<<std::endl;
-            uint32_t proxy_addr = write_obj["proxy_address"];
-            registers[register_address_to_index(proxy_addr+4)] = write_obj["address"];
-            registers[register_address_to_index(proxy_addr)] = write_obj["value"];
+
+             uint64_t address = write_obj["address"];
+             uint32_t proxy_addr = write_obj["proxy_address"];
+             uint32_t value = write_obj["value"];
+             spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, address, value);
+
+            registers[register_address_to_index(proxy_addr+4)] = address;
+            registers[register_address_to_index(proxy_addr)] = value;
         }
     } else {
         throw std::runtime_error("ERROR: Unrecognised register write type");
@@ -184,7 +186,8 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 /// \return #RESP_OK
 nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
     nlohmann::json response_body;
-    if(runtime_config.log) std::cout << "READ SINGLE REGISTER: addr "<< to_hex(address) <<std::endl;
+    spdlog::info("READ SINGLE REGISTER: addr 0x{0:x}", address);
+
     if(runtime_config.emulate_hw) {
         response_body["data"] = rand() % 32767;
     } else{
@@ -213,7 +216,7 @@ uint64_t fpga_bridge::register_address_to_index(uint64_t address) const {
 /// \param program Vector with the instructions of the program to load
 /// \return #RESP_OK
 responses::response_code fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
-    std::cout<< "APPLY PROGRAM: address: " <<  to_hex(address) << " program_size: "<< program.size()<<std::endl;
+    spdlog::info("APPLY PROGRAM: address:  0x{0:x} program_size: {1}", address, program.size());
     uint32_t offset =  fcore_address_to_index(address);
 
     if(!runtime_config.emulate_hw) {
@@ -224,9 +227,8 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
 }
 
 responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
-    if(runtime_config.log)
-        std::cout << "SET_CLOCK FREQUENCY: clock #" + std::to_string(freq[0]) + " to " + std::to_string(freq[1]) + "Hz" <<std::endl;
 
+    spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", freq[0], freq[1]);
     std::string command;
 
     if(arch=="zynq"){
@@ -242,8 +244,7 @@ responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> 
 
 
 responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
-    std::cout<< "APPLY FILTER: address: " << to_hex(address) << " N. Filter Taps " << taps.size()<<std::endl;
-
+    spdlog::info("APPLY FILTER: address: 0x{0:x}  N. Filter Taps {1}", address, taps.size());
     auto filter_address= register_address_to_index(address);
 
     if(!runtime_config.emulate_hw) {
@@ -272,13 +273,8 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
         fs >> buffer;
     }
 
+    spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, data.buffer_address);
 
-    if(runtime_config.log){
-        std::cout << "SET_SCOPE_BUFFER_ADDDRESS: writing buffer address "
-                + std::to_string(buffer)
-                + " to scope at address "
-                + std::to_string(data.buffer_address)<< std::endl;
-    }
     registers[register_address_to_index(data.buffer_address)] = buffer;
     registers[register_address_to_index(data.enable_address)] = 1;
     return responses::ok;

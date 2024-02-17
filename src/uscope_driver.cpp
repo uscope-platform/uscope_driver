@@ -61,7 +61,7 @@ int main (int argc, char **argv) {
     CLI11_PARSE(app, argc, argv);
 
     if(read_version){
-        std::cout << "The current uscope_driver version is:\n    " + uscope_driver_versions<<std::endl;
+        spdlog::info("The current uscope_driver version is:\n {0}", uscope_driver_versions);
         return 0;
     }
 
@@ -85,8 +85,19 @@ int main (int argc, char **argv) {
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
 
-    std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
-    std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
+    if(log_command){
+        if(log_level >0){
+            spdlog::set_level(spdlog::level::trace);
+        } else {
+            spdlog::set_level(spdlog::level::info);
+        }
+    } else {
+        spdlog::set_level(spdlog::level::warn);
+    }
+    spdlog::set_pattern("[%l] %v");
+
+    spdlog::info("Debug mode: {0}", emulate_hw);
+    spdlog::info("Logging mode: {0}", log_command);
 
     auto hw_bridge = std::make_shared<fpga_bridge>();
     auto scope_conn = std::make_shared<scope_thread>();

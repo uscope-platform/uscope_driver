@@ -19,6 +19,7 @@
 
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "frontend/emulator_manager.hpp"
 

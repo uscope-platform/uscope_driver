@@ -38,6 +38,8 @@
 #include <unistd.h>
 #include <mutex>
 
+#include <spdlog/spdlog.h>
+
 #include "emulated_data_generator.hpp"
 #include "channel_metadata.hpp"
 #include "interfaces_dictionary.hpp"

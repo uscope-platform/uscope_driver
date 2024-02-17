@@ -17,6 +17,8 @@
 #ifndef USCOPE_DRIVER_HIL_DEPLOYER_HPP
 #define USCOPE_DRIVER_HIL_DEPLOYER_HPP
 
+#include <spdlog/spdlog.h>
+
 #include <nlohmann/json.hpp>
 #include "hil/hil_bus_map.hpp"
 #include "hw_interface/fpga_bridge.hpp"

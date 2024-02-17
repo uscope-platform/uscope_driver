@@ -38,13 +38,13 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     reserve_inputs(interconnects);
     reserve_outputs(programs);
 
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
-        std::cout<<"SETUP PROGRAM FOR CORE: "<<programs[i].name <<" AT ADDRESS: "<< to_hex(get_core_rom_address(i)) <<std::endl;
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
         load_core(get_core_rom_address(i), programs[i].program);
         check_reciprocal(programs[i].program);
     }
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("------------------------------------------------------------------");
 
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
@@ -53,7 +53,7 @@ void hil_deployer::deploy(nlohmann::json &spec) {
     }
 
     for(int i = 0; i<programs.size(); i++){
-        std::cout<<"SETUP INITIAL STATE FOR CORE: "<<programs[i].name <<std::endl;
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", programs[i].name);
         setup_initial_state(get_core_control_address(i), programs[i].mem_init);
     }
 
@@ -110,8 +110,8 @@ void hil_deployer::load_core(uint64_t address, const std::vector<uint32_t> &prog
 }
 
 uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& core_name) {
-    std::cout<<"SETUP DMA FOR CORE: "<<core_name<<" AT ADDRESS: "<< to_hex(address) <<std::endl;
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("SETUP DMA FOR CORE: {0} AT ADDRESS 0x{1:x}", core_name, address);
+    spdlog::info("------------------------------------------------------------------");
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.core_name == core_name){
@@ -120,7 +120,7 @@ uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& cor
         }
     }
     write_register(address, current_io);
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("------------------------------------------------------------------");
     return current_io;
 }
 
@@ -133,7 +133,7 @@ std::string hil_deployer::to_hex(uint64_t i) const {
 }
 
 void hil_deployer::write_register(uint64_t addr, uint32_t val) {
-    std::cout<< "write " << to_hex(val) << " to address "<<to_hex(addr)<<std::endl;
+    spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
     nlohmann::json write;
     write["type"] = "direct";
     write["address"] = addr;
@@ -145,13 +145,13 @@ void hil_deployer::write_register(uint64_t addr, uint32_t val) {
 void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive) {
     uint32_t mapping = pack_address_mapping(bus_address, io_addr);
     uint64_t current_address = dma_address + 4 + io_progressive*4;
-    std::cout<< "map core io address: " << std::to_string(io_addr) << " to hil bus address "<< std::to_string(bus_address)<<std::endl;
+    spdlog::info("map core io address: {0} to hil bus address {1}", io_addr, bus_address);
     write_register(current_address, mapping);
 }
 
 void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers) {
-    std::cout<<"SETUP SEQUENCER" <<std::endl;
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("SETUP SEQUENCER");
+    spdlog::info("------------------------------------------------------------------");
     write_register(seq, n_cores);
     write_register(seq + 0x4, 0);
     write_register(seq + 0x8, 20*n_transfers);
@@ -167,8 +167,8 @@ void hil_deployer::set_sequencer_location(uint64_t sequencer) {
 }
 
 void hil_deployer::setup_cores(uint16_t n_cores) {
-    std::cout<<"SETUP CORES" <<std::endl;
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("SETUP CORES");
+    spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<n_cores; i++){
         write_register(get_core_control_address(i), n_channels[i]);
     }
@@ -193,7 +193,7 @@ void hil_deployer::reserve_inputs(std::vector<interconnect_t> &ic) {
                 bus_map.push_back(e);
                 bus_address_index.insert({(uint16_t) c.second.address, {i.source, c.first.address}});
             } else {
-                std::cout << "WARNING: Unsolvable input bus address conflict detected"<<std::endl;
+                spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
             }
         }
     }
@@ -236,10 +236,9 @@ void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
 }
 
 void hil_deployer::setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val) {
-    std::cout << "------------------------------------------------------------------"<<std::endl;
-
+    spdlog::info("------------------------------------------------------------------");
     for(auto &i:init_val){
         write_register(address+i.first*4, i.second);
     }
-    std::cout << "------------------------------------------------------------------"<<std::endl;
+    spdlog::info("------------------------------------------------------------------");
 }

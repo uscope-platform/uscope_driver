@@ -28,6 +28,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
+#include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
 #include "server_frontend/infrastructure/command.hpp"

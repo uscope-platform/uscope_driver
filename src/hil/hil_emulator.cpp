@@ -16,7 +16,7 @@
 
 nlohmann::json hil_emulator::emulate(nlohmann::json &specs) {
     nlohmann::json ret;
-    std::cout << "EMULATE CORE" << std::endl;
+    spdlog::info("EMULATE HIL");
 
     std::string results;
 
@@ -25,6 +25,4 @@ nlohmann::json hil_emulator::emulate(nlohmann::json &specs) {
     results = emu_manager.get_results();
 
     return results;
-
-    throw std::runtime_error("TEST_ERROR");
 }
