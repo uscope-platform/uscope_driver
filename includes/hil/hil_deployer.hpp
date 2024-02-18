@@ -38,8 +38,8 @@ public:
 private:
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
 
-    void reserve_inputs(std::vector<interconnect_t> &ic);
-    void reserve_outputs(std::vector<program_bundle> &programs);
+    void reserve_inputs(std::vector<fcore::interconnect_t> &ic);
+    void reserve_outputs(std::vector<fcore::program_bundle> &programs);
 
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);

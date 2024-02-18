@@ -24,12 +24,12 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     std::string s_f = SCHEMAS_FOLDER;
     try{
-        fcore_toolchain::schema_validator_base validator(s_f + "/emulator_spec_schema.json");
+        fcore::schema_validator_base validator(s_f + "/emulator_spec_schema.json");
         validator.validate(spec);
     } catch(std::invalid_argument &ex){
         throw std::runtime_error(ex.what());
     }
-    emulator_manager em(spec, runtime_config.debug_hil, s_f);
+    fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
     auto interconnects = em.load_interconnects(spec["interconnect"]);
 
@@ -180,7 +180,7 @@ void hil_deployer::set_cores_control_location(uint64_t base, uint64_t offset) {
     cores_control_offset = offset;
 }
 
-void hil_deployer::reserve_inputs(std::vector<interconnect_t> &ic) {
+void hil_deployer::reserve_inputs(std::vector<fcore::interconnect_t> &ic) {
     hil_bus_map input_bus_map;
     for(auto &i:ic){
         for(auto &c:i.connections){
@@ -200,7 +200,7 @@ void hil_deployer::reserve_inputs(std::vector<interconnect_t> &ic) {
 
 }
 
-void hil_deployer::reserve_outputs(std::vector<program_bundle> &programs) {
+void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs) {
     for(auto &p:programs){
         for(auto &io:p.io){
             if(io.type == "o"){
@@ -224,7 +224,7 @@ void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
         if(section <2){
             if(instr==0xC) section++;
         } else {
-            if((instr & ((1<<fcore_opcode_width)-1)) == fcore_opcodes["rec"]) rec_present = true;
+            if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["rec"]) rec_present = true;
         }
     }
     // SET THE NUMBER OF CHANNELS DEPENDING ON THE PIPELINE LENGTH OF THE PROCESSOR TO AVOID WAIT STATES

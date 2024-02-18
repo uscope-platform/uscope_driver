@@ -20,7 +20,7 @@ std::string hil_emulator::emulate(nlohmann::json &specs) {
 
     std::string results;
 
-    emulator_manager emu_manager(specs, false, SCHEMAS_FOLDER);
+    fcore::emulator_manager emu_manager(specs, false, SCHEMAS_FOLDER);
     emu_manager.process();
     emu_manager.emulate();
     results = emu_manager.get_results();
