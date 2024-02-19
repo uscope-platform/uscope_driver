@@ -204,7 +204,6 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
     for(auto &p:programs){
         for(auto &io:p.io){
             if(io.type == "o"){
-                bool stop =  io.io_addr == 1 &&  io.core_addr == 5;
                 if(!bus_map.has_io(io.io_addr, p.name)){
                     bus_map_entry e;
                     e.core_name = p.name;
