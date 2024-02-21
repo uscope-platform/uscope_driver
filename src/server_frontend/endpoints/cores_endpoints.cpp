@@ -26,14 +26,21 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     cores_control_base = 0x4'43c2'0000;
     cores_control_offset =    0x1'0000;
 
+    cores_inputs_base_address = 0x2000;
+    cores_inputs_offset = 0x1000;
+
     dma_base =   0x4'43c2'1000;
     dma_offset =      0x1'0000;
 
     sequencer_base =   0x4'43c1'0000;
 
+    scope_mux_base = 0x4'43c5'0000;
+
     hil.set_cores_rom_location(cores_rom_base, cores_rom_offset);
     hil.set_cores_control_location(cores_control_base, cores_control_offset);
+    hil.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
     hil.set_dma_location(dma_base, dma_offset);
+    hil.set_scope_mux_base(scope_mux_base);
     hil.set_sequencer_location(sequencer_base);
 }
 
@@ -44,13 +51,16 @@ nlohmann::json cores_endpoints::process_command(std::string command_string, nloh
         return process_deploy_hil(arguments);
     } else if(command_string=="emulate_hil"){
         return process_emulate_hil(arguments);
+    } else if(command_string=="hil_select_out"){
+        return process_hil_select_out(arguments);
+    } else if(command_string=="hil_set_in"){
+        return process_hil_set_in(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
         resp["data"] = "DRIVER ERROR: Internal driver error\n";
         return resp;
     }
-
 }
 
 ///
@@ -103,4 +113,16 @@ nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
     return resp;
 }
 
+nlohmann::json cores_endpoints::process_hil_select_out(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    hil.select_output(arguments["channel"], arguments["address"]);
+    return resp;
+}
 
+nlohmann::json cores_endpoints::process_hil_set_in(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    hil.set_input(arguments["address"], arguments["value"], arguments["core"]);
+    return resp;
+}

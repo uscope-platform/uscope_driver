@@ -40,6 +40,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
+        cores_idx[programs[i].name] = i;
         load_core(get_core_rom_address(i), programs[i].program);
         check_reciprocal(programs[i].program);
     }
@@ -54,6 +55,11 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", programs[i].name);
         setup_initial_state(get_core_control_address(i), programs[i].mem_init);
+    }
+
+
+    for(int i = 0; i<programs.size(); i++){
+        setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
     }
 
     setup_sequencer(sequencer_address, programs.size(), max_transfers);
@@ -95,15 +101,7 @@ uint64_t hil_deployer::get_dma_address(uint16_t dma_address) const {
     return dma_base_address + dma_address*dma_offset;
 }
 
-void hil_deployer::set_cores_rom_location(uint64_t base, uint64_t offset) {
-    cores_rom_base_address = base;
-    cores_rom_offset = offset;
-}
 
-void hil_deployer::set_dma_location(uint64_t base, uint64_t offset) {
-    dma_base_address = base;
-    dma_offset = offset;
-}
 
 void hil_deployer::load_core(uint64_t address, const std::vector<uint32_t> &program) {
     hw->apply_program(address, program);
@@ -128,9 +126,6 @@ uint32_t hil_deployer::pack_address_mapping(uint16_t upper, uint16_t lower) cons
     return (upper<<16) | lower;
 }
 
-std::string hil_deployer::to_hex(uint64_t i) const {
-    return std::format("0x{:x}", i);
-}
 
 void hil_deployer::write_register(uint64_t addr, uint32_t val) {
     spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
@@ -159,11 +154,7 @@ void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_tr
     for(int i = 0; i<n_cores; i++){
         write_register(seq + 0xC + 4*i, i);
     }
-
-}
-
-void hil_deployer::set_sequencer_location(uint64_t sequencer) {
-    sequencer_address = sequencer;
+    spdlog::info("------------------------------------------------------------------");
 }
 
 void hil_deployer::setup_cores(uint16_t n_cores) {
@@ -173,11 +164,6 @@ void hil_deployer::setup_cores(uint16_t n_cores) {
         write_register(get_core_control_address(i), n_channels[i]);
     }
 
-}
-
-void hil_deployer::set_cores_control_location(uint64_t base, uint64_t offset) {
-    cores_control_base_address = base;
-    cores_control_offset = offset;
 }
 
 void hil_deployer::reserve_inputs(std::vector<fcore::interconnect_t> &ic) {
@@ -239,6 +225,59 @@ void hil_deployer::setup_initial_state(uint64_t address, const std::unordered_ma
     spdlog::info("------------------------------------------------------------------");
     for(auto &i:init_val){
         write_register(address+i.first*4, i.second);
+    }
+    spdlog::info("------------------------------------------------------------------");
+}
+
+void hil_deployer::select_output(uint32_t channel, uint32_t address) {
+    spdlog::info("HIL SELECT OUTPUT: selected output {0} for channel {1}", address, channel);write_register(scope_mux_base + 4*channel+ 4, address);
+}
+
+void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core) {
+    spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
+    for(auto &in:inputs){
+        if(in.dest == address && in.core == core){
+            write_register( in.const_ip_addr+ 4, address);
+            write_register( in.const_ip_addr, value);
+        }
+    }
+
+}
+
+void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_specs) {
+    spdlog::info("SETUP INPUTS FOR CORE: {0}", core);
+    spdlog::info("------------------------------------------------------------------");
+    for(int i = 0; i<in_specs.size(); ++i){
+        if(in_specs[i]["source"]["type"] == "constant"){
+            std::string in_name = in_specs[i]["name"];
+            uint32_t address =in_specs[i]["reg_n"];
+
+            uint64_t complex_base_addr =cores_control_base_address + cores_control_offset*cores_idx[core];
+            uint64_t offset = cores_inputs_base_address + i*cores_inputs_offset;
+
+            input_metadata_t in;
+
+            uint32_t input_value;
+            in.is_float = in_specs[i]["type"] == "float";
+            in.core = core;
+            in.const_ip_addr = complex_base_addr + offset;
+            in.dest = address;
+
+            if(in.is_float){
+                input_value = fcore::emulator::float_to_uint32(in_specs[i]["source"]["value"]);
+                spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
+
+            } else {
+                input_value = in_specs[i]["source"]["value"];
+                spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
+            }
+
+            write_register( in.const_ip_addr+ 4, address);
+            write_register( in.const_ip_addr, input_value);
+
+            inputs.push_back(in);
+        }
+
     }
     spdlog::info("------------------------------------------------------------------");
 }

@@ -32,6 +32,8 @@ private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
     nlohmann::json process_emulate_hil(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
+    nlohmann::json process_hil_set_in(nlohmann::json &arguments);
+    nlohmann::json process_hil_select_out(nlohmann::json &arguments);
 
 
 
@@ -43,6 +45,11 @@ private:
 
     uint64_t dma_base;
     uint64_t dma_offset;
+
+    uint64_t cores_inputs_base_address;
+    uint64_t cores_inputs_offset;
+
+    uint64_t  scope_mux_base;
 
     uint64_t sequencer_base;
 
