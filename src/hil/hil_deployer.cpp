@@ -237,7 +237,7 @@ void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core)
     spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
     for(auto &in:inputs){
         if(in.dest == address && in.core == core){
-            write_register( in.const_ip_addr+ 4, address);
+            write_register( in.const_ip_addr+ 8, address);
             write_register( in.const_ip_addr, value);
         }
     }
@@ -272,7 +272,7 @@ void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_spec
                 spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
             }
 
-            write_register( in.const_ip_addr+ 4, address);
+            write_register( in.const_ip_addr+ 8, address);
             write_register( in.const_ip_addr, input_value);
 
             inputs.push_back(in);
