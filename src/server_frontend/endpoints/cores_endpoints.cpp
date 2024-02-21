@@ -33,8 +33,9 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     dma_offset =      0x1'0000;
 
     sequencer_base =   0x4'43c1'0000;
-
     scope_mux_base = 0x4'43c5'0000;
+
+    hil_control_base = 0x4'43c0'0000;
 
     hil.set_cores_rom_location(cores_rom_base, cores_rom_offset);
     hil.set_cores_control_location(cores_control_base, cores_control_offset);
@@ -42,9 +43,10 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     hil.set_dma_location(dma_base, dma_offset);
     hil.set_scope_mux_base(scope_mux_base);
     hil.set_sequencer_location(sequencer_base);
+    hil.set_hil_control_location(hil_control_base);
 }
 
-nlohmann::json cores_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
     if(command_string == "apply_program") {
         return process_apply_program(arguments);
     } else if(command_string=="deploy_hil") {
@@ -55,6 +57,10 @@ nlohmann::json cores_endpoints::process_command(std::string command_string, nloh
         return process_hil_select_out(arguments);
     } else if(command_string=="hil_set_in"){
         return process_hil_set_in(arguments);
+    } else if(command_string=="hil_start"){
+        return process_hil_start();
+    } else if(command_string=="hil_stop"){
+        return process_hil_stop();
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -126,3 +132,19 @@ nlohmann::json cores_endpoints::process_hil_set_in(nlohmann::json &arguments) {
     hil.set_input(arguments["address"], arguments["value"], arguments["core"]);
     return resp;
 }
+
+nlohmann::json cores_endpoints::process_hil_start() {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    hil.start();
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_hil_stop() {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    hil.stop();
+    return resp;
+}
+
+

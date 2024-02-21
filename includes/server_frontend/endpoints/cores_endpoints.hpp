@@ -27,13 +27,15 @@
 class cores_endpoints {
 public:
     explicit cores_endpoints(std::shared_ptr<fpga_bridge> &h);
-    nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
+    nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
     nlohmann::json process_emulate_hil(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
     nlohmann::json process_hil_set_in(nlohmann::json &arguments);
     nlohmann::json process_hil_select_out(nlohmann::json &arguments);
+    nlohmann::json process_hil_stop();
+    nlohmann::json process_hil_start();
 
 
 
@@ -52,6 +54,7 @@ private:
     uint64_t  scope_mux_base;
 
     uint64_t sequencer_base;
+    uint64_t hil_control_base;
 
     std::shared_ptr<fpga_bridge> hw;
     hil_deployer hil;

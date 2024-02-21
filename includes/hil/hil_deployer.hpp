@@ -60,11 +60,16 @@ public:
     void set_sequencer_location(uint64_t sequencer){
         sequencer_address = sequencer;
     };
+    void set_hil_control_location(uint64_t base){
+        hil_control_base = base;
+    };
 
     responses::response_code deploy(nlohmann::json &spec);
     void setup_inputs(const std::string &core, nlohmann::json &inputs);
     void select_output(uint32_t channel, uint32_t address);
     void set_input(uint32_t address, uint32_t value, std::string core);
+    void start();
+    void stop();
 private:
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
 
@@ -99,6 +104,7 @@ private:
     uint64_t dma_base_address;
     uint64_t sequencer_address;
     uint64_t scope_mux_base;
+    uint64_t hil_control_base;
 
     uint64_t cores_rom_offset;
     uint64_t cores_control_offset;

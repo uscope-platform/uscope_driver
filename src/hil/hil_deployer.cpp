@@ -281,3 +281,13 @@ void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_spec
     }
     spdlog::info("------------------------------------------------------------------");
 }
+
+void hil_deployer::start() {
+    spdlog::info("START HIL");
+    write_register(hil_control_base, 1);
+}
+
+void hil_deployer::stop() {
+    spdlog::info("STOP HIL");
+    write_register(hil_control_base, 0);
+}
