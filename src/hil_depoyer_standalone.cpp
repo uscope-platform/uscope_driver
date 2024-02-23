@@ -57,6 +57,7 @@ int main (int argc, char **argv) {
     uint64_t sequencer_base =   0x4'43c1'0000;
     uint64_t scope_mux_base = 0x4'43c5'0000;
 
+    uint64_t hil_control_base = 0x4'43c0'0000;
     auto hw_bridge = std::make_shared<fpga_bridge>();
     hil_deployer d(hw_bridge);
 
@@ -68,6 +69,7 @@ int main (int argc, char **argv) {
     d.set_dma_location(dma_base, dma_offset);
     d.set_scope_mux_base(scope_mux_base);
     d.set_sequencer_location(sequencer_base);
+    d.set_hil_control_location(hil_control_base);
     d.deploy(spec);
 
 

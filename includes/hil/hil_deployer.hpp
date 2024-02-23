@@ -22,7 +22,7 @@
 #include <nlohmann/json.hpp>
 #include "hil/hil_bus_map.hpp"
 #include "hw_interface/fpga_bridge.hpp"
-#include "frontend/emulator_manager.hpp"
+#include "emulator/emulator_manager.hpp"
 #include "fCore_isa.hpp"
 
 

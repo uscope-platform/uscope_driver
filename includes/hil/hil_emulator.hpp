@@ -21,7 +21,7 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
-#include "frontend/emulator_manager.hpp"
+#include "emulator/emulator_manager.hpp"
 
 class hil_emulator {
 public:
