@@ -65,7 +65,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
     }
 
-    setup_sequencer(sequencer_address, programs.size(), max_transfers);
+    setup_sequencer(sequencer_address, programs.size(), max_transfers, multirate_divisors);
     setup_cores(programs.size());
 
     //cleanup leftovers from deployment process
@@ -147,7 +147,7 @@ void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, ui
     write_register(current_address, mapping);
 }
 
-void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers) {
+void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers, std::vector<uint32_t> divisors) {
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
     write_register(seq, n_cores);
@@ -156,7 +156,7 @@ void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_tr
 
     for(int i = 0; i<n_cores; i++){
         write_register(seq + 0xC + 4*i, i);
-        write_register(seq + 0x10 + 4*i, i);
+        write_register(seq + 0x10 + 4*i, divisors[i]);
     }
     spdlog::info("------------------------------------------------------------------");
 }

@@ -79,7 +79,7 @@ private:
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
-    void setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers);
+    void setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers, std::vector<uint32_t> divisors);
     void setup_cores(uint16_t n_cores);
     void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
 
