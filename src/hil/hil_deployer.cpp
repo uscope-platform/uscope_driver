@@ -155,8 +155,8 @@ void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_tr
     write_register(seq + 0x8, 20*n_transfers);
 
     for(int i = 0; i<n_cores; i++){
-        write_register(seq + 0xC + 4*i, i);
-        write_register(seq + 0x10 + 4*i, divisors[i]);
+        write_register(seq + 0xC + 8*i, i);
+        write_register(seq + 0x10 + 8*i, divisors[i]);
     }
     spdlog::info("------------------------------------------------------------------");
 }
