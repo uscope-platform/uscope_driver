@@ -37,11 +37,14 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     reserve_inputs(interconnects);
     reserve_outputs(programs);
 
+    std::vector<uint32_t> multirate_divisors;
+
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
         cores_idx[programs[i].name] = i;
         load_core(get_core_rom_address(i), programs[i].program);
+        multirate_divisors.push_back(programs[i].multirate_divisor);
         check_reciprocal(programs[i].program);
     }
     spdlog::info("------------------------------------------------------------------");
@@ -153,6 +156,7 @@ void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_tr
 
     for(int i = 0; i<n_cores; i++){
         write_register(seq + 0xC + 4*i, i);
+        write_register(seq + 0x10 + 4*i, i);
     }
     spdlog::info("------------------------------------------------------------------");
 }
