@@ -265,7 +265,7 @@ std::string fpga_bridge::get_hardware_version() {
     return "HARDWARE VERSIONING NOT IMPLEMENTED YET";
 }
 
-responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) {
+responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
     uint64_t buffer;
 
     if(!runtime_config.emulate_hw){
@@ -273,9 +273,8 @@ responses::response_code fpga_bridge::set_scope_data(commands::scope_data data) 
         fs >> buffer;
     }
 
-    spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, data.buffer_address);
+    spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, addr);
 
-    registers[register_address_to_index(data.buffer_address)] = buffer;
-    registers[register_address_to_index(data.enable_address)] = 1;
+    registers[register_address_to_index(addr)] = buffer;
     return responses::ok;
 }

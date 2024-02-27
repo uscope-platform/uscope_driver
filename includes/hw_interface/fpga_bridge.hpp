@@ -54,7 +54,7 @@ public:
     responses::response_code apply_program(uint64_t address, std::vector<uint32_t> program);
     responses::response_code apply_filter(uint64_t address, std::vector<uint32_t> taps);
     responses::response_code set_clock_frequency(std::vector<uint32_t> freq);
-    responses::response_code set_scope_data(commands::scope_data address);
+    responses::response_code set_scope_data(uint64_t address);
     std::string get_module_version();
     std::string get_hardware_version();
 

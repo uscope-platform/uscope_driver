@@ -118,11 +118,9 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
 
 nlohmann::json control_endpoints::process_set_scope_data(nlohmann::json &arguments) {
     nlohmann::json resp;
-    commands::scope_data sd;
-    sd.enable_address = arguments["enable"];
-    sd.buffer_address = arguments["buffer_address"];
+    uint64_t buffer_address = arguments["buffer_address"];
 
-    resp["response_code"] = hw->set_scope_data(sd);
+    resp["response_code"] = hw->set_scope_data(buffer_address);
     return resp;
 }
 
