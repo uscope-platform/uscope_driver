@@ -35,8 +35,12 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
         return process_set_channel_status(arguments);
     } else if( command_string == "set_channel_signs"){
         return process_set_channel_signs(arguments);
-    } else if( command_string == "enable_manual_metadata"){
+    } else if( command_string == "enable_manual_metadata") {
         return process_enable_mannual_metadata();
+    }else if(command_string == "get_acquisition_status") {
+        return process_get_acquisition_status();
+    }else if(command_string == "set_acquisition") {
+        return process_set_acquisition(arguments);
     }else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -159,4 +163,21 @@ nlohmann::json scope_endpoints::process_set_channel_signs(nlohmann::json &argume
 
 nlohmann::json scope_endpoints::process_enable_mannual_metadata() {
     return scope->enable_manual_metadata();
+}
+
+nlohmann::json scope_endpoints::process_get_acquisition_status() {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    resp["data"] = scope->get_acquisition_status();
+    return resp;
+}
+
+nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(!arguments.contains("trigger") || !arguments.contains("mode")) {
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: Wrong arguments for set acquisition command\n";
+    }
+    resp["response_code"] = scope->set_acquisition( arguments["mode"], arguments["trigger"]);
+    return resp;
 }

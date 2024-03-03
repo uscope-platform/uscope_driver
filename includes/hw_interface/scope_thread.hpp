@@ -71,11 +71,14 @@ public:
     responses::response_code start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
-    responses::response_code  set_channel_widths(std::vector<uint32_t> &widths);
-    responses::response_code  set_scaling_factors(std::vector<float> &sf);
+    responses::response_code set_channel_widths(std::vector<uint32_t> &widths);
+    responses::response_code set_scaling_factors(std::vector<float> &sf);
     responses::response_code set_channel_status(std::unordered_map<int, bool>status);
     responses::response_code set_channel_signed(std::unordered_map<int, bool>signed_status);
     responses::response_code enable_manual_metadata();
+    std::string get_acquisition_status();
+    responses::response_code set_acquisition(const std::string &mode, const std::string &trigger);
+
 private:
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;

@@ -129,7 +129,6 @@ float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float sca
 
 responses::response_code scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
     spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
-
     channel_sizes = widths;
     return responses::ok;
 }
@@ -154,6 +153,16 @@ responses::response_code scope_thread::set_channel_signed(std::unordered_map<int
 responses::response_code scope_thread::enable_manual_metadata() {
     spdlog::info("ENABLE MANUAL METADATA");
     manual_metadata = true;
+    return responses::ok;
+}
+
+std::string scope_thread::get_acquisition_status() {
+    spdlog::trace("GET_ACQUISITION_STATUS");
+    return "";
+}
+
+responses::response_code scope_thread::set_acquisition(const std::string &mode, const std::string &trigger) {
+    spdlog::info("SET ACQUISITION: {} mode with {} trigger", mode, trigger);
     return responses::ok;
 }
 

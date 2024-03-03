@@ -34,6 +34,8 @@ private:
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
     nlohmann::json process_set_channel_signs(nlohmann::json &arguments);
+    nlohmann::json process_get_acquisition_status();
+    nlohmann::json process_set_acquisition(nlohmann::json &arguments);
     nlohmann::json process_enable_mannual_metadata();
 
     std::shared_ptr<scope_thread> scope;
