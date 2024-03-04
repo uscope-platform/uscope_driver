@@ -45,6 +45,7 @@
 #include "interfaces_dictionary.hpp"
 #include "configuration.hpp"
 #include "server_frontend/infrastructure/response.hpp"
+#include "hw_interface/fpga_bridge.hpp"
 
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
@@ -76,7 +77,7 @@ struct acquisition_metadata{
 class scope_manager {
 
 public:
-    scope_manager();
+    scope_manager(std::shared_ptr<fpga_bridge> h);
     responses::response_code start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
@@ -87,8 +88,11 @@ public:
     responses::response_code enable_manual_metadata();
     std::string get_acquisition_status();
     responses::response_code set_acquisition(const acquisition_metadata &data);
-
+    void set_scope_address(uint64_t addr);
 private:
+
+    uint64_t scope_base_address;
+
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
 
@@ -108,7 +112,7 @@ private:
 
     emulated_data_generator data_gen;
     bool manual_metadata = false;
-
+    std::shared_ptr<fpga_bridge> hw;
 };
 
 

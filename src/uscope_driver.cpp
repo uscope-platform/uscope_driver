@@ -98,7 +98,7 @@ int main (int argc, char **argv) {
     spdlog::info("Logging mode: {0}", log_command);
 
     auto hw_bridge = std::make_shared<fpga_bridge>();
-    auto scope_conn = std::make_shared<scope_manager>();
+    auto scope_conn = std::make_shared<scope_manager>(hw_bridge);
     connector = new server_connector(hw_bridge, scope_conn);
 
     connector->start_server();

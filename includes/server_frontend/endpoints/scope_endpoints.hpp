@@ -36,6 +36,7 @@ private:
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
     nlohmann::json process_set_channel_signs(nlohmann::json &arguments);
     nlohmann::json process_get_acquisition_status();
+    nlohmann::json process_set_scope_address(nlohmann::json &arguments);
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);
     nlohmann::json process_enable_mannual_metadata();
 

@@ -15,16 +15,20 @@
 
 #include "hw_interface/scope_manager.hpp"
 
+#include <utility>
+
 thread_local volatile int fd_data; /// Scope driver file descriptor
 
 /// Initializes the scope_handler infrastructure, opening the UIO driver file and writing to it to clear any outstanding
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_manager::scope_manager() : data_gen(buffer_size){
+scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_size){
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
+
+    hw = std::move(h);
     n_buffers_left = 0;
     internal_buffer_size = n_channels*buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
@@ -169,5 +173,9 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
                  data.trigger_level
     );
     return responses::ok;
+}
+
+void scope_manager::set_scope_address(uint64_t addr) {
+    scope_base_address = addr;
 }
 

@@ -41,6 +41,8 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
         return process_get_acquisition_status();
     }else if(command_string == "set_acquisition") {
         return process_set_acquisition(arguments);
+    }else if(command_string == "set_scope_address"){
+        return process_set_scope_address(arguments);
     }else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -192,5 +194,17 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
     data.trigger_mode = arguments["trigger"];
 
     resp["response_code"] = scope->set_acquisition(data);
+    return resp;
+}
+
+nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::number_unsigned){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The scope address must be an unsigned integer\n";
+        return resp;
+    }
+    resp["response_code"] = responses::ok;
+    scope->set_scope_address(arguments["address"]);
     return resp;
 }
