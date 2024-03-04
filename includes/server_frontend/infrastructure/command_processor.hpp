@@ -28,7 +28,7 @@
 
 class command_processor {
 public:
-    explicit command_processor(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_thread> &sc);
+    explicit command_processor(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:

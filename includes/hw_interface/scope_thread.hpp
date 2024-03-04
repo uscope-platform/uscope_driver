@@ -73,10 +73,10 @@ struct acquisition_metadata{
 };
 
 
-class scope_thread {
+class scope_manager {
 
 public:
-    scope_thread();
+    scope_manager();
     responses::response_code start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);

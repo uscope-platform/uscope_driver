@@ -25,7 +25,7 @@
 
 class scope_endpoints {
 public:
-    explicit scope_endpoints( std::shared_ptr<scope_thread> &sc);
+    explicit scope_endpoints( std::shared_ptr<scope_manager> &sc);
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_start_capture(nlohmann::json &arguments);
@@ -39,7 +39,7 @@ private:
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);
     nlohmann::json process_enable_mannual_metadata();
 
-    std::shared_ptr<scope_thread> scope;
+    std::shared_ptr<scope_manager> scope;
 };
 
 

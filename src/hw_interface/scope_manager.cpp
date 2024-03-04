@@ -21,7 +21,7 @@ thread_local volatile int fd_data; /// Scope driver file descriptor
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_thread::scope_thread() : data_gen(buffer_size){
+scope_manager::scope_manager() : data_gen(buffer_size){
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
@@ -51,7 +51,7 @@ scope_thread::scope_thread() : data_gen(buffer_size){
 }
 
 
-responses::response_code scope_thread::start_capture(unsigned int n_buffers) {
+responses::response_code scope_manager::start_capture(unsigned int n_buffers) {
     spdlog::info("START CAPTURE: n_buffers {0}", n_buffers);
     n_buffers_left = n_buffers;
     return responses::ok;
@@ -59,11 +59,11 @@ responses::response_code scope_thread::start_capture(unsigned int n_buffers) {
 
 /// This function returns the number of data buffers left to capture
 /// \return Number of buffers still to capture
-unsigned int scope_thread::check_capture_progress() const {
+unsigned int scope_manager::check_capture_progress() const {
     return n_buffers_left;
 }
 
-responses::response_code scope_thread::read_data(std::vector<nlohmann::json> &data_vector) {
+responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &data_vector) {
 
     std::vector<std::vector<float>> data;
 
@@ -86,7 +86,7 @@ responses::response_code scope_thread::read_data(std::vector<nlohmann::json> &da
 
 
 
-std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t * buffer_in) {
+std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_t * buffer_in) {
     std::vector<std::vector<float>> ret_data;
     for(int i = 0; i<n_channels; i++){
         ret_data.emplace_back();
@@ -109,7 +109,7 @@ std::vector<std::vector<float>> scope_thread::shunt_data(const volatile uint64_t
     return ret_data;
 }
 
-float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float) {
+float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float) {
 
     float ret;
 
@@ -127,41 +127,41 @@ float scope_thread::scale_data(uint32_t raw_sample, unsigned int size, float sca
     return ret;
 }
 
-responses::response_code scope_thread::set_channel_widths(std::vector<uint32_t> &widths) {
+responses::response_code scope_manager::set_channel_widths(std::vector<uint32_t> &widths) {
     spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
     channel_sizes = widths;
     return responses::ok;
 }
 
-responses::response_code  scope_thread::set_scaling_factors(std::vector<float> &sf) {
+responses::response_code  scope_manager::set_scaling_factors(std::vector<float> &sf) {
     spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",sf[0], sf[1], sf[2], sf[3], sf[4], sf[5]);
     scaling_factors = sf;
     return responses::ok;
 }
 
-responses::response_code scope_thread::set_channel_status(std::unordered_map<int, bool> status) {
+responses::response_code scope_manager::set_channel_status(std::unordered_map<int, bool> status) {
     channel_status = std::move(status);
     return responses::ok;
 }
 
-responses::response_code scope_thread::set_channel_signed(std::unordered_map<int, bool> ss) {
+responses::response_code scope_manager::set_channel_signed(std::unordered_map<int, bool> ss) {
     spdlog::info("SET_CHANNEL_SIGNS: {0} {1} {2} {3} {4} {5}",ss[0], ss[1], ss[2], ss[3], ss[4], ss[5]);
     signed_status = std::move(ss);
     return responses::ok;
 }
 
-responses::response_code scope_thread::enable_manual_metadata() {
+responses::response_code scope_manager::enable_manual_metadata() {
     spdlog::info("ENABLE MANUAL METADATA");
     manual_metadata = true;
     return responses::ok;
 }
 
-std::string scope_thread::get_acquisition_status() {
+std::string scope_manager::get_acquisition_status() {
     spdlog::trace("GET_ACQUISITION_STATUS");
     return "";
 }
 
-responses::response_code scope_thread::set_acquisition(const acquisition_metadata &data) {
+responses::response_code scope_manager::set_acquisition(const acquisition_metadata &data) {
     spdlog::info("SET ACQUISITION: {} mode with {} trigger on channel {} at level {}",
                  data.mode,
                  data.trigger_mode,

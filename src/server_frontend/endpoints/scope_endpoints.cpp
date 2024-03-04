@@ -16,7 +16,7 @@
 
 #include "server_frontend/endpoints/scope_endpoints.hpp"
 
-scope_endpoints::scope_endpoints(std::shared_ptr<scope_thread> &sc) {
+scope_endpoints::scope_endpoints(std::shared_ptr<scope_manager> &sc) {
  scope = sc;
 }
 

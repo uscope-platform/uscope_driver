@@ -14,7 +14,7 @@
 // limitations under the License.
 #include "server_frontend/infrastructure/command_processor.hpp"
 
-command_processor::command_processor(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_thread> &sc) :
+command_processor::command_processor(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &sc) :
 cores_ep(h), scope_ep(sc), control_ep(h) {
     hw = h;
 }

@@ -36,7 +36,7 @@
 
 class server_connector {
 public:
-    server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_thread> &sc);
+    server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc);
     void start_server();
     ~server_connector();
 private:

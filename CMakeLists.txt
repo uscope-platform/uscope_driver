@@ -57,7 +57,7 @@ set(DRIVER_SOURCES /
         src/server_frontend/endpoints/control_endpoints.cpp
         src/server_frontend/endpoints/scope_endpoints.cpp
         src/hw_interface/fpga_bridge.cpp
-        src/hw_interface/scope_thread.cpp
+        src/hw_interface/scope_manager.cpp
         src/hw_interface/channel_metadata.cpp
         src/emulated_data_generator.cpp
         src/hil/hil_deployer.cpp
