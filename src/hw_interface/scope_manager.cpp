@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hw_interface/scope_thread.hpp"
+#include "hw_interface/scope_manager.hpp"
 
 thread_local volatile int fd_data; /// Scope driver file descriptor
 

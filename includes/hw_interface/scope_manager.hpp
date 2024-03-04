@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef USCOPE_DRIVER_SCOPE_THREAD_HPP
-#define USCOPE_DRIVER_SCOPE_THREAD_HPP
+#ifndef USCOPE_DRIVER_SCOPE_MANAGER_HPP
+#define USCOPE_DRIVER_SCOPE_MANAGER_HPP
 
 #include <string>
 #include <iostream>
@@ -112,6 +112,6 @@ private:
 };
 
 
-#endif //USCOPE_DRIVER_SCOPE_THREAD_HPP
+#endif //USCOPE_DRIVER_SCOPE_MANAGER_HPP
 
 

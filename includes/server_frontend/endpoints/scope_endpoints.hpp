@@ -21,7 +21,7 @@
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
-#include "hw_interface/scope_thread.hpp"
+#include "hw_interface/scope_manager.hpp"
 
 class scope_endpoints {
 public:
