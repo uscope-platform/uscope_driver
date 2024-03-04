@@ -161,8 +161,13 @@ std::string scope_thread::get_acquisition_status() {
     return "";
 }
 
-responses::response_code scope_thread::set_acquisition(const std::string &mode, const std::string &trigger) {
-    spdlog::info("SET ACQUISITION: {} mode with {} trigger", mode, trigger);
+responses::response_code scope_thread::set_acquisition(const acquisition_metadata &data) {
+    spdlog::info("SET ACQUISITION: {} mode with {} trigger on channel {} at level {}",
+                 data.mode,
+                 data.trigger_mode,
+                 data.trigger_source,
+                 data.trigger_level
+    );
     return responses::ok;
 }
 

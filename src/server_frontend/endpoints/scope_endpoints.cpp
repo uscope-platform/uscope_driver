@@ -174,10 +174,23 @@ nlohmann::json scope_endpoints::process_get_acquisition_status() {
 
 nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &arguments) {
     nlohmann::json resp;
-    if(!arguments.contains("trigger") || !arguments.contains("mode")) {
+    if(!arguments.contains("trigger") ||
+        !arguments.contains("level")  ||
+        !arguments.contains("source")  ||
+        !arguments.contains("mode")  ||
+        !arguments.contains("level_type")
+
+    ) {
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Wrong arguments for set acquisition command\n";
     }
-    resp["response_code"] = scope->set_acquisition( arguments["mode"], arguments["trigger"]);
+    acquisition_metadata data;
+    data.trigger_level = arguments["level"];
+    data.trigger_source = arguments["source"];
+    data.mode = arguments["mode"];
+    data.level_type = arguments["level_type"];
+    data.trigger_mode = arguments["trigger"];
+
+    resp["response_code"] = scope->set_acquisition(data);
     return resp;
 }

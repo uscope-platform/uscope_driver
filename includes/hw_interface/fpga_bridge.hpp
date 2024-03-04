@@ -33,7 +33,6 @@
 
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
-#include "hw_interface/scope_thread.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"
 #include "configuration.hpp"
 

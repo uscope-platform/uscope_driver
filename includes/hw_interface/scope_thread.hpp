@@ -64,6 +64,15 @@ static int32_t sign_extend(uint32_t value, uint32_t bits) {
     return result;
 }
 
+struct acquisition_metadata{
+    std::string mode;
+    std::string trigger_mode;
+    uint32_t trigger_source;
+    float trigger_level;
+    std::string level_type;
+};
+
+
 class scope_thread {
 
 public:
@@ -77,7 +86,7 @@ public:
     responses::response_code set_channel_signed(std::unordered_map<int, bool>signed_status);
     responses::response_code enable_manual_metadata();
     std::string get_acquisition_status();
-    responses::response_code set_acquisition(const std::string &mode, const std::string &trigger);
+    responses::response_code set_acquisition(const acquisition_metadata &data);
 
 private:
     static constexpr int n_channels = 6;
