@@ -176,6 +176,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
 }
 
 void scope_manager::set_scope_address(uint64_t addr) {
+    spdlog::info("SET SCOPE ADDRESS: {0:x}", addr);
     scope_base_address = addr;
 }
 

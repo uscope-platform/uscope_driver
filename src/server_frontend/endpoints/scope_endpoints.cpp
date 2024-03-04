@@ -199,11 +199,20 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
 
 nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &arguments) {
     nlohmann::json resp;
-    if(arguments.type() != nlohmann::detail::value_t::number_unsigned){
+    bool invalid = false;
+    if(!arguments.contains("address")){
+        invalid = true;
+    }
+    if(arguments["address"].type() != nlohmann::detail::value_t::number_unsigned){
+        invalid = true;
+    }
+
+    if(invalid){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The scope address must be an unsigned integer\n";
         return resp;
     }
+
     resp["response_code"] = responses::ok;
     scope->set_scope_address(arguments["address"]);
     return resp;
