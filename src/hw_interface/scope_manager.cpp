@@ -162,7 +162,19 @@ responses::response_code scope_manager::enable_manual_metadata() {
 
 std::string scope_manager::get_acquisition_status() {
     spdlog::trace("GET_ACQUISITION_STATUS");
-    return "";
+    auto res = hw->read_direct(scope_base_address + am.internal_base + am.scope_int.trg_rearm_status);
+    switch (res) {
+        case 0:
+            return "wait";
+        case 1:
+            return "run";
+        case 2:
+            return "stop";
+        case 3:
+            return "free run";
+        default:
+            return "unknown";
+    }
 }
 
 responses::response_code scope_manager::set_acquisition(const acquisition_metadata &data) {
@@ -196,11 +208,11 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
 
 
     uint32_t acq_mode = 0;
-    if(data.trigger_mode == "continuous"){
+    if(data.mode == "continuous"){
         acq_mode = 0;
-    } else if(data.trigger_mode == "single"){
+    } else if(data.mode == "single"){
         acq_mode = 1;
-    } else if(data.trigger_mode == "free_running") {
+    } else if(data.mode == "free_running") {
         acq_mode = 2;
     }
     hw->write_direct(scope_internal_addr + am.scope_int.acq_mode, acq_mode);

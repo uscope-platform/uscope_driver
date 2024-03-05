@@ -59,6 +59,7 @@ public:
 
     void write_direct(uint64_t addr, uint32_t val);
     void write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
+    uint32_t read_direct(uint64_t address);
 
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;

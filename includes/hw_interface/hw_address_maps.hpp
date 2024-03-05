@@ -45,7 +45,7 @@ public:
     uint64_t trg_src = 0x10;
     uint64_t trg_point = 0x14;
     uint64_t acq_mode = 0x18;
-    uint64_t trg_rearm = 0x1C;
+    uint64_t trg_rearm_status = 0x1C;
 };
 
 

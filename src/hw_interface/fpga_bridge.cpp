@@ -177,12 +177,7 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
     nlohmann::json response_body;
     spdlog::info("READ SINGLE REGISTER: addr 0x{0:x}", address);
-
-    if(runtime_config.emulate_hw) {
-        response_body["data"] = rand() % 32767;
-    } else{
-        response_body["data"] = registers[register_address_to_index(address)];
-    }
+    response_body["data"] = read_direct(address);
     response_body["response_code"] = responses::as_integer(responses::ok);
     return response_body;
 }
@@ -279,4 +274,15 @@ void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint3
 
     registers[register_address_to_index(proxy_addr+4)] = target_addr;
     registers[register_address_to_index(proxy_addr)] = val;
+}
+
+uint32_t fpga_bridge::read_direct(uint64_t address) {
+
+
+    if(runtime_config.emulate_hw) {
+        return rand() % 32767;
+    } else{
+        return registers[register_address_to_index(address)];
+    }
+
 }
