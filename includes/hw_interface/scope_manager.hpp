@@ -46,7 +46,9 @@
 #include "configuration.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/hw_address_maps.hpp"
 
+#include "emulator/emulator.hpp"
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
 #define GET_CHANNEL(NUMBER) ((NUMBER & 0x0000ffff00000000)>>32)
@@ -71,7 +73,9 @@ struct acquisition_metadata{
     uint32_t trigger_source;
     float trigger_level;
     std::string level_type;
+    uint32_t trigger_point;
 };
+
 
 
 class scope_manager {
@@ -113,6 +117,8 @@ private:
     emulated_data_generator data_gen;
     bool manual_metadata = false;
     std::shared_ptr<fpga_bridge> hw;
+
+    scope_address_map am;
 };
 
 

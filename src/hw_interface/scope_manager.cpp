@@ -172,6 +172,40 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
                  data.trigger_source,
                  data.trigger_level
     );
+    uint64_t scope_internal_addr = scope_base_address + am.internal_base;
+
+    uint32_t trg_mode = 0;
+    if(data.trigger_mode == "rising_edge"){
+        trg_mode = 0;
+    } else if(data.trigger_mode == "falling_edge"){
+        trg_mode = 1;
+    } else if(data.trigger_mode == "both") {
+        trg_mode = 2;
+    }
+
+    hw->write_direct(scope_internal_addr + am.scope_int.trg_mode, trg_mode);
+    hw->write_direct(scope_internal_addr + am.scope_int.trg_src, data.trigger_source-1);
+
+    uint32_t trg_lvl;
+    if(data.level_type =="float"){
+        trg_lvl = fcore::emulator::float_to_uint32(data.trigger_level);
+    } else {
+        trg_lvl = data.trigger_level;
+    }
+    hw->write_direct(scope_internal_addr + am.scope_int.trg_lvl, trg_lvl);
+
+
+    uint32_t acq_mode = 0;
+    if(data.trigger_mode == "continuous"){
+        acq_mode = 0;
+    } else if(data.trigger_mode == "single"){
+        acq_mode = 1;
+    } else if(data.trigger_mode == "free_running") {
+        acq_mode = 2;
+    }
+    hw->write_direct(scope_internal_addr + am.scope_int.acq_mode, acq_mode);
+    hw->write_direct(scope_internal_addr + am.scope_int.trg_point, data.trigger_point);
+
     return responses::ok;
 }
 

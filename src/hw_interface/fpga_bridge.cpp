@@ -153,22 +153,12 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 /// \return #RESP_OK
 responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
-    if(write_obj["type"] == "direct"){
-        uint64_t address = write_obj["address"];
-        uint32_t value = write_obj["value"];
-        spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", address, value);
-
-        registers[register_address_to_index(address)] =value;
+    if(write_obj["type"] == "direct"){\
+        write_direct(write_obj["address"], write_obj["value"]);
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
 
-             uint64_t address = write_obj["address"];
-             uint32_t proxy_addr = write_obj["proxy_address"];
-             uint32_t value = write_obj["value"];
-             spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, address, value);
-
-            registers[register_address_to_index(proxy_addr+4)] = address;
-            registers[register_address_to_index(proxy_addr)] = value;
+             write_proxied(write_obj["proxy_address"], write_obj["address"], write_obj["value"]);
         }
     } else {
         throw std::runtime_error("ERROR: Unrecognised register write type");
@@ -277,4 +267,16 @@ responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
 
     registers[register_address_to_index(addr)] = buffer;
     return responses::ok;
+}
+
+void fpga_bridge::write_direct(uint64_t addr, uint32_t val) {
+    spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", addr, val);
+    registers[register_address_to_index(addr)] =val;
+}
+
+void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {
+    spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, target_addr, val);
+
+    registers[register_address_to_index(proxy_addr+4)] = target_addr;
+    registers[register_address_to_index(proxy_addr)] = val;
 }

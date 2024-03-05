@@ -180,7 +180,8 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
         !arguments.contains("level")  ||
         !arguments.contains("source")  ||
         !arguments.contains("mode")  ||
-        !arguments.contains("level_type")
+        !arguments.contains("level_type") ||
+        !arguments.contains("trigger_point")
 
     ) {
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
@@ -192,6 +193,8 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
     data.mode = arguments["mode"];
     data.level_type = arguments["level_type"];
     data.trigger_mode = arguments["trigger"];
+    data.trigger_point = arguments["trigger_point"];
+
 
     resp["response_code"] = scope->set_acquisition(data);
     return resp;

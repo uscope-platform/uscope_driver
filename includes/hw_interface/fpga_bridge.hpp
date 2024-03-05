@@ -57,18 +57,18 @@ public:
     std::string get_module_version();
     std::string get_hardware_version();
 
+    void write_direct(uint64_t addr, uint32_t val);
+    void write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
+
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;
-
-    std::string to_hex(uint64_t i) const {
-        return std::format("0x{:x}", i);
-    }
 
 private:
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
     uint64_t control_addr;
     uint64_t core_addr;
+
 
     std::string arch;
 
