@@ -176,12 +176,14 @@ nlohmann::json scope_endpoints::process_get_acquisition_status() {
 
 nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &arguments) {
     nlohmann::json resp;
+
     if(!arguments.contains("trigger") ||
         !arguments.contains("level")  ||
         !arguments.contains("source")  ||
         !arguments.contains("mode")  ||
         !arguments.contains("level_type") ||
-        !arguments.contains("trigger_point")
+        !arguments.contains("trigger_point") ||
+        !arguments.contains("prescaler")
 
     ) {
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
@@ -194,7 +196,7 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
     data.level_type = arguments["level_type"];
     data.trigger_mode = arguments["trigger"];
     data.trigger_point = arguments["trigger_point"];
-
+    data.acquisition_divider = arguments["prescaler"];
 
     resp["response_code"] = scope->set_acquisition(data);
     return resp;

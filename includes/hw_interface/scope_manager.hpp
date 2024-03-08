@@ -74,6 +74,7 @@ struct acquisition_metadata{
     float trigger_level;
     std::string level_type;
     uint32_t trigger_point;
+    uint32_t acquisition_divider;
 };
 
 
