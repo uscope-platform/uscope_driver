@@ -218,7 +218,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
     hw->write_direct(scope_internal_addr + am.scope_int.acq_mode, acq_mode);
     hw->write_direct(scope_internal_addr + am.scope_int.trg_point, data.trigger_point);
 
-    hw->write_direct(scope_base_address + am.tb_base + am.tb.period, acq_mode);
+    hw->write_direct(scope_base_address + am.tb_base + am.tb.period, data.prescaler);
 
     return responses::ok;
 }

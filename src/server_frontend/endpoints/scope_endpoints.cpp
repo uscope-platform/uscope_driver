@@ -196,7 +196,7 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
     data.level_type = arguments["level_type"];
     data.trigger_mode = arguments["trigger"];
     data.trigger_point = arguments["trigger_point"];
-    data.acquisition_divider = arguments["prescaler"];
+    data.prescaler = arguments["prescaler"];
 
     resp["response_code"] = scope->set_acquisition(data);
     return resp;
