@@ -21,13 +21,15 @@ static std::random_device rd;
 static std::mt19937 gen(rd());
 static std::uniform_int_distribution<> distrib(0, 2<<16);
 
+bool empty_response = false;
 
-kernel_emulator::kernel_emulator(const std::string &intf, int dev_order, int ti) {
+kernel_emulator::kernel_emulator(const std::string &intf, int dev_order, int ti, bool test_untriggered_scope) {
     const char *argv[] = {
             "progname",
             "-f"
     };
 
+    empty_response = test_untriggered_scope;
     char **fake_args = (char **) &argv;
 
     struct fuse_args args = FUSE_ARGS_INIT(2, fake_args);
@@ -106,7 +108,12 @@ void kernel_emulator::read(fuse_req_t req, size_t size, off_t off, struct fuse_f
     }
 
     char *data_array_raw = (char *) &data_array;
-    fuse_reply_buf(req, data_array_raw, size > n_channels*n_datapoints*sizeof(uint64_t) ?  n_channels*n_datapoints*sizeof(uint64_t) : size);
+    if(empty_response){
+        fuse_reply_buf(req, data_array_raw, 0);
+    } else{
+        fuse_reply_buf(req, data_array_raw, size > n_channels*n_datapoints*sizeof(uint64_t) ?  n_channels*n_datapoints*sizeof(uint64_t) : size);
+    }
+
 }
 
 void kernel_emulator::write(fuse_req_t req, const char *buf, size_t size, off_t off, struct fuse_file_info *fi) {

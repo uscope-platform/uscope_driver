@@ -31,6 +31,7 @@ int main (int argc, char **argv) {
 
     bool emulate_hw = false;
     bool log_command = false;
+    bool test_untriggered_scope = false;
     std::string scope_data_source;
 
 
@@ -45,9 +46,15 @@ int main (int argc, char **argv) {
     std::string control_bus_device = "DEVNAME=uscope_BUS_0";
     std::string fCore_bus_device = "DEVNAME=uscope_BUS_1";
     std::string data_device = "DEVNAME=uscope_data";
-    ctrl_thread = std::jthread([&](std::stop_token inner_tok){kernel_emulator(control_bus_device, 300, 0);});
-    cores_thread = std::jthread([&](std::stop_token inner_tok){kernel_emulator(fCore_bus_device, 301, 1);});
-    scope_thread = std::jthread([&](std::stop_token inner_tok){kernel_emulator(data_device, 302, 2);});
+    ctrl_thread = std::jthread([&](std::stop_token inner_tok){
+        kernel_emulator(control_bus_device, 300, 0, test_untriggered_scope);
+    });
+    cores_thread = std::jthread([&](std::stop_token inner_tok){
+        kernel_emulator(fCore_bus_device, 301, 1, test_untriggered_scope);
+    });
+    scope_thread = std::jthread([&](std::stop_token inner_tok){
+        kernel_emulator(data_device, 302, 2, test_untriggered_scope);
+    });
     usleep(10000);
 
     std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;

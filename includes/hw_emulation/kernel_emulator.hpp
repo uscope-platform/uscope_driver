@@ -34,7 +34,7 @@
 
 class kernel_emulator {
 public:
-    explicit kernel_emulator(const std::string &intf, int dev_order, int ti);
+    explicit kernel_emulator(const std::string &intf, int dev_order, int ti, bool test_untriggered_scope);
 
 
     static void open(fuse_req_t req, struct fuse_file_info *fi);
