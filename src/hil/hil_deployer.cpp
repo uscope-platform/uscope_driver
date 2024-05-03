@@ -37,16 +37,29 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     reserve_inputs(interconnects);
     reserve_outputs(programs);
 
-    std::vector<uint32_t> multirate_divisors;
+    std::vector<uint32_t> dividers;
+
+    std::vector<uint32_t> frequencies;
+
+    for(auto & program : programs){
+        frequencies.push_back(program.sampling_frequency);
+    }
+
+    timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
+        return std::lcm(a,b);
+    });
 
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
         cores_idx[programs[i].name] = i;
         load_core(get_core_rom_address(i), programs[i].program);
-        multirate_divisors.push_back(programs[i].multirate_divisor);
         check_reciprocal(programs[i].program);
+
     }
+
+    dividers = calculate_timebase_divider(programs, n_channels);
+
     spdlog::info("------------------------------------------------------------------");
 
     uint16_t max_transfers = 0;
@@ -65,7 +78,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
     }
 
-    setup_sequencer(sequencer_address, programs.size(), max_transfers, multirate_divisors);
+    setup_sequencer(sequencer_address, programs.size(), max_transfers, dividers);
     setup_cores(programs.size());
 
     //cleanup leftovers from deployment process
@@ -167,7 +180,6 @@ void hil_deployer::setup_cores(uint16_t n_cores) {
     for(int i = 0; i<n_cores; i++){
         write_register(get_core_control_address(i), n_channels[i]);
     }
-
 }
 
 void hil_deployer::reserve_inputs(std::vector<fcore::interconnect_t> &ic) {
@@ -209,7 +221,7 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
 
 void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     bool rec_present = false;
-    int section;
+    int section=0;
     for(auto &instr:program){
         if(section <2){
             if(instr==0xC) section++;
@@ -294,4 +306,25 @@ void hil_deployer::start() {
 void hil_deployer::stop() {
     spdlog::info("STOP HIL");
     write_register(hil_control_base, 0);
+}
+
+std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+    std::vector<uint32_t>core_dividers;
+
+    for(int i = 0; i<programs.size(); i++){
+        auto p = programs[i];
+        double clock_period = 1/hil_clock_frequency;
+        double total_length = (p.program_length.fixed_portion + n_c[i]*p.program_length.per_channel_portion)*clock_period;
+
+        double max_frequency = 1/total_length;
+
+        while(timebase_frequency/timebase_divider > max_frequency){
+            timebase_divider += 1.0;
+        }
+
+        core_dividers.push_back((uint32_t) timebase_frequency/p.sampling_frequency);
+    }
+
+    return core_dividers;
+
 }

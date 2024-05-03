@@ -84,6 +84,8 @@ private:
     void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
+    std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs,
+                                                                   std::vector<uint32_t> n_c);
 
     uint64_t get_core_rom_address(uint16_t core_idx) const;
     uint64_t get_core_control_address(uint16_t core_idx) const;
@@ -93,6 +95,8 @@ private:
 
     std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
 
+
+    float hil_clock_frequency = 100e6;
 
     std::map<std::string, uint32_t> cores_idx;
     std::vector<input_metadata_t> inputs;
@@ -112,6 +116,10 @@ private:
     uint64_t dma_offset;
 
     std::vector<uint32_t> n_channels;
+
+    double timebase_frequency;
+    double timebase_divider = 1;
+
     bool full_cores_override;
 
     std::shared_ptr<fpga_bridge> hw;

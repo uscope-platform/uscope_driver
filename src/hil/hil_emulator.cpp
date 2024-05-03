@@ -22,9 +22,10 @@ std::string hil_emulator::emulate(nlohmann::json &specs) {
 
     fcore::emulator_manager emu_manager(specs, false, SCHEMAS_FOLDER);
     emu_manager.process();
+    spdlog::info("COMPILATION DONE");
     emu_manager.emulate();
     results = emu_manager.get_results();
-
+    spdlog::info("EMULATION RESULTS AVAILABLE");
     return results;
 }
 
