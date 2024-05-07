@@ -53,7 +53,8 @@ private:
 
     uint64_t  scope_mux_base;
 
-    uint64_t sequencer_base;
+    uint64_t controller_base;
+    uint64_t controller_tb_offset;
     uint64_t hil_control_base;
 
     std::shared_ptr<fpga_bridge> hw;

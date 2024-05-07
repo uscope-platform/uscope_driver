@@ -18,8 +18,9 @@
 #define USCOPE_DRIVER_HIL_DEPLOYER_HPP
 
 #include <spdlog/spdlog.h>
-
 #include <nlohmann/json.hpp>
+#include <bitset>
+
 #include "hil/hil_bus_map.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "emulator/emulator_manager.hpp"
@@ -57,8 +58,9 @@ public:
         dma_offset = offset;
     };
 
-    void set_sequencer_location(uint64_t sequencer){
-        sequencer_address = sequencer;
+    void set_controller_location(uint64_t controller, uint32_t tb_ofset){
+        controller_address = controller;
+        controller_tb_offset = tb_ofset;
     };
     void set_hil_control_location(uint64_t base){
         hil_control_base = base;
@@ -106,7 +108,9 @@ private:
     uint64_t cores_control_base_address;
     uint64_t cores_inputs_base_address;
     uint64_t dma_base_address;
-    uint64_t sequencer_address;
+    uint64_t controller_address;
+    uint64_t controller_tb_offset;
+
     uint64_t scope_mux_base;
     uint64_t hil_control_base;
 

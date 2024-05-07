@@ -68,7 +68,7 @@ int main (int argc, char **argv) {
     d.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
     d.set_dma_location(dma_base, dma_offset);
     d.set_scope_mux_base(scope_mux_base);
-    d.set_sequencer_location(sequencer_base);
+    d.set_controller_location(sequencer_base);
     d.set_hil_control_location(hil_control_base);
     d.deploy(spec);
 

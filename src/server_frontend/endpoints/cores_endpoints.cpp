@@ -32,7 +32,9 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     dma_base =   0x4'43c2'1000;
     dma_offset =      0x1'0000;
 
-    sequencer_base =   0x4'43c1'0000;
+    controller_base =   0x4'43c1'0000;
+    controller_tb_offset = 0x1000;
+
     scope_mux_base = 0x4'43c5'0000;
 
     hil_control_base = 0x4'43c0'0000;
@@ -42,7 +44,7 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
     hil.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
     hil.set_dma_location(dma_base, dma_offset);
     hil.set_scope_mux_base(scope_mux_base);
-    hil.set_sequencer_location(sequencer_base);
+    hil.set_controller_location(controller_base, controller_tb_offset);
     hil.set_hil_control_location(hil_control_base);
 }
 
