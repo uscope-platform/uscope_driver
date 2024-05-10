@@ -54,7 +54,8 @@ int main (int argc, char **argv) {
     uint64_t dma_base =   0x4'43c2'1000;
     uint64_t dma_offset =      0x1'0000;
 
-    uint64_t sequencer_base =   0x4'43c1'0000;
+    uint64_t controller_base =   0x4'43c1'0000;
+    uint64_t controller_tb_offset =   0x1000;
     uint64_t scope_mux_base = 0x4'43c5'0000;
 
     uint64_t hil_control_base = 0x4'43c0'0000;
@@ -68,7 +69,7 @@ int main (int argc, char **argv) {
     d.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
     d.set_dma_location(dma_base, dma_offset);
     d.set_scope_mux_base(scope_mux_base);
-    d.set_controller_location(sequencer_base);
+    d.set_controller_location(controller_base, controller_tb_offset);
     d.set_hil_control_location(hil_control_base);
     d.deploy(spec);
 

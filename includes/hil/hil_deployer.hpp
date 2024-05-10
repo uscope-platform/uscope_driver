@@ -58,9 +58,9 @@ public:
         dma_offset = offset;
     };
 
-    void set_controller_location(uint64_t controller, uint32_t tb_ofset){
+    void set_controller_location(uint64_t controller, uint32_t tb_offset){
         controller_address = controller;
-        controller_tb_offset = tb_ofset;
+        controller_tb_offset = tb_offset;
     };
     void set_hil_control_location(uint64_t base){
         hil_control_base = base;
