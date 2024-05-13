@@ -74,7 +74,7 @@ responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &d
     spdlog::trace("READ_DATA: STARTING");
     ssize_t read_data = read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(uint64_t));
     if(read_data==0) return responses::ok;
-    spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL ({0} bytes transferred)", read_data);
+    spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL ({0} words transferred)", read_data/sizeof(uint64_t));
     data = shunt_data(dma_buffer);
     spdlog::trace("READ_DATA: SHUNTING DONE");
 
@@ -96,8 +96,10 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
     for(int i = 0; i<n_channels; i++){
         ret_data.emplace_back();
     }
+    spdlog::trace("SETUP RESULTS BUFFERS");
     for(int i = 0; i<internal_buffer_size; i++){
 
+        spdlog::trace("PROCESSING SAMPLE NUMBER {0}", i);
         auto raw_sample = buffer_in[i];
         int channel_base = GET_CHANNEL(raw_sample);
         auto sample = GET_DATA(raw_sample);
