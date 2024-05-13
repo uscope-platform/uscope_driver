@@ -49,7 +49,7 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
     if(fd_data == -1){
         std::cerr << std::strerror(errno);
     }
-    dma_buffer = (uint64_t * ) malloc(n_channels*buffer_size*sizeof(uint64_t));
+    dma_buffer = (uint64_t * ) malloc(internal_buffer_size*sizeof(uint64_t));
 
     spdlog::info("Scope handler initialization done");
 }
@@ -99,12 +99,13 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
     spdlog::trace("SETUP RESULTS BUFFERS");
     for(int i = 0; i<internal_buffer_size; i++){
 
-        spdlog::trace("PROCESSING SAMPLE NUMBER {0}", i);
+        spdlog::trace("ACCESSING SAMPLE NUMBER {0}", i);
         auto raw_sample = buffer_in[i];
         int channel_base = GET_CHANNEL(raw_sample);
         auto sample = GET_DATA(raw_sample);
         auto metadata = channel_metadata(GET_METADATA(raw_sample));
         float data_sample;
+        spdlog::trace("PROCESSING SAMPLE NUMBER {0}", i);
         if(manual_metadata){
             data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base], false);
         } else {
