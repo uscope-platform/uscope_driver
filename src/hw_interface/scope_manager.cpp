@@ -109,7 +109,8 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
         if(manual_metadata){
             data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base], false);
         } else {
-            data_sample = scale_data(sample, metadata.get_size(), scaling_factors[channel_base], metadata.is_signed(), metadata.is_float());
+            auto scaling_factor = scaling_factors[channel_base];
+            data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
         }
 
         ret_data[channel_base].push_back(data_sample);
@@ -119,6 +120,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
 
 float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float) {
 
+    spdlog::trace("START DATA SCALING");
     float ret;
 
     int32_t sample;
@@ -128,10 +130,14 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
         auto masked_sample = raw_sample & ((1<<size)-1);
         sample = sign_extend(masked_sample, size);
     }
-    ret = scaling_factor*(float)sample;;
+
+    spdlog::trace("SIGN AND WIDTH HANDLING DONE");
+    ret = scaling_factor*(float)sample;
+
     if(is_float){
         memcpy(&ret, &raw_sample, sizeof(float));
     }
+
     return ret;
 }
 
