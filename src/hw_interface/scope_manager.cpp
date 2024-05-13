@@ -133,11 +133,10 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
 
     spdlog::trace("SIGN AND WIDTH HANDLING DONE");
     ret = scaling_factor*(float)sample;
-
+    spdlog::trace("SCALING DONE");
     if(is_float){
         memcpy(&ret, &raw_sample, sizeof(float));
     }
-
     return ret;
 }
 
