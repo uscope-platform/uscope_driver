@@ -109,6 +109,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
         if(manual_metadata){
             data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base], false);
         } else {
+            spdlog::trace("channel base = {0}", channel_base);
             auto scaling_factor = scaling_factors[channel_base];
             data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
         }
