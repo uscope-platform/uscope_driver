@@ -58,9 +58,10 @@ public:
         dma_offset = offset;
     };
 
-    void set_controller_location(uint64_t controller, uint32_t tb_offset){
-        controller_address = controller;
-        controller_tb_offset = tb_offset;
+    void set_controller_location(uint64_t controller, uint32_t offset){
+        controller_base = controller;
+        controller_offset = offset;
+        hil_tb_offset = 0;
     };
     void set_hil_control_location(uint64_t base){
         hil_control_base = base;
@@ -81,7 +82,7 @@ private:
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
-    void setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers, std::vector<uint32_t> divisors);
+    void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors);
     void setup_cores(uint16_t n_cores);
     void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
 
@@ -108,8 +109,9 @@ private:
     uint64_t cores_control_base_address;
     uint64_t cores_inputs_base_address;
     uint64_t dma_base_address;
-    uint64_t controller_address;
-    uint64_t controller_tb_offset;
+    uint64_t controller_base;
+    uint64_t hil_tb_offset;
+    uint64_t controller_offset;
 
     uint64_t scope_mux_base;
     uint64_t hil_control_base;

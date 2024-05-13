@@ -83,7 +83,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
     }
 
-    setup_sequencer(controller_address, programs.size(), max_transfers, dividers);
+    setup_sequencer(programs.size(), dividers);
     setup_cores(programs.size());
 
     //cleanup leftovers from deployment process
@@ -165,21 +165,21 @@ void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, ui
     write_register(current_address, mapping);
 }
 
-void hil_deployer::setup_sequencer(uint64_t seq, uint16_t n_cores, uint16_t n_transfers, std::vector<uint32_t> divisors) {
+void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors) {
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
 
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
         enable[i] = true;
-        write_register(controller_address + 0x4 + 4*i, divisors[i]);
+        write_register(controller_base + controller_offset + 0x4 + 4 * i, divisors[i]);
     }
 
-    write_register(controller_address, enable.to_ulong());
+    write_register(controller_base + controller_offset, enable.to_ulong());
 
     auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency);
-    write_register(controller_address + controller_tb_offset + 4, timebase_reg_val);
-    write_register(controller_address + controller_tb_offset + 8, 3);
+    write_register(controller_base + hil_tb_offset + 4, timebase_reg_val);
+    write_register(controller_base + hil_tb_offset + 8, 3);
 
 
     spdlog::info("------------------------------------------------------------------");
