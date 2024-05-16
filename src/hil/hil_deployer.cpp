@@ -172,12 +172,13 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
         enable[i] = true;
-        write_register(controller_base + controller_offset + 0x4 + 4 * i, divisors[i]);
+        auto register_setting = divisors[i]-1;
+        write_register(controller_base + controller_offset + 0x4 + 4 * i, register_setting);
     }
 
     write_register(controller_base + controller_offset, enable.to_ulong());
 
-    auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency) -1;
+    auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency);
     write_register(controller_base + hil_tb_offset + 4, timebase_reg_val);
     write_register(controller_base + hil_tb_offset + 8, 3);
 
