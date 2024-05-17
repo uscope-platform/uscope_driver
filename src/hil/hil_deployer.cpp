@@ -18,7 +18,13 @@
 
 hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
-    full_cores_override = true; // FOR NOW ALL CORES ARE COMPILED WITH RECIPROCAL ENABLED
+    full_cores_override = false;
+
+
+    auto clock_f = std::getenv("HIL_CLOCK_FREQ");
+    if(clock_f != nullptr){
+        hil_clock_frequency = std::stof(clock_f);
+    }
 }
 
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
@@ -235,11 +241,19 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
 void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     bool rec_present = false;
     int section=0;
+    bool skip_next = false;
     for(auto &instr:program){
         if(section <2){
             if(instr==0xC) section++;
         } else {
-            if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["rec"]) rec_present = true;
+            if(skip_next){
+                skip_next = false;
+                continue;
+            } if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["ldc"]){
+                skip_next = true;
+            }if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["rec"]) {
+                rec_present = true;
+            }
         }
     }
     // SET THE NUMBER OF CHANNELS DEPENDING ON THE PIPELINE LENGTH OF THE PROCESSOR TO AVOID WAIT STATES
@@ -344,23 +358,34 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector
 
 std::vector<uint32_t>
 hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
-    auto ordered_programs = programs;
-    std::ranges::sort(ordered_programs, [](const fcore::program_bundle &a, const fcore::program_bundle &b){
+
+    struct shift_calc_data {
+        std::string name;
+        uint32_t execution_order;
+        uint32_t program_length;
+    };
+
+    std::vector<shift_calc_data> calc_data_v;
+    for(int i = 0; i<programs.size(); i++){
+        auto l = programs[i].program_length.fixed_portion + n_c[i]*programs[i].program_length.per_channel_portion;
+        calc_data_v.emplace_back(programs[i].name, programs[i].execution_order, l);
+    }
+
+
+    std::ranges::sort(calc_data_v, [](const shift_calc_data &a, const shift_calc_data &b){
         return a.execution_order < b.execution_order;
     });
 
-    uint32_t inter_core_buffer = 70;
+    uint32_t inter_core_buffer = 20;
+
     std::unordered_map<std::string, uint32_t>ordered_shifts;
+    ordered_shifts[calc_data_v[0].name] = 2;
 
-    ordered_shifts[ordered_programs[0].name] = 2;
+    uint32_t  next_starting_point = calc_data_v[0].program_length + 2 + inter_core_buffer;
 
-    for(int i = 1; i<ordered_programs.size(); i++){
-        auto l = ordered_programs[i-1].program_length.fixed_portion + n_c[i-1]*ordered_programs[i-1].program_length.per_channel_portion;
-        uint32_t starting_point = 0;
-        for(const auto &item: ordered_shifts){
-            starting_point += item.second;
-        }
-        ordered_shifts[ordered_programs[i].name] = starting_point + l + inter_core_buffer;
+    for(int i = 1; i<calc_data_v.size(); i++){
+        ordered_shifts[calc_data_v[i].name] = next_starting_point;
+        next_starting_point += calc_data_v[i].program_length + inter_core_buffer;
     }
     std::vector<uint32_t> shifts;
 
