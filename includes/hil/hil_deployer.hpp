@@ -82,13 +82,16 @@ private:
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
-    void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors);
+    void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
     void setup_cores(uint16_t n_cores);
     void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
     std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs,
                                                                    std::vector<uint32_t> n_c);
+
+    std::vector<uint32_t> calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs,
+                                                     std::vector<uint32_t> n_c);
 
     uint64_t get_core_rom_address(uint16_t core_idx) const;
     uint64_t get_core_control_address(uint16_t core_idx) const;

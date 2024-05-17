@@ -42,7 +42,6 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     reserve_inputs(interconnects);
     reserve_outputs(programs);
 
-    std::vector<uint32_t> dividers;
 
     std::vector<uint32_t> frequencies;
 
@@ -60,10 +59,10 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         cores_idx[programs[i].name] = i;
         load_core(get_core_rom_address(i), programs[i].program);
         check_reciprocal(programs[i].program);
-
     }
 
-    dividers = calculate_timebase_divider(programs, n_channels);
+    auto dividers = calculate_timebase_divider(programs, n_channels);
+    auto shifts = calculate_timebase_shift(programs, n_channels);
 
     spdlog::info("------------------------------------------------------------------");
 
@@ -83,7 +82,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
     }
 
-    setup_sequencer(programs.size(), dividers);
+    setup_sequencer(programs.size(), dividers, shifts);
     setup_cores(programs.size());
 
     //cleanup leftovers from deployment process
@@ -165,22 +164,24 @@ void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, ui
     write_register(current_address, mapping);
 }
 
-void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors) {
+void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
+
+    auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency);
+
 
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
         enable[i] = true;
         auto register_setting = divisors[i]-1;
         write_register(controller_base + controller_offset + 0x4 + 4 * i, register_setting);
+        write_register(controller_base + hil_tb_offset + 8 + 4*i, shifts[i]);
     }
 
-    write_register(controller_base + controller_offset, enable.to_ulong());
-
-    auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency);
     write_register(controller_base + hil_tb_offset + 4, timebase_reg_val);
-    write_register(controller_base + hil_tb_offset + 8, 3);
+
+    write_register(controller_base + controller_offset, enable.to_ulong());
 
 
     spdlog::info("------------------------------------------------------------------");
@@ -339,4 +340,33 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector
 
     return core_dividers;
 
+}
+
+std::vector<uint32_t>
+hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+    auto ordered_programs = programs;
+    std::ranges::sort(ordered_programs, [](const fcore::program_bundle &a, const fcore::program_bundle &b){
+        return a.execution_order < b.execution_order;
+    });
+
+    uint32_t inter_core_buffer = 70;
+    std::unordered_map<std::string, uint32_t>ordered_shifts;
+
+    ordered_shifts[ordered_programs[0].name] = 2;
+
+    for(int i = 1; i<ordered_programs.size(); i++){
+        auto l = ordered_programs[i-1].program_length.fixed_portion + n_c[i-1]*ordered_programs[i-1].program_length.per_channel_portion;
+        uint32_t starting_point = 0;
+        for(const auto &item: ordered_shifts){
+            starting_point += item.second;
+        }
+        ordered_shifts[ordered_programs[i].name] = starting_point + l + inter_core_buffer;
+    }
+    std::vector<uint32_t> shifts;
+
+    for(const auto &item:programs){
+        shifts.push_back(ordered_shifts[item.name]);
+    }
+
+    return shifts;
 }
