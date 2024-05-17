@@ -18,7 +18,7 @@
 
 hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
-    full_cores_override = false;
+    full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
 
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
