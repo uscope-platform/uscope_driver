@@ -376,7 +376,7 @@ hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> 
         return a.execution_order < b.execution_order;
     });
 
-    uint32_t inter_core_buffer = 20;
+    uint32_t inter_core_buffer = 60;
 
     std::unordered_map<std::string, uint32_t>ordered_shifts;
     ordered_shifts[calc_data_v[0].name] = 2;
