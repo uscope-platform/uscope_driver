@@ -22,9 +22,11 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
 
 
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
+
     if(clock_f != nullptr){
         hil_clock_frequency = std::stof(clock_f);
     }
+    spdlog::info("HIL CLOCK FREQUENCY: {0}", hil_clock_frequency);
 }
 
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
