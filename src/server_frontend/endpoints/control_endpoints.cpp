@@ -26,8 +26,6 @@ nlohmann::json control_endpoints::process_command(const std::string& command_str
         return process_load_bitstream(arguments);
     } else if( command_string == "register_write"){
         return process_single_write_register(arguments);
-    } else if( command_string == "set_frequency"){
-        return process_set_frequency(arguments);
     } else if( command_string == "register_read"){
         return process_single_read_register(arguments);
     } else if( command_string == "set_scope_data"){
@@ -71,19 +69,6 @@ nlohmann::json control_endpoints::process_single_read_register(nlohmann::json &a
     }
     uint64_t address = arguments;
     return hw->single_read_register(address);
-}
-
-
-nlohmann::json control_endpoints::process_set_frequency(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    if(arguments.type() != nlohmann::detail::value_t::array){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The argument for the set clock frequency command must be an array\n";
-        return resp;
-    }
-    std::vector<uint32_t> freq = arguments;
-    resp["response_code"] = hw->set_clock_frequency(freq);
-    return resp;
 }
 
 
