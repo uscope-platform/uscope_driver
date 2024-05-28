@@ -35,6 +35,7 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
     data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
     channel_sizes = {16,16,16,16,16,16};
+    scope_base_address = 0;
     channel_status = {
             {0,true},
             {1,true},
@@ -193,13 +194,14 @@ std::string scope_manager::get_acquisition_status() {
 }
 
 responses::response_code scope_manager::set_acquisition(const acquisition_metadata &data) {
-    spdlog::info("SET ACQUISITION: {} mode with {} trigger on channel {} at level {}",
+    if(scope_base_address == 0) return responses::ok;
+    spdlog::info("SET ACQUISITION: {0} mode with {1} trigger on channel {2} at level {3} for scope at address {4:x}",
                  data.mode,
                  data.trigger_mode,
                  data.trigger_source,
-                 data.trigger_level
+                 data.trigger_level,
+                 scope_base_address
     );
-    if(scope_base_address == 0) return responses::ok;
     uint64_t scope_internal_addr = scope_base_address + am.internal_base;
 
     uint32_t trg_mode = 0;
