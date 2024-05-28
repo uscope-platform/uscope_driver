@@ -177,6 +177,7 @@ responses::response_code scope_manager::enable_manual_metadata() {
 }
 
 std::string scope_manager::get_acquisition_status() {
+    if(scope_base_address == 0) return "not present";
     spdlog::trace("GET_ACQUISITION_STATUS");
     auto res = hw->read_direct(scope_base_address + am.internal_base + am.scope_int.trg_rearm_status);
     switch (res) {
