@@ -199,6 +199,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
                  data.trigger_source,
                  data.trigger_level
     );
+    if(scope_base_address == 0) return responses::ok;
     uint64_t scope_internal_addr = scope_base_address + am.internal_base;
 
     uint32_t trg_mode = 0;
