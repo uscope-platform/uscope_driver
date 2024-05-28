@@ -213,7 +213,6 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
 
 responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
 
-    spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", freq[0], freq[1]);
     set_pl_clock(freq[0], freq[1]);
     return responses::ok;
 }
@@ -284,6 +283,8 @@ uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
 
 void fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
     std::string command;
+
+    spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", clk_n, freq);
 
     auto fd = open(if_dict.get_clock_if(clk_n).c_str(), O_RDWR | O_DIRECT);
 

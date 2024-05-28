@@ -60,7 +60,25 @@ nlohmann::json platform_endpoints::process_get_clock(nlohmann::json &arguments) 
 }
 
 nlohmann::json platform_endpoints::process_set_clock(nlohmann::json &arguments) {
-    return nlohmann::json();
+    nlohmann::json resp;
+    if(!(arguments.contains("is_primary") && arguments.contains("id") && arguments.contains("value"))){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The arguments for the set clock clock command must contain the id and is_primary and value keys\n";
+    }
+    if(arguments["is_primary"].type() != nlohmann::detail::value_t::boolean){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The is_primary argument of the get clock command must be boolean\n";
+    }
+    bool is_primary = arguments["is_primary"];
+
+    if(is_primary){
+        uint32_t freq = arguments["value"];
+        tm.set_base_clock(arguments["id"], freq);
+    } else {
+        tm.set_generated_clock(arguments["id"], arguments["value"]["m"], arguments["value"]["d"], arguments["value"]["p"]);
+    }
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
 }
 
 nlohmann::json platform_endpoints::process_get_version(nlohmann::json &arguments) {
