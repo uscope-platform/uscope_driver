@@ -15,7 +15,7 @@
 #include "server_frontend/infrastructure/command_processor.hpp"
 
 command_processor::command_processor(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &sc) :
-cores_ep(h), scope_ep(sc), control_ep(h) {
+cores_ep(h), scope_ep(sc), control_ep(h), platform_ep(h){
     hw = h;
 }
 
@@ -35,13 +35,13 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
         response_obj["body"] = control_ep.process_command(command_string, arguments);
     } else if(commands::scope_commands.contains(command_string)){
         response_obj["body"] = scope_ep.process_command(command_string, arguments);
-    } else if(commands::core_commands.contains(command_string)){
+    } else if(commands::core_commands.contains(command_string)) {
         response_obj["body"] = cores_ep.process_command(command_string, arguments);
+    } else if(commands::platform_commands.contains(command_string)){
+        response_obj["body"] = platform_ep.process_command(command_string, arguments);
     } else if(commands::infrastructure_commands.contains(command_string)){
         if(command_string == "null"){
             response_obj["body"] = process_null();
-        } else if( command_string == "get_version"){
-            response_obj["body"] = process_get_version(arguments);
         }
     } else{
         response_obj["body"] = nlohmann::json();
@@ -58,31 +58,6 @@ nlohmann::json command_processor::process_null() {
     resp["response_code"] = responses::ok;
     return resp;
 }
-
-
-nlohmann::json command_processor::process_get_version(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    if(arguments.type() != nlohmann::detail::value_t::string){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The argument for the get version command must be a string\n";
-        return resp;
-    }
-    std::string component = arguments;
-    if(component == "driver"){
-        resp["data"] = uscope_driver_versions;
-    } else if(component == "module"){
-        resp["data"] = hw->get_module_version();
-    } else if(component == "hardware"){
-        resp["data"] = hw->get_hardware_version();
-    } else {
-        resp["data"] = "DRIVER ERROR: Unknown component\n";
-    }
-    resp["response_code"] = responses::as_integer(responses::ok);
-    return resp;
-}
-
-
-
 
 
 

@@ -62,7 +62,7 @@ private:
     };
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
-            {"zynqmp", "/dev/zero"},
+            {"zynqmp", "/sys/devices/platform/fclk_"},
             {"emulate", "/dev/zero"}
     };
     std::unordered_map<std::string, std::string> buffer_addres_if = {

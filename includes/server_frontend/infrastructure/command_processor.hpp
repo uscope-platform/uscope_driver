@@ -20,11 +20,11 @@
 #include "response.hpp"
 #include "command.hpp"
 #include "configuration.hpp"
-#include "driver_version.h"
 
 #include "server_frontend/endpoints/control_endpoints.hpp"
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 #include "server_frontend/endpoints/scope_endpoints.hpp"
+#include "server_frontend/endpoints/platform_endpoints.hpp"
 
 class command_processor {
 public:
@@ -33,12 +33,13 @@ public:
 
 private:
     nlohmann::json process_null();
-    nlohmann::json process_get_version(nlohmann::json &arguments);
 
     std::shared_ptr<fpga_bridge> hw;
     control_endpoints control_ep;
     cores_endpoints cores_ep;
     scope_endpoints scope_ep;
+    platform_endpoints platform_ep;
+
 
     bool logging_enabled;
 };

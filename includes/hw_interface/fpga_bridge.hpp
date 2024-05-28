@@ -64,6 +64,9 @@ public:
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;
 
+    uint32_t get_pl_clock( uint8_t clk_n);
+    void set_pl_clock(uint8_t clk_n, uint32_t freq);
+
 private:
     volatile uint32_t *registers;
     volatile uint32_t *fCore;

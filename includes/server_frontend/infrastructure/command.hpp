@@ -23,7 +23,8 @@
 
 namespace commands {
 
-    static std::set<std::string> infrastructure_commands = {"null", "get_version"};
+    static std::set<std::string> infrastructure_commands = {"null"};
+
     static std::set<std::string> control_commands = {"load_bitstream", "register_write", "set_frequency", "register_read",
                                               "apply_filter","set_scope_data"};
 
@@ -34,6 +35,9 @@ namespace commands {
 
     static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil",
                                                   "hil_select_out", "hil_set_in", "hil_start", "hil_stop"};
+
+
+    static std::set<std::string> platform_commands = {"set_pl_clock", "get_clock", "get_version"};
 
 
     static nlohmann::json command = R"(

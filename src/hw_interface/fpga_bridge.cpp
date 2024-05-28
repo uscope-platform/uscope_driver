@@ -214,16 +214,7 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
 responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
 
     spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", freq[0], freq[1]);
-    std::string command;
-
-    if(arch=="zynq"){
-        command = "echo " + std::to_string(freq[1]) + " > " + if_dict.get_clock_if(freq[0]);
-    } else{
-        return responses::ok;
-    }
-    if(!runtime_config.emulate_hw) {
-        system(command.c_str());
-    }
+    set_pl_clock(freq[0], freq[1]);
     return responses::ok;
 }
 
@@ -285,4 +276,17 @@ uint32_t fpga_bridge::read_direct(uint64_t address) {
         return registers[register_address_to_index(address)];
     }
 
+}
+
+uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
+    return 99'999'999;
+}
+
+void fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
+    std::string command;
+
+    auto fd = open(if_dict.get_clock_if(clk_n).c_str(), O_RDWR | O_DIRECT);
+
+    std::string f_str = std::to_string(freq);
+    write(fd, f_str.c_str(), f_str.size());
 }
