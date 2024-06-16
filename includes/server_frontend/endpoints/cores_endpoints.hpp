@@ -18,9 +18,11 @@
 #define USCOPE_DRIVER_CORES_ENDPOINTS_HPP
 
 #include <nlohmann/json.hpp>
+
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/toolchain_manager.hpp"
 #include "hil/hil_deployer.hpp"
 #include "hil/hil_emulator.hpp"
 
@@ -31,6 +33,7 @@ public:
 private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
     nlohmann::json process_emulate_hil(nlohmann::json &arguments);
+    nlohmann::json process_compile_program(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
     nlohmann::json process_hil_set_in(nlohmann::json &arguments);
     nlohmann::json process_hil_select_out(nlohmann::json &arguments);
@@ -59,6 +62,7 @@ private:
 
     std::shared_ptr<fpga_bridge> hw;
     hil_deployer hil;
+    toolchain_manager toolchain;
     hil_emulator emulator;
 };
 

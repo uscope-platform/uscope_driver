@@ -33,7 +33,7 @@ namespace commands {
                                             "enable_manual_metadata", "get_acquisition_status", "set_acquisition",
                                             "set_scope_address"};
 
-    static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil",
+    static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil", "compile_program",
                                                   "hil_select_out", "hil_set_in", "hil_start", "hil_stop"};
 
 
@@ -106,6 +106,72 @@ namespace commands {
         "type": "object"
     }
     )"_json;
+
+
+    static nlohmann::json  compile_program_schema = R"(
+
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "title": "Compile program schema",
+    "properties": {
+        "content": {
+            "type": "string",
+            "title": "content of the program to compile"
+        },
+        "headers": {
+            "type": "array",
+            "title": "Headers to compile with the program",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "title": "Content of the header",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Name of the header",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "content",
+                    "name"
+                ]
+            }
+        },
+        "io": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties":{
+                        "address":{
+                            "title": "IO address to use",
+                            "type":"integer"
+                        },
+                        "associated_io":{
+                            "title": "name of the associated variable",
+                            "type":"string"
+                        },
+                        "type":{
+                            "title": "Type of the io",
+                            "type":"string"
+                        }
+
+                    }
+                }
+            ]
+        }
+    },
+    "required": [
+        "content",
+        "headers",
+        "io"
+    ],
+    "type": "object"
+}
+    )"_json;
+
 
     static nlohmann::json  apply_filter_schema = R"(
     {

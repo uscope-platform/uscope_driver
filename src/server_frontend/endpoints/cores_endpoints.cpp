@@ -61,8 +61,10 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_set_in(arguments);
     } else if(command_string=="hil_start"){
         return process_hil_start();
-    } else if(command_string=="hil_stop"){
+    } else if(command_string=="hil_stop") {
         return process_hil_stop();
+    } else if(command_string == "compile_program"){
+        return process_compile_program(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -146,6 +148,28 @@ nlohmann::json cores_endpoints::process_hil_stop() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
     hil.stop();
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    std::string error_message;
+    std::string dbg = arguments.dump();
+    if(!commands::validate_schema(arguments, commands::compile_program_schema, error_message)){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: Invalid arguments for the compile program command\n"+ error_message;
+        return resp;
+    }
+    try{
+        std::string content = arguments["content"];
+        auto headers = arguments["headers"];
+        auto io = arguments["io"];
+        resp["data"] = toolchain.compile(content,headers, io);
+        resp["response_code"] = responses::as_integer(responses::ok);
+    } catch (std::runtime_error &e){
+        resp["data"] = e.what();
+        resp["response_code"] = responses::as_integer(responses::compilation_error);
+    }
     return resp;
 }
 
