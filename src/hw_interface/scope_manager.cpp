@@ -34,7 +34,6 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
     sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
-    channel_sizes = {16,16,16,16,16,16};
     scope_base_address = 0;
     channel_status = {
             {0,true},
@@ -110,13 +109,10 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
         if(channel_base<0|| channel_base>n_channels){
             continue;
         }
-        if(manual_metadata){
-            data_sample = scale_data(sample, channel_sizes[channel_base], scaling_factors[channel_base], signed_status[channel_base], false);
-        } else {
-            spdlog::trace("channel base = {0}", channel_base);
-            auto scaling_factor = scaling_factors[channel_base];
-            data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
-        }
+
+        spdlog::trace("channel base = {0}", channel_base);
+        auto scaling_factor = scaling_factors[channel_base];
+        data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
 
         ret_data[channel_base].push_back(data_sample);
     }
@@ -147,12 +143,6 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
     return ret;
 }
 
-responses::response_code scope_manager::set_channel_widths(std::vector<uint32_t> &widths) {
-    spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
-    channel_sizes = widths;
-    return responses::ok;
-}
-
 responses::response_code  scope_manager::set_scaling_factors(std::vector<float> &sf) {
     spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",sf[0], sf[1], sf[2], sf[3], sf[4], sf[5]);
     scaling_factors = sf;
@@ -164,17 +154,6 @@ responses::response_code scope_manager::set_channel_status(std::unordered_map<in
     return responses::ok;
 }
 
-responses::response_code scope_manager::set_channel_signed(std::unordered_map<int, bool> ss) {
-    spdlog::info("SET_CHANNEL_SIGNS: {0} {1} {2} {3} {4} {5}",ss[0], ss[1], ss[2], ss[3], ss[4], ss[5]);
-    signed_status = std::move(ss);
-    return responses::ok;
-}
-
-responses::response_code scope_manager::enable_manual_metadata() {
-    spdlog::info("ENABLE MANUAL METADATA");
-    manual_metadata = true;
-    return responses::ok;
-}
 
 std::string scope_manager::get_acquisition_status() {
     if(scope_base_address == 0) return "not present";

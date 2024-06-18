@@ -28,9 +28,10 @@ namespace commands {
     static std::set<std::string> control_commands = {"load_bitstream", "register_write", "register_read",
                                               "apply_filter","set_scope_data"};
 
-    static std::set<std::string> scope_commands = {"start_capture", "read_data", "check_capture", "set_channel_widths",
-                                            "set_scaling_factors", "set_channel_status", "set_channel_signs",
-                                            "enable_manual_metadata", "get_acquisition_status", "set_acquisition",
+    static std::set<std::string> scope_commands = {"start_capture", "read_data", "check_capture",
+                                            "set_scaling_factors", "set_channel_status",
+                                            "set_scaling_factors", "set_channel_status",
+                                             "get_acquisition_status", "set_acquisition",
                                             "set_scope_address"};
 
     static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil", "compile_program",

@@ -86,11 +86,8 @@ public:
     responses::response_code start_capture(unsigned int n_buffers);
     [[nodiscard]] unsigned int check_capture_progress() const;
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
-    responses::response_code set_channel_widths(std::vector<uint32_t> &widths);
     responses::response_code set_scaling_factors(std::vector<float> &sf);
     responses::response_code set_channel_status(std::unordered_map<int, bool>status);
-    responses::response_code set_channel_signed(std::unordered_map<int, bool>signed_status);
-    responses::response_code enable_manual_metadata();
     std::string get_acquisition_status();
     responses::response_code set_acquisition(const acquisition_metadata &data);
     void set_scope_address(uint64_t addr);
@@ -104,7 +101,6 @@ private:
     std::vector<std::vector<float>> shunt_data(const volatile uint64_t * buffer_in);
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float);
 
-    std::vector<uint32_t> channel_sizes;
     std::vector<float> scaling_factors;
     int internal_buffer_size;
     unsigned int n_buffers_left;
@@ -113,10 +109,8 @@ private:
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::unordered_map<int, bool> channel_status;
-    std::unordered_map<int, bool> signed_status;
 
     emulated_data_generator data_gen;
-    bool manual_metadata = false;
     std::shared_ptr<fpga_bridge> hw;
 
     scope_address_map am;

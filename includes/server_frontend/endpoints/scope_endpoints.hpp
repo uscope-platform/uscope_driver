@@ -31,14 +31,11 @@ private:
     nlohmann::json process_start_capture(nlohmann::json &arguments);
     nlohmann::json process_read_data();
     nlohmann::json process_check_capture_progress();
-    nlohmann::json process_set_widths(nlohmann::json &arguments);
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
-    nlohmann::json process_set_channel_signs(nlohmann::json &arguments);
     nlohmann::json process_get_acquisition_status();
     nlohmann::json process_set_scope_address(nlohmann::json &arguments);
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);
-    nlohmann::json process_enable_mannual_metadata();
 
     std::shared_ptr<scope_manager> scope;
 };

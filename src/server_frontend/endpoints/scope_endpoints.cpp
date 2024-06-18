@@ -27,17 +27,11 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
         return process_read_data();
     } else if( command_string == "check_capture"){
         return process_check_capture_progress();
-    } else if( command_string == "set_channel_widths"){
-        return process_set_widths(arguments);
     } else if( command_string == "set_scaling_factors"){
         return process_set_scaling_factors(arguments);
     } else if( command_string == "set_channel_status"){
         return process_set_channel_status(arguments);
-    } else if( command_string == "set_channel_signs"){
-        return process_set_channel_signs(arguments);
-    } else if( command_string == "enable_manual_metadata") {
-        return process_enable_mannual_metadata();
-    }else if(command_string == "get_acquisition_status") {
+    } else if(command_string == "get_acquisition_status") {
         return process_get_acquisition_status();
     }else if(command_string == "set_acquisition") {
         return process_set_acquisition(arguments);
@@ -85,31 +79,6 @@ nlohmann::json scope_endpoints::process_check_capture_progress() {
     return resp;
 }
 
-///
-/// \param operand_2 comma delimited list of channel widths
-/// \return Success
-nlohmann::json scope_endpoints::process_set_widths(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    if(arguments.type() != nlohmann::detail::value_t::array){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The argument for the set channel widths command must be an array\n";
-        return resp;
-    }
-    if(arguments.empty()){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The arguments for the set channel widths can not be an empty array\n";
-        return resp;
-    }
-    if(!std::all_of(arguments.begin(), arguments.end(), [](const nlohmann::json& el){ return el.is_number(); })){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The arguments for the set channel widths command must be numeric values\n";
-        return resp;
-    }
-    std::vector<uint32_t> widths = arguments;
-    resp["response_code"] = scope->set_channel_widths(widths);
-    return resp;
-}
-
 nlohmann::json  scope_endpoints::process_set_scaling_factors(nlohmann::json &arguments) {
     nlohmann::json resp;
     if(arguments.type() != nlohmann::detail::value_t::array){
@@ -147,25 +116,6 @@ nlohmann::json scope_endpoints::process_set_channel_status(nlohmann::json &argum
     return resp;
 }
 
-nlohmann::json scope_endpoints::process_set_channel_signs(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    if(arguments.type() != nlohmann::detail::value_t::array){
-        resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The argument for the set channel signs command must be an array of objects\n";
-        return resp;
-    }
-    std::unordered_map<int, bool> signs;
-    for(auto &item:arguments.items()){
-        signs[std::stoi(item.key())] = item.value();
-    }
-    resp["response_code"] = scope->set_channel_signed(signs);
-    return resp;
-}
-
-
-nlohmann::json scope_endpoints::process_enable_mannual_metadata() {
-    return scope->enable_manual_metadata();
-}
 
 nlohmann::json scope_endpoints::process_get_acquisition_status() {
     nlohmann::json resp;
