@@ -153,7 +153,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 /// \return #RESP_OK
 responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
-    if(write_obj["type"] == "direct"){\
+    if(write_obj["type"] == "direct"){
         write_direct(write_obj["address"], write_obj["value"]);
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
@@ -186,6 +186,10 @@ nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
 /// \param address to convert
 /// \return converted address
 uint64_t fpga_bridge::fcore_address_to_index(uint64_t address) const {
+    if(core_addr>address){
+        spdlog::critical("Tried to write the core address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
+        exit(-1);
+    }
     return (address - core_addr) / 4;
 }
 
@@ -193,6 +197,10 @@ uint64_t fpga_bridge::fcore_address_to_index(uint64_t address) const {
 /// \param address to convert
 /// \return converted address
 uint64_t fpga_bridge::register_address_to_index(uint64_t address) const {
+    if(control_addr>address){
+        spdlog::critical("Tried to write the control address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
+        exit(-1);
+    }
     return (address - control_addr) / 4;
 }
 
