@@ -83,8 +83,6 @@ class scope_manager {
 
 public:
     scope_manager(std::shared_ptr<fpga_bridge> h);
-    responses::response_code start_capture(unsigned int n_buffers);
-    [[nodiscard]] unsigned int check_capture_progress() const;
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
     responses::response_code set_scaling_factors(std::vector<float> &sf);
     responses::response_code set_channel_status(std::unordered_map<int, bool>status);

@@ -21,12 +21,8 @@ scope_endpoints::scope_endpoints(std::shared_ptr<scope_manager> &sc) {
 }
 
 nlohmann::json scope_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
-    if(command_string == "start_capture"){
-        return process_start_capture(arguments);
-    } else if( command_string == "read_data"){
+    if( command_string == "read_data"){
         return process_read_data();
-    } else if( command_string == "check_capture"){
-        return process_check_capture_progress();
     } else if( command_string == "set_scaling_factors"){
         return process_set_scaling_factors(arguments);
     } else if( command_string == "set_channel_status"){
@@ -47,16 +43,6 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
 
 
 
-///
-/// \param Operand number of buffers to captire
-/// \return Success
-nlohmann::json scope_endpoints::process_start_capture(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    std::string n_buffers_s = arguments[0];
-    uint32_t n_buffers = std::stoul(n_buffers_s, nullptr, 0);
-    resp["response_code"] = scope->start_capture(n_buffers);
-    return resp;
-}
 
 ///
 /// \param response Pointer to the structure where the data will eventually be put
@@ -69,15 +55,6 @@ nlohmann::json scope_endpoints::process_read_data() {
     return resp;
 }
 
-///
-/// \param Response pointer to the response_t structure where the result of the check will be put
-/// \return Success
-nlohmann::json scope_endpoints::process_check_capture_progress() {
-    nlohmann::json resp;
-    resp["response_code"] = responses::ok;
-    resp["data"] = scope->check_capture_progress();
-    return resp;
-}
 
 nlohmann::json  scope_endpoints::process_set_scaling_factors(nlohmann::json &arguments) {
     nlohmann::json resp;

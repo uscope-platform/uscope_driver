@@ -28,9 +28,8 @@ public:
     explicit scope_endpoints( std::shared_ptr<scope_manager> &sc);
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
-    nlohmann::json process_start_capture(nlohmann::json &arguments);
     nlohmann::json process_read_data();
-    nlohmann::json process_check_capture_progress();
+    nlohmann::json process_read_data();
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
     nlohmann::json process_get_acquisition_status();

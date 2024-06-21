@@ -54,19 +54,6 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
     spdlog::info("Scope handler initialization done");
 }
 
-
-responses::response_code scope_manager::start_capture(unsigned int n_buffers) {
-    spdlog::info("START CAPTURE: n_buffers {0}", n_buffers);
-    n_buffers_left = n_buffers;
-    return responses::ok;
-}
-
-/// This function returns the number of data buffers left to capture
-/// \return Number of buffers still to capture
-unsigned int scope_manager::check_capture_progress() const {
-    return n_buffers_left;
-}
-
 responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &data_vector) {
 
     std::vector<std::vector<float>> data;
