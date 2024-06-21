@@ -29,7 +29,6 @@ public:
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_read_data();
-    nlohmann::json process_read_data();
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
     nlohmann::json process_get_acquisition_status();
