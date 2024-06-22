@@ -38,23 +38,27 @@ nlohmann::json platform_endpoints::process_command(const std::string &command_st
 nlohmann::json platform_endpoints::process_get_clock(nlohmann::json &arguments) {
     nlohmann::json resp;
 
-    if(!(arguments.contains("is_primary") && arguments.contains("id"))){
+    if(!arguments.contains("is_primary") || !arguments.contains("id")){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the get clock command must contain the id and is_primary keys\n";
+        return resp;
     }
 
     if(arguments["is_primary"].type() != nlohmann::detail::value_t::boolean){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The is_primary argument of the get clock command must be boolean\n";
+        return resp;
     }
-    bool is_primary = resp["is_primary"];
+
+    bool is_primary = arguments["is_primary"];
 
     if(is_primary){
-        uint8_t clk_n = resp["id"];
+        uint8_t clk_n = arguments["id"];
         resp["data"] = tm.get_base_clock(clk_n);
     } else {
-        resp["data"] = tm.get_generated_clock(resp["id"]);
+        resp["data"] = tm.get_generated_clock(arguments["id"]);
     }
+    resp["response_code"] = responses::as_integer(responses::ok);
 
     return resp;
 }

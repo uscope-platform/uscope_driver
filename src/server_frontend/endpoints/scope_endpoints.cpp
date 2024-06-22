@@ -132,20 +132,25 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
 nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &arguments) {
     nlohmann::json resp;
     bool invalid = false;
-    if(!arguments.contains("address")){
+    if(!arguments.contains("address")  | !arguments.contains("dma_buffer_offset") ){
         invalid = true;
     }
+
     if(arguments["address"].type() != nlohmann::detail::value_t::number_unsigned){
+        invalid = true;
+    }
+
+    if(arguments["dma_buffer_offset"].type() != nlohmann::detail::value_t::number_unsigned){
         invalid = true;
     }
 
     if(invalid){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The scope address must be an unsigned integer\n";
+        resp["data"] = "DRIVER ERROR: The scope address and dma buffer offset values must be an unsigned integers\n";
         return resp;
     }
 
     resp["response_code"] = responses::ok;
-    scope->set_scope_address(arguments["address"]);
+    scope->set_scope_address(arguments["address"],arguments["dma_buffer_offset"]);
     return resp;
 }

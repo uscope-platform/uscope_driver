@@ -212,8 +212,9 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
     return responses::ok;
 }
 
-void scope_manager::set_scope_address(uint64_t addr) {
+void scope_manager::set_scope_address(uint64_t addr, uint64_t buffer_offset) {
     spdlog::info("SET SCOPE ADDRESS: {0:x}", addr);
+    hw->set_scope_data(addr + buffer_offset);
     scope_base_address = addr;
 }
 

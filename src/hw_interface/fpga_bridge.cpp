@@ -254,6 +254,8 @@ responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
     if(!runtime_config.emulate_hw){
         std::ifstream fs(if_dict.get_buffer_address_if());
         fs >> buffer;
+    } else {
+        buffer = 0xFFCCFFCC;
     }
 
     spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, addr);

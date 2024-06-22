@@ -30,7 +30,6 @@ private:
     nlohmann::json process_single_write_register(nlohmann::json &arguments);
     nlohmann::json process_single_read_register(nlohmann::json &arguments);
     nlohmann::json process_load_bitstream(nlohmann::json &arguments);
-    nlohmann::json process_set_scope_data(nlohmann::json &arguments);
     nlohmann::json process_apply_filter(nlohmann::json &arguments);
 
     std::shared_ptr<fpga_bridge> hw;

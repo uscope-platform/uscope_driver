@@ -26,7 +26,7 @@ namespace commands {
     static std::set<std::string> infrastructure_commands = {"null"};
 
     static std::set<std::string> control_commands = {"load_bitstream", "register_write", "register_read",
-                                              "apply_filter","set_scope_data"};
+                                              "apply_filter"};
 
     static std::set<std::string> scope_commands = {"read_data", "set_scaling_factors", "set_channel_status",
                                             "set_scaling_factors", "set_channel_status",

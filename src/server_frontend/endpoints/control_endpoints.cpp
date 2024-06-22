@@ -28,8 +28,6 @@ nlohmann::json control_endpoints::process_command(const std::string& command_str
         return process_single_write_register(arguments);
     } else if( command_string == "register_read"){
         return process_single_read_register(arguments);
-    } else if( command_string == "set_scope_data"){
-        return process_set_scope_data(arguments);
     } else if( command_string == "apply_filter"){
         return process_apply_filter(arguments);
     } else {
@@ -100,12 +98,3 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
     resp["response_code"] = hw->apply_filter(address, taps);
     return resp;
 }
-
-nlohmann::json control_endpoints::process_set_scope_data(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    uint64_t buffer_address = arguments["buffer_address"];
-
-    resp["response_code"] = hw->set_scope_data(buffer_address);
-    return resp;
-}
-
