@@ -131,7 +131,7 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
 }
 
 responses::response_code  scope_manager::set_scaling_factors(std::vector<float> &sf) {
-    spdlog::info("SET_CHANNEL_WIDTHS: {0} {1} {2} {3} {4} {5}",sf[0], sf[1], sf[2], sf[3], sf[4], sf[5]);
+    spdlog::info("SET_SCALING_FACTORS: {0} {1} {2} {3} {4} {5}",sf[0], sf[1], sf[2], sf[3], sf[4], sf[5]);
     scaling_factors = sf;
     return responses::ok;
 }
