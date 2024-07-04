@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sstream>
+#include <zmq.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -40,11 +41,11 @@ public:
     void start_server();
     ~server_connector();
 private:
-    void send_response(nlohmann::json &resp, int connection_fd);
-    void process_connection(int connection_fd);
-    int sockfd;
+    void send_response(nlohmann::json &resp);
+    std::string address;
     command_processor core_processor;
-    struct sockaddr_in servaddr{};
+    zmq::context_t ctx;
+    zmq::socket_t sock;
 };
 
 

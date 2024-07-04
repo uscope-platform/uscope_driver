@@ -47,6 +47,7 @@ file(GLOB INC_SOURCES "includes/*.h*")
 find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
+find_package(cppzmq REQUIRED)
 
 set(DRIVER_SOURCES /
         src/uscope_driver.cpp
@@ -76,6 +77,7 @@ target_link_libraries(uscope_driver PRIVATE
         CLI11::CLI11
         fcore_cc_lib
         fcore_emu_lib
+        cppzmq
 )
 
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)

@@ -18,7 +18,7 @@ class BasicConanfile(ConanFile):
         self.requires("gtest/1.14.0")
         self.requires("spdlog/1.13.0")
         self.requires("antlr4-cppruntime/4.13.1")
-
+        self.requires("cppzmq/4.10.0")
         if self.settings.arch == "x86_64":
             self.requires("libfuse/3.10.5")
 
