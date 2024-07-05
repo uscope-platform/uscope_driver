@@ -137,6 +137,7 @@ responses::response_code  scope_manager::set_scaling_factors(std::vector<float> 
 }
 
 responses::response_code scope_manager::set_channel_status(std::unordered_map<int, bool> status) {
+    spdlog::info("SET_STATUSES: {0} {1} {2} {3} {4} {5}",status[0], status[1], status[2], status[3], status[4], status[5]);
     channel_status = std::move(status);
     return responses::ok;
 }
