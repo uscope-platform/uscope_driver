@@ -309,7 +309,7 @@ void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_spec
             in.dest = address;
 
             if(in.is_float){
-                input_value = fcore::emulator::float_to_uint32(in_specs[i]["source"]["value"]);
+                input_value = fcore::emulator_backend::float_to_uint32(in_specs[i]["source"]["value"]);
                 spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
 
             } else {
