@@ -31,15 +31,10 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
 
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     std::string s_f = SCHEMAS_FOLDER;
-    try{
-        fcore::schema_validator_base validator(s_f + "/emulator_spec_schema.json");
-        validator.validate(spec);
-    } catch(std::invalid_argument &ex){
-        throw std::runtime_error(ex.what());
-    }
+
     fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
-    auto interconnects = em.load_interconnects(spec["interconnect"]);
+    auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
 
     if(programs.size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";
@@ -47,7 +42,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         throw std::runtime_error(msg);
     }
 
-    reserve_inputs(interconnects);
+    reserve_inputs(specs.interconnects);
     reserve_outputs(programs);
 
 
@@ -65,8 +60,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
         cores_idx[programs[i].name] = i;
-        load_core(get_core_rom_address(i), programs[i].program);
-        check_reciprocal(programs[i].program);
+        load_core(get_core_rom_address(i), programs[i].program.binary);
+        check_reciprocal(programs[i].program.binary);
     }
 
     auto dividers = calculate_timebase_divider(programs, n_channels);
@@ -82,7 +77,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
 
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", programs[i].name);
-        setup_initial_state(get_core_control_address(i), programs[i].mem_init);
+        setup_initial_state(get_core_control_address(i), programs[i].memories);
     }
 
 
@@ -203,18 +198,18 @@ void hil_deployer::setup_cores(uint16_t n_cores) {
     }
 }
 
-void hil_deployer::reserve_inputs(std::vector<fcore::interconnect_t> &ic) {
+void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_interconnect> &ic) {
     hil_bus_map input_bus_map;
     for(auto &i:ic){
-        for(auto &c:i.connections){
-            if(!bus_map.has_bus(c.first.address)){
+        for(auto &c:i.channels){
+            if(!bus_map.has_bus(c.source.address[0])){
                 bus_map_entry e;
-                e.core_name = i.source;
-                e.bus_address =  c.second.address;
-                e.io_address = c.first.address;
+                e.core_name = i.source_core_id;
+                e.bus_address =  c.destination.address[0];
+                e.io_address = c.source.address[0];
                 e.type = "o";
                 bus_map.push_back(e);
-                bus_address_index.insert({(uint16_t) c.second.address, {i.source, c.first.address}});
+                bus_address_index.insert({(uint16_t) c.destination.address[0], {i.source_core_id, c.source.address[0]}});
             } else {
                 spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
             }
@@ -266,10 +261,17 @@ void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     }
 }
 
-void hil_deployer::setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val) {
+void hil_deployer::setup_initial_state(uint64_t address, const std::vector<fcore::emulator::emulator_memory_specs> &init_val) {
     spdlog::info("------------------------------------------------------------------");
     for(auto &i:init_val){
-        write_register(address+i.first*4, i.second);
+
+        if(std::holds_alternative<std::vector<float>>(i.value)){
+            auto values = std::get<std::vector<float>>(i.value);
+            write_register(address+i.address[0]*4, fcore::emulator_backend::float_to_uint32(values[0]));
+        } else {
+            auto values = std::get<std::vector<uint32_t>>(i.value);
+            write_register(address+i.address[0]*4, values[0]);
+        }
     }
     spdlog::info("------------------------------------------------------------------");
 }
@@ -343,7 +345,7 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector
     for(int i = 0; i<programs.size(); i++){
         auto p = programs[i];
         double clock_period = 1/hil_clock_frequency;
-        double total_length = (p.program_length.fixed_portion + n_c[i]*p.program_length.per_channel_portion)*clock_period;
+        double total_length = (p.program.program_length.fixed_portion + n_c[i]*p.program.program_length.per_channel_portion)*clock_period;
 
         double max_frequency = 1/total_length;
 
@@ -369,7 +371,7 @@ hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> 
 
     std::vector<shift_calc_data> calc_data_v;
     for(int i = 0; i<programs.size(); i++){
-        auto l = programs[i].program_length.fixed_portion + n_c[i]*programs[i].program_length.per_channel_portion;
+        auto l = programs[i].program.program_length.fixed_portion + n_c[i]*programs[i].program.program_length.per_channel_portion;
         calc_data_v.emplace_back(programs[i].name, programs[i].execution_order, l);
     }
 

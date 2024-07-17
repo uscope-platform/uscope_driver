@@ -27,7 +27,8 @@ toolchain_manager::compile(std::string content, nlohmann::json h, nlohmann::json
     }
 
     fcore::fcore_cc cc(c, headers);
-    cc.set_dma_map(io);
+    auto map = fcore::fcore_cc::load_iom_map(io);
+    cc.set_dma_map(map);
     if(!cc.compile()){
         throw std::runtime_error(cc.get_errors());
     }

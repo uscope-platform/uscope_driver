@@ -48,7 +48,7 @@
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/hw_address_maps.hpp"
 
-#include "emulator/backend/emulator.hpp"
+#include "emulator/backend/emulator_backend.hpp"
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
 #define GET_CHANNEL(NUMBER) ((NUMBER & 0x0000ffff00000000)>>32)

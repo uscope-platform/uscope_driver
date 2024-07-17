@@ -76,7 +76,7 @@ public:
 private:
     uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
 
-    void reserve_inputs(std::vector<fcore::interconnect_t> &ic);
+    void reserve_inputs(std::vector<fcore::emulator::emulator_interconnect> &ic);
     void reserve_outputs(std::vector<fcore::program_bundle> &programs);
 
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
@@ -84,7 +84,7 @@ private:
     void setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive);
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
     void setup_cores(uint16_t n_cores);
-    void setup_initial_state(uint64_t address, const std::unordered_map<uint32_t, uint32_t> &init_val);
+    void setup_initial_state(uint64_t address, const std::vector<fcore::emulator::emulator_memory_specs> &init_val);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
     std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs,
