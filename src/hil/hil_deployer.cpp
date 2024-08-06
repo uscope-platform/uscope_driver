@@ -177,8 +177,7 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
         enable[i] = true;
-        auto register_setting = divisors[i]-1;
-        write_register(controller_base + controller_offset + 0x4 + 4 * i, register_setting);
+        write_register(controller_base + controller_offset + 0x4 + 4 * i, divisors[i]-1);
         write_register(controller_base + hil_tb_offset + 8 + 4*i, shifts[i]);
     }
 
@@ -202,16 +201,18 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
     hil_bus_map input_bus_map;
     for(auto &i:ic){
         for(auto &c:i.channels){
-            if(!bus_map.has_bus(c.source.address[0])){
-                bus_map_entry e;
-                e.core_name = i.source_core_id;
-                e.bus_address =  c.destination.address[0];
-                e.io_address = c.source.address[0];
-                e.type = "o";
-                bus_map.push_back(e);
-                bus_address_index.insert({(uint16_t) c.destination.address[0], {i.source_core_id, c.source.address[0]}});
-            } else {
-                spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
+            for(int j = 0; j<c.source.address.size(); j++){
+                if(!bus_map.has_bus(c.source.address[j])){
+                    bus_map_entry e;
+                    e.core_name = i.source_core_id;
+                    e.bus_address =  c.destination.address[j];
+                    e.io_address = c.source.address[j];
+                    e.type = "o";
+                    bus_map.push_back(e);
+                    bus_address_index.insert({(uint16_t) c.destination.address[j], {i.source_core_id, c.source.address[j]}});
+                } else {
+                    spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
+                }
             }
         }
     }
@@ -311,11 +312,11 @@ void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_spec
             in.dest = address;
 
             if(in.is_float){
-                input_value = fcore::emulator_backend::float_to_uint32(in_specs[i]["source"]["value"]);
+                input_value = fcore::emulator_backend::float_to_uint32(in_specs[i]["source"]["value"][0]);
                 spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
 
             } else {
-                input_value = in_specs[i]["source"]["value"];
+                input_value = in_specs[i]["source"]["value"][0];
                 spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
             }
 
