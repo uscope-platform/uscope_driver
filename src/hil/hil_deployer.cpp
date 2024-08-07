@@ -136,7 +136,7 @@ uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& cor
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.core_name == core_name){
-            setup_output_entry(i.io_address, i.bus_address, address, current_io);
+            setup_output_entry(i.source_io_address, i.destination_bus_address, address, current_io);
             current_io++;
         }
     }
@@ -205,8 +205,10 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
                 if(!bus_map.has_bus(c.source.address[j])){
                     bus_map_entry e;
                     e.core_name = i.source_core_id;
-                    e.bus_address =  c.destination.address[j];
-                    e.io_address = c.source.address[j];
+                    e.destination_bus_address =  c.destination.address[j];
+                    e.source_io_address = c.source.address[j];
+                    e.source_channel = 0;
+                    e.destination_channel = 0;
                     e.type = "o";
                     bus_map.push_back(e);
                     bus_address_index.insert({(uint16_t) c.destination.address[j], {i.source_core_id, c.source.address[j]}});
@@ -226,8 +228,10 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
                 if(!bus_map.has_io(io.io_addr, p.name)){
                     bus_map_entry e;
                     e.core_name = p.name;
-                    e.bus_address = get_free_address(io.io_addr, p.name);
-                    e.io_address = io.io_addr;
+                    e.destination_bus_address = get_free_address(io.io_addr, p.name);
+                    e.source_io_address = io.io_addr;
+                    e.source_channel = 0;
+                    e.destination_channel = 0;
                     e.type = io.type;
                     bus_map.push_back(e);
                 }

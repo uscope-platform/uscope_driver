@@ -27,8 +27,10 @@
 
 class bus_map_entry{
 public:
-    uint16_t io_address;
-    uint16_t bus_address;
+    uint16_t source_io_address;
+    uint16_t destination_bus_address;
+    uint16_t source_channel;
+    uint16_t destination_channel;
     std::string core_name;
     std::string type;
 };

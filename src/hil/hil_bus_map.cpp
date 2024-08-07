@@ -38,7 +38,7 @@ std::vector<bus_map_entry>::const_iterator hil_bus_map::end() const {
 
 std::optional<bus_map_entry> hil_bus_map::at_io(uint16_t i, const std::string& p_n) {
     for(auto &e:bus_map){
-        if(e.io_address == i && e.core_name == p_n){
+        if(e.source_io_address == i && e.core_name == p_n){
             return e;
         }
     }
@@ -47,7 +47,7 @@ std::optional<bus_map_entry> hil_bus_map::at_io(uint16_t i, const std::string& p
 
 std::optional<bus_map_entry> hil_bus_map::at_bus(uint16_t i, const std::string &p_n) {
     for(auto &e:bus_map){
-        if(e.bus_address == i && e.core_name == p_n){
+        if(e.destination_bus_address == i && e.core_name == p_n){
             return e;
         }
     }
@@ -56,7 +56,7 @@ std::optional<bus_map_entry> hil_bus_map::at_bus(uint16_t i, const std::string &
 
 bool hil_bus_map::has_bus(uint16_t addr) {
     for(auto &e:bus_map){
-        if(e.bus_address == addr){
+        if(e.destination_bus_address == addr){
             return true;
         }
     }
@@ -64,7 +64,7 @@ bool hil_bus_map::has_bus(uint16_t addr) {
 }
 
 bool hil_bus_map::has_io(uint16_t addr, const std::string &p_n) {
-    if (std::ranges::any_of(bus_map,  [&addr, &p_n](const bus_map_entry& e) { return e.io_address == addr && e.core_name == p_n; })){
+    if (std::ranges::any_of(bus_map,  [&addr, &p_n](const bus_map_entry& e) { return e.source_io_address == addr && e.core_name == p_n; })){
         return true;
     } else{
         return false;
