@@ -145,10 +145,29 @@ void hil_deployer::write_register(uint64_t addr, uint32_t val) {
 }
 
 void hil_deployer::setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive) {
-    uint32_t mapping = pack_address_mapping(e.destination_bus_address, e.source_io_address);
+
+    if(e.source_io_address > 0xfff){
+        throw std::runtime_error("The maximum source address in an interconnect is 0xFFF");
+    }
+    if(e.destination_bus_address > 0xfff){
+        throw std::runtime_error("The maximum destination address in an interconnect is 0xFFF");
+    }
+    if(e.source_channel > 0xF){
+        throw std::runtime_error("The maximum number source of channels in an interconnect is 16");
+    }
+    if(e.destination_channel > 0xF){
+        throw std::runtime_error("The maximum number destination of channels in an interconnect is 16");
+    }
+
+
+    uint16_t source_portion = (e.source_io_address & 0xFFF) |((e.source_channel & 0xF)<<12);
+    uint16_t destination_portion = (e.destination_bus_address & 0xFFF) |((e.destination_channel & 0xF)<<12);
+
+    uint32_t mapping = (destination_portion<<16) | source_portion;
     uint64_t current_address = dma_address + 4 + io_progressive*4;
     spdlog::info("map core io address: ({0},{1}) to hil bus address: ({2},{3})",
                  e.source_io_address,e.source_channel, e.destination_bus_address, e.destination_channel);
+
     write_register(current_address, mapping);
 }
 
