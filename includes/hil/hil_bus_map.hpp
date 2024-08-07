@@ -25,6 +25,9 @@
 #include <optional>
 #include <algorithm>
 
+
+#include "emulator/emulator_manager.hpp"
+
 class bus_map_entry{
 public:
     uint16_t source_io_address;
@@ -46,6 +49,9 @@ public:
     std::vector<bus_map_entry>::const_iterator begin() const;
 
     std::vector<bus_map_entry>::iterator end();
+
+    void add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name);
 
     std::vector<bus_map_entry>::const_iterator end() const;
     uint16_t get_free_address(uint16_t original_addr);

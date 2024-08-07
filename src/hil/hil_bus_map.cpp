@@ -66,3 +66,33 @@ uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
     }
     throw std::runtime_error("Unable to find free bus address");
 }
+
+void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core) {
+    for(int j = 0; j<c.source.address.size(); j++){
+        if(is_bus_address_free(c.source.address[j])){
+            bus_map_entry e;
+            e.core_name = source_core;
+            e.destination_bus_address =  c.destination.address[j];
+            e.source_io_address = c.source.address[j];
+            e.source_channel = 0;
+            e.destination_channel = 0;
+            e.type = "o";
+            bus_map.push_back(e);
+        } else {
+            spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
+        }
+    }
+}
+
+void hil_bus_map::add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name) {
+    if(is_io_address_free(out.io_addr, core_name)){
+        bus_map_entry e;
+        e.core_name = core_name;
+        e.destination_bus_address = get_free_address(out.io_addr);
+        e.source_io_address = out.io_addr;
+        e.source_channel = 0;
+        e.destination_channel = 0;
+        e.type = out.type;
+        bus_map.push_back(e);
+    }
+}

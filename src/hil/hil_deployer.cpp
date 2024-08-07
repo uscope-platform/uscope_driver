@@ -184,20 +184,7 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
     hil_bus_map input_bus_map;
     for(auto &i:ic){
         for(auto &c:i.channels){
-            for(int j = 0; j<c.source.address.size(); j++){
-                if(bus_map.is_bus_address_free(c.source.address[j])){
-                    bus_map_entry e;
-                    e.core_name = i.source_core_id;
-                    e.destination_bus_address =  c.destination.address[j];
-                    e.source_io_address = c.source.address[j];
-                    e.source_channel = 0;
-                    e.destination_channel = 0;
-                    e.type = "o";
-                    bus_map.push_back(e);
-                } else {
-                    spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
-                }
-            }
+            bus_map.add_interconnect_channel(c, i.source_core_id, i.destination_core_id);
         }
     }
 
@@ -207,16 +194,7 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
     for(auto &p:programs){
         for(auto &io:p.io){
             if(io.type == "o"){
-                if(bus_map.is_io_address_free(io.io_addr, p.name)){
-                    bus_map_entry e;
-                    e.core_name = p.name;
-                    e.destination_bus_address = bus_map.get_free_address(io.io_addr);
-                    e.source_io_address = io.io_addr;
-                    e.source_channel = 0;
-                    e.destination_channel = 0;
-                    e.type = io.type;
-                    bus_map.push_back(e);
-                }
+                bus_map.add_standalone_output(io, p.name);
             }
         }
     }
