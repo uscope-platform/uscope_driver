@@ -48,11 +48,9 @@ public:
     std::vector<bus_map_entry>::iterator end();
 
     std::vector<bus_map_entry>::const_iterator end() const;
-
-    std::optional<bus_map_entry>  at_io(uint16_t, const std::string& p_n);
-    std::optional<bus_map_entry>  at_bus(uint16_t, const std::string& p_n);
-    bool has_io(uint16_t addr, const std::string& p_n);
-    bool has_bus(uint16_t addr);
+    uint16_t get_free_address(uint16_t original_addr);
+    bool is_io_address_free(uint16_t addr, const std::string& p_n);
+    bool is_bus_address_free(uint16_t addr);
     void clear() {bus_map.clear();};
 
 private:

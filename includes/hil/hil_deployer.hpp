@@ -74,7 +74,6 @@ public:
     void start();
     void stop();
 private:
-    uint16_t get_free_address(uint16_t original_addr, const std::string &c_n);
 
     void reserve_inputs(std::vector<fcore::emulator::emulator_interconnect> &ic);
     void reserve_outputs(std::vector<fcore::program_bundle> &programs);
@@ -98,9 +97,6 @@ private:
     uint64_t get_dma_address(uint16_t dma_idx) const;
     uint32_t pack_address_mapping(uint16_t, uint16_t) const;
     void write_register(uint64_t addr, uint32_t val);
-
-    std::map<std::uint16_t, std::pair<std::string, uint16_t>> bus_address_index;
-
 
     float hil_clock_frequency = 100e6;
 

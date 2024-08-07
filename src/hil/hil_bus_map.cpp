@@ -36,38 +36,33 @@ std::vector<bus_map_entry>::const_iterator hil_bus_map::end() const {
     return bus_map.end();
 }
 
-std::optional<bus_map_entry> hil_bus_map::at_io(uint16_t i, const std::string& p_n) {
-    for(auto &e:bus_map){
-        if(e.source_io_address == i && e.core_name == p_n){
-            return e;
-        }
-    }
-    return {};
-}
 
-std::optional<bus_map_entry> hil_bus_map::at_bus(uint16_t i, const std::string &p_n) {
-    for(auto &e:bus_map){
-        if(e.destination_bus_address == i && e.core_name == p_n){
-            return e;
-        }
-    }
-    return {};
-}
-
-bool hil_bus_map::has_bus(uint16_t addr) {
-    for(auto &e:bus_map){
-        if(e.destination_bus_address == addr){
-            return true;
-        }
-    }
-    return false;
-}
-
-bool hil_bus_map::has_io(uint16_t addr, const std::string &p_n) {
-    if (std::ranges::any_of(bus_map,  [&addr, &p_n](const bus_map_entry& e) { return e.source_io_address == addr && e.core_name == p_n; })){
-        return true;
-    } else{
+bool hil_bus_map::is_bus_address_free(uint16_t addr) {
+    if (std::ranges::any_of(bus_map,  [&addr](const bus_map_entry& e) { return e.destination_bus_address == addr;})){
         return false;
+    } else{
+        return true;
+    }
+}
+
+bool hil_bus_map::is_io_address_free(uint16_t addr, const std::string &p_n) {
+    if (std::ranges::any_of(bus_map,  [&addr, &p_n](const bus_map_entry& e) { return e.source_io_address == addr && e.core_name == p_n; })){
+        return false;
+    } else{
+        return true;
     }
 
+}
+
+uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
+    if(is_bus_address_free(original_addr)){
+        return original_addr;
+    }
+
+    for(uint32_t i = bus_map.size(); i<(1<<16); i++){
+        if(is_bus_address_free(i)){
+            return i;
+        }
+    }
+    throw std::runtime_error("Unable to find free bus address");
 }

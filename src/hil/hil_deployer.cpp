@@ -90,26 +90,9 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
 
     //cleanup leftovers from deployment process
     bus_map.clear();
-    bus_address_index.clear();
     return responses::ok;
 }
 
-uint16_t hil_deployer::get_free_address(uint16_t original_addr, const std::string &c_n) {
-    if(!bus_address_index.contains(original_addr)){
-        bus_address_index.insert({original_addr, {c_n, original_addr}});
-        return original_addr;
-    }
-
-    for(uint16_t i = 0; i<bus_address_index.size(); i++){
-        if(!bus_address_index.contains(i)){
-            bus_address_index.insert({i, {c_n, original_addr}});
-            return i;
-        }
-    }
-    uint16_t idx = bus_address_index.size()+1;
-    bus_address_index.insert({idx, {c_n, original_addr}});
-    return idx;
-}
 
 uint64_t hil_deployer::get_core_rom_address(uint16_t core_address) const {
     return cores_rom_base_address + core_address * cores_rom_offset;
@@ -202,7 +185,7 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
     for(auto &i:ic){
         for(auto &c:i.channels){
             for(int j = 0; j<c.source.address.size(); j++){
-                if(!bus_map.has_bus(c.source.address[j])){
+                if(bus_map.is_bus_address_free(c.source.address[j])){
                     bus_map_entry e;
                     e.core_name = i.source_core_id;
                     e.destination_bus_address =  c.destination.address[j];
@@ -211,7 +194,6 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
                     e.destination_channel = 0;
                     e.type = "o";
                     bus_map.push_back(e);
-                    bus_address_index.insert({(uint16_t) c.destination.address[j], {i.source_core_id, c.source.address[j]}});
                 } else {
                     spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
                 }
@@ -225,10 +207,10 @@ void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs)
     for(auto &p:programs){
         for(auto &io:p.io){
             if(io.type == "o"){
-                if(!bus_map.has_io(io.io_addr, p.name)){
+                if(bus_map.is_io_address_free(io.io_addr, p.name)){
                     bus_map_entry e;
                     e.core_name = p.name;
-                    e.destination_bus_address = get_free_address(io.io_addr, p.name);
+                    e.destination_bus_address = bus_map.get_free_address(io.io_addr);
                     e.source_io_address = io.io_addr;
                     e.source_channel = 0;
                     e.destination_channel = 0;
