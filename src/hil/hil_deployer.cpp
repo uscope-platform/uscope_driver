@@ -45,6 +45,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     reserve_inputs(specs.interconnects);
     reserve_outputs(programs);
 
+    bus_map.check_conflicts();
 
     std::vector<uint32_t> frequencies;
 
@@ -119,7 +120,7 @@ uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& cor
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.core_name == core_name){
-            setup_output_entry(i.source_io_address, i.destination_bus_address, address, current_io);
+            setup_output_entry(i, address, current_io);
             current_io++;
         }
     }
@@ -143,10 +144,11 @@ void hil_deployer::write_register(uint64_t addr, uint32_t val) {
     hw->single_write_register(write);
 }
 
-void hil_deployer::setup_output_entry(uint16_t io_addr, uint16_t bus_address, uint64_t dma_address, uint32_t io_progressive) {
-    uint32_t mapping = pack_address_mapping(bus_address, io_addr);
+void hil_deployer::setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive) {
+    uint32_t mapping = pack_address_mapping(e.destination_bus_address, e.source_io_address);
     uint64_t current_address = dma_address + 4 + io_progressive*4;
-    spdlog::info("map core io address: {0} to hil bus address {1}", io_addr, bus_address);
+    spdlog::info("map core io address: ({0},{1}) to hil bus address: ({2},{3})",
+                 e.source_io_address,e.source_channel, e.destination_bus_address, e.destination_channel);
     write_register(current_address, mapping);
 }
 

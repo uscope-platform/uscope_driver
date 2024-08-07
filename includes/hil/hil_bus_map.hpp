@@ -53,11 +53,19 @@ public:
     void add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
     void add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name);
 
+    void process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void process_gather_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void process_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+
     std::vector<bus_map_entry>::const_iterator end() const;
     uint16_t get_free_address(uint16_t original_addr);
     bool is_io_address_free(uint16_t addr, const std::string& p_n);
     bool is_bus_address_free(uint16_t addr);
     void clear() {bus_map.clear();};
+
+    void check_conflicts();
 
 private:
     std::vector<bus_map_entry> bus_map;

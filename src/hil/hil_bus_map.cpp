@@ -68,20 +68,26 @@ uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
 }
 
 void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core) {
-    for(int j = 0; j<c.source.address.size(); j++){
-        if(is_bus_address_free(c.source.address[j])){
-            bus_map_entry e;
-            e.core_name = source_core;
-            e.destination_bus_address =  c.destination.address[j];
-            e.source_io_address = c.source.address[j];
-            e.source_channel = 0;
-            e.destination_channel = 0;
-            e.type = "o";
-            bus_map.push_back(e);
-        } else {
-            spdlog::warn("WARNING: Unsolvable input bus address conflict detected");
-        }
+
+    switch(c.type) {
+        case fcore::emulator::dma_link_scalar:
+            process_scalar_channel(c,source_core,target_core);
+            break;
+        case fcore::emulator::dma_link_scatter:
+            process_scatter_channel(c,source_core,target_core);
+            break;
+        case fcore::emulator::dma_link_gather:
+            process_gather_channel(c,source_core,target_core);
+            break;
+        case fcore::emulator::dma_link_vector:
+            process_vector_channel(c,source_core,target_core);
+            break;
+        case fcore::emulator::dma_link_2d_vector:
+            process_2d_vector_channel(c,source_core,target_core);
+            break;
     }
+
+
 }
 
 void hil_bus_map::add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name) {
@@ -94,5 +100,90 @@ void hil_bus_map::add_standalone_output(const fcore::io_map_entry &out, const st
         e.destination_channel = 0;
         e.type = out.type;
         bus_map.push_back(e);
+    }
+}
+
+void hil_bus_map::process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
+                                         const std::string &target_core) {
+    bus_map_entry e;
+    e.core_name = source_core;
+    e.destination_bus_address =  c.destination.address[0];
+    e.destination_channel = c.destination.channel[0];
+    e.source_io_address = c.source.address[0];
+    e.source_channel = c.source.channel[0];
+    e.type = "o";
+    bus_map.push_back(e);
+}
+
+void hil_bus_map::process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
+                                          const std::string &target_core) {
+    for(uint32_t i = 0; i<c.length; i++){
+        bus_map_entry e;
+        e.core_name = source_core;
+        e.source_io_address = c.source.address[0] + i;
+        e.source_channel = c.destination.channel[0];
+        e.destination_bus_address =  c.destination.address[0];
+        e.destination_channel = c.destination.channel[0] + i;
+        e.type = "o";
+        bus_map.push_back(e);
+    }
+}
+
+void hil_bus_map::process_gather_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
+                                         const std::string &target_core) {
+    for(uint32_t i = 0; i<c.length; i++){
+        bus_map_entry e;
+        e.core_name = source_core;
+        e.source_io_address = c.source.address[0];
+        e.source_channel =  c.destination.channel[0] + i;
+        e.destination_bus_address =  c.destination.address[0] + i;
+        e.destination_channel = c.destination.channel[0];
+        e.type = "o";
+        bus_map.push_back(e);
+    }
+}
+
+void hil_bus_map::process_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
+                                         const std::string &target_core) {
+    for(uint32_t i = 0; i<c.length; i++){
+        bus_map_entry e;
+        e.core_name = source_core;
+        e.source_io_address = c.source.address[0];
+        e.source_channel = c.source.channel[0] + i;
+        e.destination_bus_address =  c.destination.address[0];
+        e.destination_channel = c.destination.channel[0] + i;
+        e.type = "o";
+        bus_map.push_back(e);
+    }
+}
+
+void hil_bus_map::process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
+                                            const std::string &target_core) {
+    for(uint32_t j = 0; j<c.stride; j++){
+        for(uint32_t i = 0; i<c.length; i++){
+            bus_map_entry e;
+            e.core_name = source_core;
+            e.source_io_address = c.source.address[0] + j;
+            e.source_channel = c.source.channel[0] + i;
+            e.destination_bus_address =  c.destination.address[0] + j;
+            e.destination_channel = c.destination.channel[0] + i;
+            e.type = "o";
+            bus_map.push_back(e);
+        }
+    }
+
+}
+
+void hil_bus_map::check_conflicts() {
+    std::set<std::pair<uint16_t, uint16_t>> processed_entries;
+    for(auto &e:bus_map){
+        std::pair<uint16_t, uint16_t> p = std::make_pair(e.destination_bus_address, e.destination_channel);
+        if(processed_entries.contains(p)){
+            throw std::domain_error(
+                    "Bus conflict detected at address: " + std::to_string(e.destination_bus_address) +
+                         " and channel: " + std::to_string(e.destination_channel));
+        } else{
+            processed_entries.insert(p);
+        }
     }
 }
