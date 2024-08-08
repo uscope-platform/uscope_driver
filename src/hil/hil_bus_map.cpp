@@ -71,40 +71,60 @@ void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c
 
     switch(c.type) {
         case fcore::emulator::dma_link_scalar:
-            process_scalar_channel(c,source_core,target_core);
+            process_scalar_channel(c,source_core);
             break;
         case fcore::emulator::dma_link_scatter:
-            process_scatter_channel(c,source_core,target_core);
+            process_scatter_channel(c,source_core);
             break;
         case fcore::emulator::dma_link_gather:
-            process_gather_channel(c,source_core,target_core);
+            process_gather_channel(c,source_core);
             break;
         case fcore::emulator::dma_link_vector:
-            process_vector_channel(c,source_core,target_core);
+            process_vector_channel(c,source_core);
             break;
         case fcore::emulator::dma_link_2d_vector:
-            process_2d_vector_channel(c,source_core,target_core);
+            process_2d_vector_channel(c,source_core);
             break;
     }
-
-
+    interconnect_exposed_outputs[source_core].insert(c.source.io_name);
 }
 
-void hil_bus_map::add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name) {
-    if(is_io_address_free(out.io_addr, core_name)){
-        bus_map_entry e;
-        e.core_name = core_name;
-        e.destination_bus_address = get_free_address(out.io_addr);
-        e.source_io_address = out.io_addr;
-        e.source_channel = 0;
-        e.destination_channel = 0;
-        e.type = out.type;
-        bus_map.push_back(e);
+void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &core) {
+    for(auto &out:core.outputs){
+        if(out.type == fcore::emulator::vector_endpoint){
+            for(auto addr:out.address){
+                if(!interconnect_exposed_outputs[core.id].contains(out.name)){
+                    bus_map_entry e;
+                    e.core_name = core.id;
+                    e.destination_bus_address = get_free_address(addr);
+                    e.source_io_address = addr;
+                    e.source_channel = 0;
+                    e.destination_channel = 0;
+                    e.type = 'o';
+                    bus_map.push_back(e);
+                }
+            }
+        } else {
+            for(int i = 0; i<core.channels; i++){
+                if(!interconnect_exposed_outputs[core.id].contains(out.name)){
+                    bus_map_entry e;
+                    e.core_name = core.id;
+                    e.destination_bus_address = get_free_address(out.address[0]);
+                    e.source_io_address = out.address[0];
+                    e.source_channel = i;
+                    e.destination_channel = 0;
+                    e.type = 'o';
+                    bus_map.push_back(e);
+                }
+            }
+        }
+
     }
+
+
 }
 
-void hil_bus_map::process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
-                                         const std::string &target_core) {
+void hil_bus_map::process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string &source_core) {
     bus_map_entry e;
     e.core_name = source_core;
     e.destination_bus_address =  c.destination.address[0];
@@ -115,8 +135,7 @@ void hil_bus_map::process_scalar_channel(const fcore::emulator::dma_channel &c, 
     bus_map.push_back(e);
 }
 
-void hil_bus_map::process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
-                                          const std::string &target_core) {
+void hil_bus_map::process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string &source_core) {
     for(uint32_t i = 0; i<c.length; i++){
         bus_map_entry e;
         e.core_name = source_core;
@@ -129,8 +148,7 @@ void hil_bus_map::process_scatter_channel(const fcore::emulator::dma_channel &c,
     }
 }
 
-void hil_bus_map::process_gather_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
-                                         const std::string &target_core) {
+void hil_bus_map::process_gather_channel(const fcore::emulator::dma_channel &c, const std::string &source_core) {
     for(uint32_t i = 0; i<c.length; i++){
         bus_map_entry e;
         e.core_name = source_core;
@@ -143,8 +161,7 @@ void hil_bus_map::process_gather_channel(const fcore::emulator::dma_channel &c, 
     }
 }
 
-void hil_bus_map::process_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
-                                         const std::string &target_core) {
+void hil_bus_map::process_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core) {
     for(uint32_t i = 0; i<c.length; i++){
         bus_map_entry e;
         e.core_name = source_core;
@@ -157,8 +174,7 @@ void hil_bus_map::process_vector_channel(const fcore::emulator::dma_channel &c, 
     }
 }
 
-void hil_bus_map::process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core,
-                                            const std::string &target_core) {
+void hil_bus_map::process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string &source_core) {
     for(uint32_t j = 0; j<c.stride; j++){
         for(uint32_t i = 0; i<c.length; i++){
             bus_map_entry e;

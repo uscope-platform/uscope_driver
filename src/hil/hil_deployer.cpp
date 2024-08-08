@@ -43,7 +43,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     }
 
     reserve_inputs(specs.interconnects);
-    reserve_outputs(programs);
+    reserve_outputs(specs.cores, programs);
 
     bus_map.check_conflicts();
 
@@ -211,13 +211,10 @@ void hil_deployer::reserve_inputs(std::vector<fcore::emulator::emulator_intercon
 
 }
 
-void hil_deployer::reserve_outputs(std::vector<fcore::program_bundle> &programs) {
-    for(auto &p:programs){
-        for(auto &io:p.io){
-            if(io.type == "o"){
-                bus_map.add_standalone_output(io, p.name);
-            }
-        }
+void hil_deployer::reserve_outputs(std::vector<fcore::emulator::emulator_core> &cores, std::vector<fcore::program_bundle> &programs) {
+    for(const auto &c:cores){
+
+        bus_map.add_standalone_output(c);
     }
 }
 

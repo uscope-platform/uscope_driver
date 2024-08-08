@@ -76,7 +76,7 @@ public:
 private:
 
     void reserve_inputs(std::vector<fcore::emulator::emulator_interconnect> &ic);
-    void reserve_outputs(std::vector<fcore::program_bundle> &programs);
+    void reserve_outputs(std::vector<fcore::emulator::emulator_core> &cores, std::vector<fcore::program_bundle> &programs);
 
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);

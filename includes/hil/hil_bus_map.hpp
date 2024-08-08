@@ -51,13 +51,13 @@ public:
     std::vector<bus_map_entry>::iterator end();
 
     void add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
-    void add_standalone_output(const fcore::io_map_entry &out, const std::string &core_name);
+    void add_standalone_output(const fcore::emulator::emulator_core &out);
 
-    void process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
-    void process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
-    void process_gather_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
-    void process_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
-    void process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
+    void process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
+    void process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
+    void process_gather_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
+    void process_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
+    void process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
 
     std::vector<bus_map_entry>::const_iterator end() const;
     uint16_t get_free_address(uint16_t original_addr);
@@ -69,6 +69,7 @@ public:
 
 private:
     std::vector<bus_map_entry> bus_map;
+    std::map<std::string, std::set<std::string>> interconnect_exposed_outputs;
 
 };
 
