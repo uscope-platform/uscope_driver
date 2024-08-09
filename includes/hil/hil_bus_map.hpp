@@ -39,6 +39,13 @@ public:
 };
 
 
+struct output_specs_t{
+    std::string core_name;
+    std::string source_output;
+    uint32_t address;
+    uint32_t channel;
+};
+
 class hil_bus_map {
 public:
 
@@ -58,6 +65,8 @@ public:
     void process_gather_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
     void process_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
     void process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
+
+    std::pair<uint16_t, uint16_t> translate_output(const output_specs_t &out);
 
     std::vector<bus_map_entry>::const_iterator end() const;
     uint16_t get_free_address(uint16_t original_addr);

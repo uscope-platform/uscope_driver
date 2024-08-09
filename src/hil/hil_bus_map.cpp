@@ -203,3 +203,17 @@ void hil_bus_map::check_conflicts() {
         }
     }
 }
+
+std::pair<uint16_t, uint16_t> hil_bus_map::translate_output(const output_specs_t &out) {
+    for(auto &e:bus_map){
+        if(e.core_name == out.core_name){
+            if(e.source_io_address == out.address && e.source_channel == out.channel){
+                return std::make_pair(e.destination_bus_address, e.destination_channel);
+            }
+        }
+    }
+    throw std::runtime_error(
+            "Unable to find requested output: " +
+            out.core_name + "." + out.source_output +
+            "(" + std::to_string(out.address) + "," + std::to_string(out.channel) + ")");
+}

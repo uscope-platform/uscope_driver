@@ -126,7 +126,17 @@ nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
 nlohmann::json cores_endpoints::process_hil_select_out(nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    hil.select_output(arguments["channel"], arguments["address"]);
+
+    output_specs_t out;
+    if(arguments.contains("output")){
+        out.core_name = arguments["output"]["source"];
+        out.source_output = arguments["output"]["output"];
+        out.address = arguments["output"]["address"];
+        out.channel = arguments["output"]["channel"];
+        hil.select_output(arguments["channel"], out);
+    } else{
+        spdlog::trace("Received empty argument request for output_select call");
+    }
     return resp;
 }
 

@@ -34,6 +34,7 @@ struct input_metadata_t{
     bool is_float;
 };
 
+
 class hil_deployer {
 public:
     hil_deployer(std::shared_ptr<fpga_bridge>  &h);
@@ -69,7 +70,7 @@ public:
 
     responses::response_code deploy(nlohmann::json &spec);
     void setup_inputs(const std::string &core, nlohmann::json &inputs);
-    void select_output(uint32_t channel, uint32_t address);
+    void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(uint32_t address, uint32_t value, std::string core);
     void start();
     void stop();

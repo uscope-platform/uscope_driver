@@ -32,6 +32,9 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) {
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     std::string s_f = SCHEMAS_FOLDER;
 
+    //cleanup bus map from previous deployment data;
+    bus_map.clear();
+
     fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
     auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
@@ -89,8 +92,6 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     setup_sequencer(programs.size(), dividers, shifts);
     setup_cores(programs.size());
 
-    //cleanup leftovers from deployment process
-    bus_map.clear();
     return responses::ok;
 }
 
@@ -259,8 +260,17 @@ void hil_deployer::setup_initial_state(uint64_t address, const std::vector<fcore
     spdlog::info("------------------------------------------------------------------");
 }
 
-void hil_deployer::select_output(uint32_t channel, uint32_t address) {
-    spdlog::info("HIL SELECT OUTPUT: selected output {0} for channel {1}", address, channel);write_register(scope_mux_base + 4*channel+ 4, address);
+void hil_deployer::select_output(uint32_t channel, const output_specs_t& output) {
+    spdlog::info("HIL SELECT OUTPUT: selected output {0}({1},{2}) from core {3} for scope channel {4}",
+                 output.source_output,
+                 output.address,
+                 output.channel,
+                 output.core_name,
+                 channel);
+
+    auto data =bus_map.translate_output(output);
+    auto selector = data.first | (data.second <<16);
+    write_register(scope_mux_base + 4*channel+ 4, selector);
 }
 
 void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core) {
