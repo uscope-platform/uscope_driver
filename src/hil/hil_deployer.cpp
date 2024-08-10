@@ -130,10 +130,6 @@ uint16_t hil_deployer::setup_output_dma(uint64_t address, const std::string& cor
     return current_io;
 }
 
-uint32_t hil_deployer::pack_address_mapping(uint16_t upper, uint16_t lower) const {
-    return (upper<<16) | lower;
-}
-
 
 void hil_deployer::write_register(uint64_t addr, uint32_t val) {
     spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
@@ -165,11 +161,17 @@ void hil_deployer::setup_output_entry(const bus_map_entry &e, uint64_t dma_addre
     uint16_t destination_portion = (e.destination_bus_address & 0xFFF) |((e.destination_channel & 0xF)<<12);
 
     uint32_t mapping = (destination_portion<<16) | source_portion;
-    uint64_t current_address = dma_address + 4 + io_progressive*4;
+
+    uint64_t mapping_address = dma_address + 4 + io_progressive*4;
     spdlog::info("map core io address: ({0},{1}) to hil bus address: ({2},{3})",
                  e.source_io_address,e.source_channel, e.destination_bus_address, e.destination_channel);
+    write_register(mapping_address, mapping);
 
-    write_register(current_address, mapping);
+    auto n_dma_channels = 16;
+
+    uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
+
+    write_register(metadata_address, get_metadata_value(32, false, true));
 }
 
 void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
@@ -391,4 +393,12 @@ hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> 
     }
 
     return shifts;
+}
+
+uint32_t hil_deployer::get_metadata_value(uint8_t size, bool is_signed, bool is_float) {
+    uint32_t ret = size-8;
+    ret = is_signed ? ret | 0x10: ret;
+    ret = is_float  ? ret | 0x20: ret;
+
+    return ret;
 }
