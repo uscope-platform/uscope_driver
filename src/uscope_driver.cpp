@@ -83,15 +83,9 @@ int main (int argc, char **argv) {
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
 
-    if(log_command){
-        if(log_level >0){
-            spdlog::set_level(spdlog::level::trace);
-        } else {
-            spdlog::set_level(spdlog::level::info);
-        }
-    } else {
-        spdlog::set_level(spdlog::level::warn);
-    }
+
+    spdlog::set_level(spdlog::level::info);
+
     spdlog::set_pattern("[%l] %v");
 
     spdlog::info("Debug mode: {0}", emulate_hw);

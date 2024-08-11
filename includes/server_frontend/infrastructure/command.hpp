@@ -36,7 +36,7 @@ namespace commands {
                                                   "hil_select_out", "hil_set_in", "hil_start", "hil_stop"};
 
 
-    static std::set<std::string> platform_commands = {"set_pl_clock", "get_clock", "get_version"};
+    static std::set<std::string> platform_commands = {"set_pl_clock", "get_clock", "get_version", "set_debug_level"};
 
 
     static nlohmann::json command = R"(

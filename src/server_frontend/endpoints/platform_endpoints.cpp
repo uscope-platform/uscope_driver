@@ -25,8 +25,10 @@ nlohmann::json platform_endpoints::process_command(const std::string &command_st
         return process_set_clock(arguments);
     } else if(command_string=="get_clock") {
         return process_get_clock(arguments);
-    } else if(command_string=="get_version"){
+    } else if(command_string=="get_version") {
         return process_get_version(arguments);
+    } else if(command_string=="set_debug_level"){
+        return process_set_debug_level(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -102,6 +104,28 @@ nlohmann::json platform_endpoints::process_get_version(nlohmann::json &arguments
     } else {
         resp["data"] = "DRIVER ERROR: Unknown component\n";
     }
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+nlohmann::json platform_endpoints::process_set_debug_level(nlohmann::json &arguments) {
+
+    nlohmann::json resp;
+    if(arguments.type() != nlohmann::detail::value_t::string){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The argument for the get version command must be a string\n";
+        return resp;
+    }
+    std::string level = arguments;
+
+    if(level == "minimal"){
+        spdlog::set_level(spdlog::level::warn);
+    } else if (level == "debug"){
+        spdlog::set_level(spdlog::level::info);
+    } else if (level == "trace"){
+        spdlog::set_level(spdlog::level::trace);
+    }
+
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
