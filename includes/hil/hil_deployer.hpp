@@ -78,7 +78,45 @@ struct logic_layout{
         offsets.hil_tb = obj["offsets"]["hil_tb"];
     };
 
+    nlohmann::json dump_layout_object(){
+        nlohmann::json ret;
+        ret["offsets"] = nlohmann::json();
+        ret["offsets"]["cores_rom"] = offsets.cores_rom;
+        ret["offsets"]["cores_control"] = offsets.cores_control;
+        ret["offsets"]["controller"] = offsets.controller;
+        ret["offsets"]["cores_inputs"] = offsets.cores_inputs;
+        ret["offsets"]["dma"] = offsets.dma;
+        ret["offsets"]["hil_tb"] = offsets.hil_tb;
 
+        ret["bases"] = nlohmann::json();
+        ret["bases"]["cores_rom"] = bases.cores_rom;
+        ret["bases"]["cores_control"] = bases.cores_control;
+        ret["bases"]["cores_inputs"] = bases.cores_inputs;
+        ret["bases"]["dma"] = bases.dma;
+        ret["bases"]["controller"] = bases.controller;
+        ret["bases"]["scope_mux"] = bases.scope_mux;
+        ret["bases"]["hil_control"] = bases.hil_control;
+        return ret;
+    }
+
+    std::string dump(){
+        std::string ret;
+        ret += "CORES ROM: BASE " + std::to_string(bases.cores_rom) +
+                ", OFFSET " + std::to_string(offsets.cores_rom) + "\n";
+        ret += "CORES CONTROL: BASE " + std::to_string(bases.cores_control) +
+                ", OFFSET " + std::to_string(offsets.cores_control) + "\n";
+        ret += "CORES INPUTS: BASE " + std::to_string(bases.cores_inputs) +
+                ", OFFSET " + std::to_string(offsets.cores_inputs) + "\n";
+        ret += "DMA: BASE " + std::to_string(bases.dma) +
+                ", OFFSET " + std::to_string(offsets.dma) + "\n";
+        ret += "CONTROLLER: BASE " + std::to_string(bases.controller) +
+               ", OFFSET " + std::to_string(offsets.controller) + "\n";
+
+        ret += "HIL CONTROL: BASE " + std::to_string(bases.hil_control) + "\n";
+        ret += "SCOPE MUX: BASE " + std::to_string(bases.scope_mux) + "\n";
+        ret += "HIL TB: OFFSET " + std::to_string(offsets.hil_tb) + "\n";
+        return ret;
+    }
     logic_layout_bases bases;
     logic_layout_offsets offsets;
 };
@@ -89,6 +127,7 @@ public:
     hil_deployer(std::shared_ptr<fpga_bridge>  &h);
 
     void set_layout_map(nlohmann::json &obj);
+    nlohmann::json get_layout_map();
 
     responses::response_code deploy(nlohmann::json &spec);
     void setup_inputs(const std::string &core, nlohmann::json &inputs);

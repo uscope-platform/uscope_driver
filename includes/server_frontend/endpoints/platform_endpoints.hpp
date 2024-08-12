@@ -33,6 +33,8 @@ private:
     nlohmann::json process_get_clock(nlohmann::json &arguments);
     nlohmann::json process_get_version(nlohmann::json &arguments);
     nlohmann::json process_set_debug_level(nlohmann::json &arguments);
+    nlohmann::json process_get_debug_level(nlohmann::json &arguments);
+
 
     std::shared_ptr<fpga_bridge> hw;
     timing_manager tm;

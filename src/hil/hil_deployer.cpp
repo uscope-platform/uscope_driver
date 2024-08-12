@@ -392,12 +392,18 @@ hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> 
 
 uint32_t hil_deployer::get_metadata_value(uint8_t size, bool is_signed, bool is_float) {
     uint32_t ret = size-8;
-    ret = is_signed ? ret | 0x10: ret;
-    ret = is_float  ? ret | 0x20: ret;
+    ret = is_signed ? (ret | 0x10): ret;
+    ret = is_float  ?( ret | 0x20 ): ret;
 
     return ret;
 }
 
 void hil_deployer::set_layout_map(nlohmann::json &obj) {
+    spdlog::info("SETUP HIL ADDRESS MAP");
     addresses.parse_layout_object(obj);
+    spdlog::trace(addresses.dump());
+}
+
+nlohmann::json hil_deployer::get_layout_map() {
+    return addresses.dump_layout_object();
 }

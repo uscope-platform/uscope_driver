@@ -27,8 +27,10 @@ nlohmann::json platform_endpoints::process_command(const std::string &command_st
         return process_get_clock(arguments);
     } else if(command_string=="get_version") {
         return process_get_version(arguments);
-    } else if(command_string=="set_debug_level"){
+    } else if(command_string=="set_debug_level") {
         return process_set_debug_level(arguments);
+    } else if(command_string == "get_debug_level") {
+        return process_get_debug_level(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -124,6 +126,23 @@ nlohmann::json platform_endpoints::process_set_debug_level(nlohmann::json &argum
         spdlog::set_level(spdlog::level::info);
     } else if (level == "trace"){
         spdlog::set_level(spdlog::level::trace);
+    }
+
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+nlohmann::json platform_endpoints::process_get_debug_level(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    auto level = spdlog::get_level();
+    if(level == spdlog::level::warn){
+        resp["data"] = "minimal";
+    } else if (level == spdlog::level::info){
+        resp["data"] = "debug";
+    } else if (level == spdlog::level::trace){
+        resp["data"] = "trace";
+    } else {
+        resp["data"] =  "";
     }
 
     resp["response_code"] = responses::as_integer(responses::ok);

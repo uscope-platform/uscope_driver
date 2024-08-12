@@ -40,25 +40,8 @@ private:
     nlohmann::json process_hil_stop();
     nlohmann::json process_hil_start();
     nlohmann::json process_set_layout_map(nlohmann::json &arguments);
-
-
-    uint64_t cores_rom_base;
-    uint64_t cores_rom_offset;
-
-    uint64_t cores_control_base;
-    uint64_t cores_control_offset;
-
-    uint64_t dma_base;
-    uint64_t dma_offset;
-
-    uint64_t cores_inputs_base_address;
-    uint64_t cores_inputs_offset;
-
-    uint64_t  scope_mux_base;
-
-    uint64_t controller_base;
-    uint64_t controller_tb_offset;
-    uint64_t hil_control_base;
+    nlohmann::json process_set_hil_address_map(nlohmann::json &arguments);
+    nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
 
     std::shared_ptr<fpga_bridge> hw;
     hil_deployer hil;
