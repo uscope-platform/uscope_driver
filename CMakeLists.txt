@@ -33,8 +33,6 @@ include_directories(${CMAKE_SOURCE_DIR}/includes)
 
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-fsanitize=undefined -fsanitize=address)
-    add_link_options(-fsanitize=undefined -fsanitize=address)
     set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
 else()
     set(schema_folder "/usr/local/etc/fcore_toolchain")
