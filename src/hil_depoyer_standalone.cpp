@@ -64,14 +64,26 @@ int main (int argc, char **argv) {
     hil_deployer d(hw_bridge);
 
 
+    nlohmann::json addr_map, offsets, bases;
+    bases["cores_rom"] = cores_rom_base;
+    bases["cores_control"] = cores_control_base;
+    bases["cores_inputs"] = cores_inputs_base_address;
+    bases["controller"] = controller_base;
+    bases["dma"] = dma_base;
+    bases["scope_mux"] = scope_mux_base;
+    bases["hil_control"] = hil_control_base;
 
-    d.set_cores_rom_location(cores_rom_base, cores_rom_offset);
-    d.set_cores_control_location(cores_control_base, cores_control_offset);
-    d.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
-    d.set_dma_location(dma_base, dma_offset);
-    d.set_scope_mux_base(scope_mux_base);
-    d.set_controller_location(controller_base, controller_tb_offset);
-    d.set_hil_control_location(hil_control_base);
+
+    offsets["cores_rom"] = cores_rom_offset;
+    offsets["cores_control"] =cores_control_offset;
+    offsets["controller"] = controller_tb_offset;
+    offsets["cores_inputs"] = cores_inputs_offset;
+    offsets["dma"] = dma_offset;
+    offsets["hil_tb"] = 0;
+    addr_map["bases"] = bases;
+    addr_map["offsets"] = offsets;
+    d.set_layout_map(addr_map);
+
     d.deploy(spec);
 
 

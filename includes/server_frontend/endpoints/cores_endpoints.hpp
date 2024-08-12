@@ -39,7 +39,7 @@ private:
     nlohmann::json process_hil_select_out(nlohmann::json &arguments);
     nlohmann::json process_hil_stop();
     nlohmann::json process_hil_start();
-
+    nlohmann::json process_set_layout_map(nlohmann::json &arguments);
 
 
     uint64_t cores_rom_base;

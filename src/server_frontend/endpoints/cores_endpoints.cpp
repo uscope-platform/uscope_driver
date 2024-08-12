@@ -39,13 +39,27 @@ cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
 
     hil_control_base = 0x4'43c0'0000;
 
-    hil.set_cores_rom_location(cores_rom_base, cores_rom_offset);
-    hil.set_cores_control_location(cores_control_base, cores_control_offset);
-    hil.set_cores_inputs_location(cores_inputs_base_address, cores_inputs_offset);
-    hil.set_dma_location(dma_base, dma_offset);
-    hil.set_scope_mux_base(scope_mux_base);
-    hil.set_controller_location(controller_base, controller_tb_offset);
-    hil.set_hil_control_location(hil_control_base);
+
+    nlohmann::json addr_map, offsets, bases;
+    bases["cores_rom"] = cores_rom_base;
+    bases["cores_control"] = cores_control_base;
+    bases["cores_inputs"] = cores_inputs_base_address;
+    bases["dma"] = dma_base;
+    bases["controller"] = controller_base;
+    bases["scope_mux"] = scope_mux_base;
+    bases["hil_control"] = hil_control_base;
+
+
+    offsets["cores_rom"] = cores_rom_offset;
+    offsets["cores_control"] =cores_control_offset;
+    offsets["controller"] = controller_tb_offset;
+    offsets["cores_inputs"] = cores_inputs_offset;
+    offsets["dma"] = dma_offset;
+    offsets["hil_tb"] = 0;
+    addr_map["bases"] = bases;
+    addr_map["offsets"] = offsets;
+    hil.set_layout_map(addr_map);
+
 }
 
 nlohmann::json cores_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
@@ -63,8 +77,10 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_start();
     } else if(command_string=="hil_stop") {
         return process_hil_stop();
-    } else if(command_string == "compile_program"){
+    } else if(command_string == "compile_program") {
         return process_compile_program(arguments);
+    }else if(command_string  == "set_layout_map"){
+        return process_set_layout_map(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -180,6 +196,13 @@ nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &argument
         resp["data"] = e.what();
         resp["response_code"] = responses::as_integer(responses::compilation_error);
     }
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_set_layout_map(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    hil.set_layout_map(arguments);
     return resp;
 }
 
