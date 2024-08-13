@@ -1,3 +1,5 @@
+
+
 //   Copyright 2024 Filippo Savi <filssavi@gmail.com>
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,21 +14,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "hil/hil_emulator.hpp"
-
-std::string hil_emulator::emulate(nlohmann::json &specs) {
-
-    spdlog::info("EMULATE HIL");
-
-    std::string results;
-
-    fcore::emulator_manager emu_manager(specs, false, SCHEMAS_FOLDER);
-    emu_manager.process();
-    spdlog::info("COMPILATION DONE");
-    emu_manager.emulate();
-    results = emu_manager.get_results();
-    spdlog::info("EMULATION RESULTS AVAILABLE");
-    return results;
-}
+#ifndef USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
+#define USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
 
 
+class custom_deployer {
+
+};
+
+
+#endif //USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP

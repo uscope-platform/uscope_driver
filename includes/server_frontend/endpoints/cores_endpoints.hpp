@@ -23,8 +23,8 @@
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/toolchain_manager.hpp"
-#include "hil/hil_deployer.hpp"
-#include "hil/hil_emulator.hpp"
+#include "deployment/hil_deployer.hpp"
+#include "deployment/hil_emulator.hpp"
 
 class cores_endpoints {
 public:

@@ -21,10 +21,11 @@
 #include <nlohmann/json.hpp>
 #include <bitset>
 
-#include "hil/hil_bus_map.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "emulator/emulator_manager.hpp"
 #include "fCore_isa.hpp"
+
+#include "deployment/deployer_base.hpp"
 
 
 struct input_metadata_t{
@@ -99,7 +100,7 @@ struct logic_layout{
         return ret;
     }
 
-    std::string dump(){
+    std::string dump() const{
         std::string ret;
         ret += "CORES ROM: BASE " + std::to_string(bases.cores_rom) +
                 ", OFFSET " + std::to_string(offsets.cores_rom) + "\n";
@@ -122,12 +123,19 @@ struct logic_layout{
 };
 
 
-class hil_deployer {
+class hil_deployer : public deployer_base{
 public:
-    hil_deployer(std::shared_ptr<fpga_bridge>  &h);
+    explicit hil_deployer(std::shared_ptr<fpga_bridge>  &h);
 
-    void set_layout_map(nlohmann::json &obj);
-    nlohmann::json get_layout_map();
+    void set_layout_map(nlohmann::json &obj){
+        spdlog::info("SETUP HIL ADDRESS MAP");
+        addresses.parse_layout_object(obj);
+        spdlog::trace(addresses.dump());
+    };
+
+    nlohmann::json get_layout_map(){
+        return addresses.dump_layout_object();
+    };
 
     responses::response_code deploy(nlohmann::json &spec);
     void setup_inputs(const std::string &core, nlohmann::json &inputs);
@@ -137,15 +145,9 @@ public:
     void stop();
 private:
 
-    void reserve_inputs(std::vector<fcore::emulator::emulator_interconnect> &ic);
-    void reserve_outputs(std::vector<fcore::emulator::emulator_core> &cores, std::vector<fcore::program_bundle> &programs);
 
-    void load_core(uint64_t address, const std::vector<uint32_t> &program);
-    uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
-    void setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive);
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
     void setup_cores(uint16_t n_cores);
-    void setup_initial_state(uint64_t address, const std::vector<fcore::emulator::emulator_memory_specs> &init_val);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
     std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs,
@@ -155,15 +157,9 @@ private:
                                                      std::vector<uint32_t> n_c);
 
 
-    static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
-
-    void write_register(uint64_t addr, uint32_t val);
-
     float hil_clock_frequency = 100e6;
 
-    std::map<std::string, uint32_t> cores_idx;
     std::vector<input_metadata_t> inputs;
-    hil_bus_map bus_map;
 
 
     logic_layout addresses;
@@ -175,7 +171,6 @@ private:
 
     bool full_cores_override;
 
-    std::shared_ptr<fpga_bridge> hw;
 };
 
 

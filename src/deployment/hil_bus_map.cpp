@@ -14,7 +14,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "hil/hil_bus_map.hpp"
+#include "deployment/hil_bus_map.hpp"
 
 void hil_bus_map::push_back(const bus_map_entry &e) {
     bus_map.push_back(e);

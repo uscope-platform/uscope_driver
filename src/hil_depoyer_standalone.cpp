@@ -17,7 +17,7 @@
 #include <nlohmann/json.hpp>
 #include <CLI/CLI.hpp>
 
-#include "hil/hil_deployer.hpp"
+#include "deployment/hil_deployer.hpp"
 
 
 interfaces_dictionary if_dict;

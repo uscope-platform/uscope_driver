@@ -62,9 +62,11 @@ set(DRIVER_SOURCES /
         src/hw_interface/channel_metadata.cpp
         src/hw_interface/timing_manager.cpp
         src/emulated_data_generator.cpp
-        src/hil/hil_deployer.cpp
-        src/hil/hil_emulator.cpp
-        src/hil/hil_bus_map.cpp
+        src/deployment/hil_deployer.cpp
+        src/deployment/hil_emulator.cpp
+        src/deployment/hil_bus_map.cpp
+        src/deployment/deployer_base.cpp
+        src/deployment/custom_deployer.cpp
 )
 
 add_executable(uscope_driver ${DRIVER_SOURCES})
@@ -111,8 +113,8 @@ install(TARGETS uscope_driver DESTINATION ${CMAKE_INSTALL_BINDIR})
 add_executable(test_hil_deployer
         src/hil_depoyer_standalone.cpp
         src/server_frontend/infrastructure/schema_validator.cpp
-        src/hil/hil_deployer.cpp
-        src/hil/hil_bus_map.cpp
+        src/deployment/hil_deployer.cpp
+        src/deployment/hil_bus_map.cpp
         src/hw_interface/fpga_bridge.cpp
 )
 
