@@ -138,7 +138,8 @@ public:
     };
 
     responses::response_code deploy(nlohmann::json &spec);
-    void setup_inputs(const std::string &core, nlohmann::json &inputs);
+    void setup_inputs(const fcore::emulator::emulator_core &core);
+
     void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(uint32_t address, uint32_t value, std::string core);
     void start();

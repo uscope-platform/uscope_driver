@@ -100,7 +100,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
 
 
     for(int i = 0; i<programs.size(); i++){
-        setup_inputs(spec["cores"][i]["id"], spec["cores"][i]["inputs"]);
+        setup_inputs(specs.cores[i]);
     }
 
     setup_sequencer(programs.size(), dividers, shifts);
@@ -193,38 +193,39 @@ void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core)
 
 }
 
-void hil_deployer::setup_inputs(const std::string &core, nlohmann::json &in_specs) {
-    spdlog::info("SETUP INPUTS FOR CORE: {0}", core);
+void hil_deployer::setup_inputs(const fcore::emulator::emulator_core &c) {
+    spdlog::info("SETUP INPUTS FOR CORE: {0}", c.id);
     spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<in_specs.size(); ++i){
-        if(in_specs[i]["source"]["type"] == "constant"){
-            std::string in_name = in_specs[i]["name"];
-            uint32_t address =in_specs[i]["reg_n"];
+    for(int i = 0; i<c.inputs.size(); ++i){
+        auto in = c.inputs[i];
+        if(in.source_type ==fcore::emulator::constant_input){
+            std::string in_name = in.name;
+            uint32_t address =in.address[0];
 
-            uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*cores_idx[core];
+            uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*cores_idx[c.id];
             uint64_t offset = addresses.bases.cores_inputs + i*addresses.offsets.cores_inputs;
 
-            input_metadata_t in;
+            input_metadata_t metadata;
 
             uint32_t input_value;
-            in.is_float = in_specs[i]["type"] == "float";
-            in.core = core;
-            in.const_ip_addr = complex_base_addr + offset;
-            in.dest = address;
+            metadata.is_float = in.data_type == fcore::emulator::type_float;
+            metadata.core = c.id;
+            metadata.const_ip_addr = complex_base_addr + offset;
+            metadata.dest = address;
 
-            if(in.is_float){
-                input_value = fcore::emulator_backend::float_to_uint32(in_specs[i]["source"]["value"][0]);
-                spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
-
+            if(std::holds_alternative<std::vector<float>>(in.data[0])){
+                auto c_val = std::get<std::vector<float>>(in.data[0])[0];
+                input_value = fcore::emulator_backend::float_to_uint32(c_val);
             } else {
-                input_value = in_specs[i]["source"]["value"][0];
-                spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core);
+                input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
             }
 
-            write_register( in.const_ip_addr+ 8, address);
-            write_register( in.const_ip_addr, input_value);
+            spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, c.id);
 
-            inputs.push_back(in);
+            write_register( metadata.const_ip_addr+ 8, address);
+            write_register( metadata.const_ip_addr, input_value);
+
+            inputs.push_back(metadata);
         }
 
     }
