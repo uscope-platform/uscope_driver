@@ -26,25 +26,42 @@
 #include "hw_interface/fpga_bridge.hpp"
 #include "deployment/hil_bus_map.hpp"
 
+
+
+struct input_metadata_t{
+    std::string core;
+    uint64_t const_ip_addr;
+    uint32_t dest;
+    bool is_float;
+};
+
 class deployer_base {
 public:
     deployer_base(std::shared_ptr<fpga_bridge>  &h);
-protected:
 
+protected:
+    std::pair<uint16_t, uint16_t> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);};
+
+    void setup_base(const fcore::emulator::emulator_specs &specs);
     void write_register(uint64_t addr, uint32_t val);
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     void setup_core(uint64_t core_address, uint32_t n_channels);
     void setup_memories(uint64_t address, const std::vector<fcore::emulator::emulator_memory_specs> &init_val);
+
+    void setup_inputs(const fcore::emulator::emulator_core &c, uint64_t complex_address, uint64_t inputs_offset, uint64_t const_offset);
 
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive);
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
-    std::map<std::string, uint32_t> cores_idx;
-    std::shared_ptr<fpga_bridge> hw;
+    void update_input_value(uint32_t address, uint32_t value, std::string core);
+
+private:
     hil_bus_map bus_map;
 
+    std::vector<input_metadata_t> inputs;
+    std::shared_ptr<fpga_bridge> hw;
 };
 
 

@@ -28,14 +28,6 @@
 #include "deployment/deployer_base.hpp"
 
 
-struct input_metadata_t{
-    std::string core;
-    uint64_t const_ip_addr;
-    uint32_t dest;
-    bool is_float;
-};
-
-
 struct logic_layout{
 
     struct logic_layout_bases{
@@ -138,7 +130,6 @@ public:
     };
 
     responses::response_code deploy(nlohmann::json &spec);
-    void setup_inputs(const fcore::emulator::emulator_core &core);
 
     void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(uint32_t address, uint32_t value, std::string core);
@@ -158,9 +149,8 @@ private:
                                                      std::vector<uint32_t> n_c);
 
 
+    std::map<std::string, uint32_t> cores_idx;
     float hil_clock_frequency = 100e6;
-
-    std::vector<input_metadata_t> inputs;
 
 
     logic_layout addresses;

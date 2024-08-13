@@ -32,38 +32,23 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) : deployer_base(h) {
 responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     std::string s_f = SCHEMAS_FOLDER;
 
-    //cleanup bus map from previous deployment data;
-    bus_map.clear();
 
     fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
     auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
 
-    if(programs.size()>32){
+    setup_base(specs);
+
+    if(specs.cores.size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";
         spdlog::critical(msg);
         throw std::runtime_error(msg);
     }
 
-    if(!specs.custom_deploy_mode){
-        hil_bus_map input_bus_map;
-        for(auto &i:specs.interconnects){
-            for(auto &c:i.channels){
-                bus_map.add_interconnect_channel(c, i.source_core_id, i.destination_core_id);
-            }
-        }
-    }
-
-    for(const auto &c:specs.cores){
-        bus_map.add_standalone_output(c);
-    }
-
-    bus_map.check_conflicts();
-
     std::vector<uint32_t> frequencies;
 
-    for(auto & program : programs){
-        frequencies.push_back(program.sampling_frequency);
+    for(auto & c : specs.cores){
+        frequencies.push_back(c.sampling_frequency);
     }
 
     timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
@@ -99,8 +84,14 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     }
 
 
-    for(int i = 0; i<programs.size(); i++){
-        setup_inputs(specs.cores[i]);
+    for(auto &c: specs.cores){
+        uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*cores_idx[c.id];
+        setup_inputs(
+                c,
+                complex_base_addr,
+                addresses.bases.cores_inputs,
+                addresses.offsets.cores_inputs
+        );
     }
 
     setup_sequencer(programs.size(), dividers, shifts);
@@ -177,60 +168,15 @@ void hil_deployer::select_output(uint32_t channel, const output_specs_t& output)
                  output.core_name,
                  channel);
 
-    auto data =bus_map.translate_output(output);
+    auto data = get_bus_address(output);
     auto selector = data.first | (data.second <<16);
     write_register(addresses.bases.scope_mux + 4*channel+ 4, selector);
 }
 
 void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core) {
-    spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
-    for(auto &in:inputs){
-        if(in.dest == address && in.core == core){
-            write_register( in.const_ip_addr+ 8, address);
-            write_register( in.const_ip_addr, value);
-        }
-    }
-
+    update_input_value(address, value, core);
 }
 
-void hil_deployer::setup_inputs(const fcore::emulator::emulator_core &c) {
-    spdlog::info("SETUP INPUTS FOR CORE: {0}", c.id);
-    spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<c.inputs.size(); ++i){
-        auto in = c.inputs[i];
-        if(in.source_type ==fcore::emulator::constant_input){
-            std::string in_name = in.name;
-            uint32_t address =in.address[0];
-
-            uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*cores_idx[c.id];
-            uint64_t offset = addresses.bases.cores_inputs + i*addresses.offsets.cores_inputs;
-
-            input_metadata_t metadata;
-
-            uint32_t input_value;
-            metadata.is_float = in.data_type == fcore::emulator::type_float;
-            metadata.core = c.id;
-            metadata.const_ip_addr = complex_base_addr + offset;
-            metadata.dest = address;
-
-            if(std::holds_alternative<std::vector<float>>(in.data[0])){
-                auto c_val = std::get<std::vector<float>>(in.data[0])[0];
-                input_value = fcore::emulator_backend::float_to_uint32(c_val);
-            } else {
-                input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
-            }
-
-            spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, c.id);
-
-            write_register( metadata.const_ip_addr+ 8, address);
-            write_register( metadata.const_ip_addr, input_value);
-
-            inputs.push_back(metadata);
-        }
-
-    }
-    spdlog::info("------------------------------------------------------------------");
-}
 
 void hil_deployer::start() {
     spdlog::info("START HIL");
