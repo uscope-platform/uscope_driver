@@ -125,7 +125,7 @@ nlohmann::json cores_endpoints::process_hil_set_in(nlohmann::json &arguments) {
     resp["response_code"] = responses::ok;
     uint64_t address = arguments["address"][0];
     uint32_t value = arguments["value"];
-    std::string core =  arguments["core"]
+    std::string core =  arguments["core"];
     hil.set_input(address, value, core);
     return resp;
 }
