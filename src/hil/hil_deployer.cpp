@@ -45,7 +45,9 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
         throw std::runtime_error(msg);
     }
 
-    reserve_inputs(specs.interconnects);
+    if(!specs.custom_deploy_mode){
+        reserve_inputs(specs.interconnects);
+    }
     reserve_outputs(specs.cores, programs);
 
     bus_map.check_conflicts();
@@ -62,9 +64,10 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
 
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, get_core_rom_address(i));
+        auto core_address = addresses.bases.cores_rom + i * addresses.offsets.cores_rom;
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, core_address);
         cores_idx[programs[i].name] = i;
-        load_core(get_core_rom_address(i), programs[i].program.binary);
+        load_core(core_address, programs[i].program.binary);
         check_reciprocal(programs[i].program.binary);
     }
 
@@ -83,7 +86,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
 
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", programs[i].name);
-        setup_initial_state(get_core_control_address(i), programs[i].memories);
+        auto control_address = addresses.bases.cores_control + i * addresses.offsets.cores_control;
+        setup_initial_state(control_address, programs[i].memories);
     }
 
 
@@ -97,14 +101,6 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     return responses::ok;
 }
 
-
-uint64_t hil_deployer::get_core_rom_address(uint16_t core_address) const {
-    return addresses.bases.cores_rom + core_address * addresses.offsets.cores_rom;
-}
-
-uint64_t hil_deployer::get_core_control_address(uint16_t core_idx) const {
-    return addresses.bases.cores_control + core_idx * addresses.offsets.cores_control;
-}
 
 void hil_deployer::load_core(uint64_t address, const std::vector<uint32_t> &program) {
     hw->apply_program(address, program);
@@ -195,7 +191,7 @@ void hil_deployer::setup_cores(uint16_t n_cores) {
     spdlog::info("SETUP CORES");
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<n_cores; i++){
-        write_register(get_core_control_address(i), n_channels[i]);
+        write_register(addresses.bases.cores_control + i * addresses.offsets.cores_control, n_channels[i]);
     }
 }
 

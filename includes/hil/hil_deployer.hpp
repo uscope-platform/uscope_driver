@@ -154,8 +154,6 @@ private:
     std::vector<uint32_t> calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs,
                                                      std::vector<uint32_t> n_c);
 
-    uint64_t get_core_rom_address(uint16_t core_idx) const;
-    uint64_t get_core_control_address(uint16_t core_idx) const;
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
