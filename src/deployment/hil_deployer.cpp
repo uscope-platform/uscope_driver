@@ -66,7 +66,7 @@ responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &s
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
         uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*i;
-        auto  dma_address = complex_base_addr + addresses.bases.dma;
+        auto  dma_address = complex_base_addr + addresses.offsets.dma;
         auto n_transfers = setup_output_dma(dma_address, specs.cores[i].id);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }

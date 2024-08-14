@@ -34,7 +34,6 @@ struct logic_layout{
         uint64_t cores_rom;
         uint64_t cores_control;
         uint64_t cores_inputs;
-        uint64_t dma;
         uint64_t controller;
 
         uint64_t scope_mux;
@@ -43,6 +42,7 @@ struct logic_layout{
     };
     struct logic_layout_offsets{
 
+        uint64_t dma;
         uint64_t hil_tb;
         uint64_t controller;
         uint64_t cores_rom;
@@ -55,13 +55,13 @@ struct logic_layout{
         bases.cores_rom = obj["bases"]["cores_rom"];
         bases.cores_control = obj["bases"]["cores_control"];
         bases.cores_inputs = obj["bases"]["cores_inputs"];
-        bases.dma = obj["bases"]["dma"];
         bases.controller = obj["bases"]["controller"];
         bases.scope_mux = obj["bases"]["scope_mux"];
         bases.hil_control = obj["bases"]["hil_control"];
 
 
         offsets.cores_rom = obj["offsets"]["cores_rom"];
+        offsets.dma = obj["offsets"]["dma"];
         offsets.cores_control = obj["offsets"]["cores_control"];
         offsets.controller = obj["offsets"]["controller"];
         offsets.cores_inputs = obj["offsets"]["cores_inputs"];
@@ -75,13 +75,13 @@ struct logic_layout{
         ret["offsets"]["cores_control"] = offsets.cores_control;
         ret["offsets"]["controller"] = offsets.controller;
         ret["offsets"]["cores_inputs"] = offsets.cores_inputs;
+        ret["offsets"]["dma"] = offsets.dma;
         ret["offsets"]["hil_tb"] = offsets.hil_tb;
 
         ret["bases"] = nlohmann::json();
         ret["bases"]["cores_rom"] = bases.cores_rom;
         ret["bases"]["cores_control"] = bases.cores_control;
         ret["bases"]["cores_inputs"] = bases.cores_inputs;
-        ret["bases"]["dma"] = bases.dma;
         ret["bases"]["controller"] = bases.controller;
         ret["bases"]["scope_mux"] = bases.scope_mux;
         ret["bases"]["hil_control"] = bases.hil_control;
@@ -96,7 +96,7 @@ struct logic_layout{
                ", OFFSET " + std::to_string(offsets.cores_control) + "\n";
         ret += "CORES INPUTS: BASE " + std::to_string(bases.cores_inputs) +
                ", OFFSET " + std::to_string(offsets.cores_inputs) + "\n";
-        ret += "DMA: OFFSET " + std::to_string(bases.dma) + "\n";
+        ret += "DMA OFFSET: " + std::to_string(offsets.dma) + "\n";
         ret += "CONTROLLER: BASE " + std::to_string(bases.controller) +
                ", OFFSET " + std::to_string(offsets.controller) + "\n";
 

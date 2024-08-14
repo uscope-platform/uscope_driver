@@ -41,16 +41,12 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         load_core(core_address, programs[i].program.binary);
     }
 
-
-    uint32_t complex_base_to_inputs_offset = addresses.bases.cores_inputs;
-    uint32_t input_to_input_offset = addresses.offsets.cores_inputs;
-    uint32_t complex_base_to_dma_offset = 0x0;
-    uint32_t dma_channel_to_channel_offset = 0x0;
-
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
 
-        auto  dma_address = complex_base_to_dma_offset + i*dma_channel_to_channel_offset;
+        uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*i;
+        auto  dma_address = complex_base_addr + addresses.offsets.dma;
+
         auto n_transfers = setup_output_dma(dma_address, specs.cores[i].id);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
@@ -67,8 +63,8 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         setup_inputs(
                 c,
                 complex_base_addr,
-                complex_base_to_inputs_offset,
-                input_to_input_offset
+                addresses.bases.cores_inputs,
+                addresses.offsets.cores_inputs
         );
     }
 
