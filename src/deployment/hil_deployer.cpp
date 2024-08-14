@@ -58,8 +58,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<programs.size(); i++){
         auto core_address = addresses.bases.cores_rom + i * addresses.offsets.cores_rom;
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", programs[i].name, core_address);
-        cores_idx[programs[i].name] = i;
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", specs.cores[i].id, core_address);
+        cores_idx[specs.cores[i].id] = i;
         load_core(core_address, programs[i].program.binary);
         check_reciprocal(programs[i].program.binary);
     }
@@ -73,12 +73,12 @@ responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
     for(int i = 0; i<programs.size(); i++){
 
         auto  dma_address = addresses.bases.dma + i*addresses.offsets.dma;
-        auto n_transfers = setup_output_dma(dma_address, programs[i].name);
+        auto n_transfers = setup_output_dma(dma_address, specs.cores[i].id);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
     for(int i = 0; i<programs.size(); i++){
-        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", programs[i].name);
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", specs.cores[i].id);
         auto control_address = addresses.bases.cores_control + i * addresses.offsets.cores_control;
         setup_memories(control_address, programs[i].memories);
     }
