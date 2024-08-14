@@ -18,7 +18,20 @@
 #define USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
 
 
-class custom_deployer {
+#include <nlohmann/json.hpp>
+#include <memory>
+
+#include "hw_interface/fpga_bridge.hpp"
+#include "deployment/deployer_base.hpp"
+
+class custom_deployer : public deployer_base {
+public:
+    explicit custom_deployer(std::shared_ptr<fpga_bridge>  &h);
+
+    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
+private:
+    float clock_frequency;
+    std::map<std::string, uint32_t> cores_idx;
 
 };
 

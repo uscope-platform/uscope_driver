@@ -17,9 +17,8 @@
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 
 
-cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h){
+cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h), custom(h){
     hw = h;
-
 }
 
 nlohmann::json cores_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
@@ -74,7 +73,18 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
-        resp["response_code"] = hil.deploy(arguments);
+
+        std::string s_f = SCHEMAS_FOLDER;
+        auto specs = fcore::emulator::emulator_specs(arguments,s_f + "/emulator_spec_schema.json");
+        fcore::emulator_manager em(arguments, runtime_config.debug_hil, s_f);
+        auto programs = em.get_programs();
+
+        if(specs.custom_deploy_mode){
+            resp["response_code"] = hil.deploy(specs, programs);
+        } else {
+            resp["response_code"] = custom.deploy(specs, programs);
+        }
+
     } catch (std::domain_error &e) {
         resp["response_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
         resp["data"] = std::string("HIL BUS CONFLICT DETECTED\n");

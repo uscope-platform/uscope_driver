@@ -20,7 +20,6 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) : deployer_base(h) {
 
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
-
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
 
     if(clock_f != nullptr){
@@ -29,13 +28,8 @@ hil_deployer::hil_deployer(std::shared_ptr<fpga_bridge> &h) : deployer_base(h) {
     spdlog::info("HIL CLOCK FREQUENCY: {0}", hil_clock_frequency);
 }
 
-responses::response_code hil_deployer::deploy(nlohmann::json &spec) {
-    std::string s_f = SCHEMAS_FOLDER;
+responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
 
-
-    fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
-    auto programs = em.get_programs();
-    auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
 
     setup_base(specs);
 

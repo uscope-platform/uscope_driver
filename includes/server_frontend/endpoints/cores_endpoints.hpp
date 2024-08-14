@@ -23,8 +23,10 @@
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/toolchain_manager.hpp"
-#include "deployment/hil_deployer.hpp"
 #include "deployment/hil_emulator.hpp"
+
+#include "deployment/hil_deployer.hpp"
+#include "deployment/custom_deployer.hpp"
 
 class cores_endpoints {
 public:
@@ -44,7 +46,10 @@ private:
     nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
 
     std::shared_ptr<fpga_bridge> hw;
+
     hil_deployer hil;
+    custom_deployer custom;
+
     toolchain_manager toolchain;
     hil_emulator emulator;
 };

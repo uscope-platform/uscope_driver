@@ -129,7 +129,7 @@ public:
         return addresses.dump_layout_object();
     };
 
-    responses::response_code deploy(nlohmann::json &spec);
+    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
 
     void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(uint32_t address, uint32_t value, std::string core);

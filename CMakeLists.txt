@@ -114,6 +114,7 @@ add_executable(test_hil_deployer
         src/hil_depoyer_standalone.cpp
         src/server_frontend/infrastructure/schema_validator.cpp
         src/deployment/hil_deployer.cpp
+        src/deployment/deployer_base.cpp
         src/deployment/hil_bus_map.cpp
         src/hw_interface/fpga_bridge.cpp
 )
