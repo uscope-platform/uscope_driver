@@ -186,6 +186,7 @@ nlohmann::json cores_endpoints::process_set_layout_map(nlohmann::json &arguments
 nlohmann::json cores_endpoints::process_set_hil_address_map(nlohmann::json &arguments) {
     nlohmann::json resp;
     hil.set_layout_map(arguments);
+    custom.set_layout_map(arguments);
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }

@@ -65,8 +65,8 @@ responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &s
 
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
-
-        auto  dma_address = addresses.bases.dma + i*addresses.offsets.dma;
+        uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*i;
+        auto  dma_address = complex_base_addr + addresses.bases.dma;
         auto n_transfers = setup_output_dma(dma_address, specs.cores[i].id);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
@@ -186,7 +186,7 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector
     std::vector<uint32_t>core_dividers;
 
     for(int i = 0; i<programs.size(); i++){
-        auto p = programs[i];
+        const auto& p = programs[i];
         double clock_period = 1/hil_clock_frequency;
         double total_length = (p.program.program_length.fixed_portion + n_c[i]*p.program.program_length.per_channel_portion)*clock_period;
 

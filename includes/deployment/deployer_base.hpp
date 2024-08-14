@@ -27,6 +27,89 @@
 #include "deployment/hil_bus_map.hpp"
 
 
+struct logic_layout{
+
+    struct logic_layout_bases{
+
+        uint64_t cores_rom;
+        uint64_t cores_control;
+        uint64_t cores_inputs;
+        uint64_t dma;
+        uint64_t controller;
+
+        uint64_t scope_mux;
+        uint64_t hil_control;
+
+    };
+    struct logic_layout_offsets{
+
+        uint64_t hil_tb;
+        uint64_t controller;
+        uint64_t cores_rom;
+        uint64_t cores_control;
+        uint64_t cores_inputs;
+
+    };
+
+    void parse_layout_object(const nlohmann::json &obj){
+        bases.cores_rom = obj["bases"]["cores_rom"];
+        bases.cores_control = obj["bases"]["cores_control"];
+        bases.cores_inputs = obj["bases"]["cores_inputs"];
+        bases.dma = obj["bases"]["dma"];
+        bases.controller = obj["bases"]["controller"];
+        bases.scope_mux = obj["bases"]["scope_mux"];
+        bases.hil_control = obj["bases"]["hil_control"];
+
+
+        offsets.cores_rom = obj["offsets"]["cores_rom"];
+        offsets.cores_control = obj["offsets"]["cores_control"];
+        offsets.controller = obj["offsets"]["controller"];
+        offsets.cores_inputs = obj["offsets"]["cores_inputs"];
+        offsets.hil_tb = obj["offsets"]["hil_tb"];
+    };
+
+    nlohmann::json dump_layout_object(){
+        nlohmann::json ret;
+        ret["offsets"] = nlohmann::json();
+        ret["offsets"]["cores_rom"] = offsets.cores_rom;
+        ret["offsets"]["cores_control"] = offsets.cores_control;
+        ret["offsets"]["controller"] = offsets.controller;
+        ret["offsets"]["cores_inputs"] = offsets.cores_inputs;
+        ret["offsets"]["hil_tb"] = offsets.hil_tb;
+
+        ret["bases"] = nlohmann::json();
+        ret["bases"]["cores_rom"] = bases.cores_rom;
+        ret["bases"]["cores_control"] = bases.cores_control;
+        ret["bases"]["cores_inputs"] = bases.cores_inputs;
+        ret["bases"]["dma"] = bases.dma;
+        ret["bases"]["controller"] = bases.controller;
+        ret["bases"]["scope_mux"] = bases.scope_mux;
+        ret["bases"]["hil_control"] = bases.hil_control;
+        return ret;
+    }
+
+    std::string dump() const{
+        std::string ret;
+        ret += "CORES ROM: BASE " + std::to_string(bases.cores_rom) +
+               ", OFFSET " + std::to_string(offsets.cores_rom) + "\n";
+        ret += "CORES CONTROL: BASE " + std::to_string(bases.cores_control) +
+               ", OFFSET " + std::to_string(offsets.cores_control) + "\n";
+        ret += "CORES INPUTS: BASE " + std::to_string(bases.cores_inputs) +
+               ", OFFSET " + std::to_string(offsets.cores_inputs) + "\n";
+        ret += "DMA: OFFSET " + std::to_string(bases.dma) + "\n";
+        ret += "CONTROLLER: BASE " + std::to_string(bases.controller) +
+               ", OFFSET " + std::to_string(offsets.controller) + "\n";
+
+        ret += "HIL CONTROL: BASE " + std::to_string(bases.hil_control) + "\n";
+        ret += "SCOPE MUX: BASE " + std::to_string(bases.scope_mux) + "\n";
+        ret += "HIL TB: OFFSET " + std::to_string(offsets.hil_tb) + "\n";
+        return ret;
+    }
+    logic_layout_bases bases;
+    logic_layout_offsets offsets;
+};
+
+
 
 struct input_metadata_t{
     std::string core;
@@ -38,6 +121,16 @@ struct input_metadata_t{
 class deployer_base {
 public:
     deployer_base(std::shared_ptr<fpga_bridge>  &h);
+
+    void set_layout_map(nlohmann::json &obj){
+        spdlog::info("SETUP HIL ADDRESS MAP");
+        addresses.parse_layout_object(obj);
+        spdlog::trace(addresses.dump());
+    };
+
+    nlohmann::json get_layout_map(){
+        return addresses.dump_layout_object();
+    };
 
 protected:
     std::pair<uint16_t, uint16_t> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);};
@@ -57,8 +150,10 @@ protected:
 
     void update_input_value(uint32_t address, uint32_t value, std::string core);
 
+    logic_layout addresses;
 private:
     hil_bus_map bus_map;
+
 
     std::vector<input_metadata_t> inputs;
     std::shared_ptr<fpga_bridge> hw;

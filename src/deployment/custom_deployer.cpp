@@ -42,8 +42,8 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
     }
 
 
-    uint32_t complex_base_to_inputs_offset = 0x0;
-    uint32_t input_to_input_offset = 0x0;
+    uint32_t complex_base_to_inputs_offset = addresses.bases.cores_inputs;
+    uint32_t input_to_input_offset = addresses.offsets.cores_inputs;
     uint32_t complex_base_to_dma_offset = 0x0;
     uint32_t dma_channel_to_channel_offset = 0x0;
 
