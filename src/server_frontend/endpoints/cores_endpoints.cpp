@@ -80,9 +80,9 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
         auto programs = em.get_programs();
 
         if(specs.custom_deploy_mode){
-            resp["response_code"] = hil.deploy(specs, programs);
-        } else {
             resp["response_code"] = custom.deploy(specs, programs);
+        } else {
+            resp["response_code"] = hil.deploy(specs, programs);
         }
 
     } catch (std::domain_error &e) {
