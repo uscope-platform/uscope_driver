@@ -53,8 +53,7 @@ int main (int argc, char **argv) {
     uint64_t cores_inputs_base_address = 0x2000;
     uint64_t cores_inputs_offset = 0x1000;
 
-    uint64_t dma_base =   0x4'43c2'1000;
-    uint64_t dma_offset =      0x1'0000;
+    uint64_t dma_offset =   0x1000;
 
     uint64_t controller_base =   0x4'43c1'0000;
     uint64_t controller_tb_offset =   0x1000;
@@ -69,7 +68,7 @@ int main (int argc, char **argv) {
     bases["cores_control"] = cores_control_base;
     bases["cores_inputs"] = cores_inputs_base_address;
     bases["controller"] = controller_base;
-    bases["dma"] = dma_base;
+
     bases["scope_mux"] = scope_mux_base;
     bases["hil_control"] = hil_control_base;
 

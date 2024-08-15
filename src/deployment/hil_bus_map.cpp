@@ -91,7 +91,7 @@ void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c
 
 void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &core) {
     for(auto &out:core.outputs){
-        if(out.type == fcore::emulator::vector_endpoint){
+        if(out.address.size()>1){ // TODO: unify the two branches to handle the channelized vector output
             for(auto addr:out.address){
                 if(!interconnect_exposed_outputs[core.id].contains(out.name)){
                     bus_map_entry e;
