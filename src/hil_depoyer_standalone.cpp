@@ -18,6 +18,7 @@
 #include <CLI/CLI.hpp>
 
 #include "deployment/hil_deployer.hpp"
+#include "deployment/custom_deployer.hpp"
 
 
 interfaces_dictionary if_dict;
@@ -61,7 +62,6 @@ int main (int argc, char **argv) {
 
     uint64_t hil_control_base = 0x4'43c0'0000;
     auto hw_bridge = std::make_shared<fpga_bridge>();
-    hil_deployer d(hw_bridge);
 
 
     nlohmann::json addr_map, offsets, bases;
@@ -82,15 +82,24 @@ int main (int argc, char **argv) {
     offsets["hil_tb"] = 0;
     addr_map["bases"] = bases;
     addr_map["offsets"] = offsets;
-    d.set_layout_map(addr_map);
+
 
     std::string s_f = SCHEMAS_FOLDER;
     auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
     fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
     auto programs = em.get_programs();
 
-    d.deploy(specs, programs);
 
+    if(specs.custom_deploy_mode){
+        custom_deployer c(hw_bridge);
+        c.set_layout_map(addr_map);
+        c.deploy(specs, programs);
+    } else {
+        hil_deployer d(hw_bridge);
+        d.set_layout_map(addr_map);
+        d.deploy(specs, programs);
+
+    }
 
     return 0;
 }

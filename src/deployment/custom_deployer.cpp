@@ -41,6 +41,8 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         load_core(core_address, programs[i].program.binary);
     }
 
+    spdlog::info("------------------------------------------------------------------");
+
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
 
@@ -69,7 +71,13 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
     }
 
     for(auto &c:specs.cores){
-        setup_core(c.deployment.control_address, c.channels);
+        auto min_channels = c.deployment.has_reciprocal ? 11 : 8;
+
+        if(c.channels> min_channels){
+            setup_core(c.deployment.control_address, c.channels);
+        } else{
+            setup_core(c.deployment.control_address, min_channels);
+        }
     }
 
 
