@@ -32,8 +32,16 @@ include_directories(/usr/local/include/event2)
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
 
+find_package(valijson REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(CLI11 REQUIRED)
+find_package(cppzmq REQUIRED)
+find_package(GTest REQUIRED)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
+    enable_testing()
+    add_subdirectory(testing)
 else()
     set(schema_folder "/usr/local/etc/fcore_toolchain")
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -42,10 +50,6 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 file(GLOB INC_SOURCES "includes/*.h*")
 
 
-find_package(valijson REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(CLI11 REQUIRED)
-find_package(cppzmq REQUIRED)
 
 set(DRIVER_SOURCES /
         src/uscope_driver.cpp

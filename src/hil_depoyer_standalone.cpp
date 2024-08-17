@@ -97,7 +97,6 @@ int main (int argc, char **argv) {
         hil_deployer d(hw_bridge);
         d.set_layout_map(addr_map);
         d.deploy(specs, programs);
-
     }
 
     return 0;

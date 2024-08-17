@@ -23,7 +23,6 @@ class BasicConanfile(ConanFile):
             self.requires("libfuse/3.10.5")
 
 
-
     def build_requirements(self):
         pass
 
