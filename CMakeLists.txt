@@ -62,6 +62,7 @@ set(DRIVER_SOURCES /
         src/deployment/hil_bus_map.cpp
         src/deployment/deployer_base.cpp
         src/deployment/custom_deployer.cpp
+        testing/deployment/fpga_bridge_mock.cpp
 )
 
 
