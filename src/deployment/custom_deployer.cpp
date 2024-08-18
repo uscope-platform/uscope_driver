@@ -16,8 +16,8 @@
 
 #include "deployment/custom_deployer.hpp"
 
-custom_deployer::custom_deployer(std::shared_ptr<fpga_bridge> &h) : deployer_base(h) {
-
+template<class hw_bridge>
+custom_deployer<hw_bridge>::custom_deployer(std::shared_ptr<fpga_bridge> &h): deployer_base<hw_bridge>(h) {
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
 
     if(clock_f != nullptr){
@@ -26,11 +26,12 @@ custom_deployer::custom_deployer(std::shared_ptr<fpga_bridge> &h) : deployer_bas
     spdlog::info("CUSTOM LOGIC CLOCK FREQUENCY: {0}", clock_frequency);
 }
 
-responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
+template<class hw_bridge>
+responses::response_code custom_deployer<hw_bridge>::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
     std::string s_f = SCHEMAS_FOLDER;
 
 
-    setup_base(specs);
+    this->setup_base(specs);
 
 
     spdlog::info("------------------------------------------------------------------");
@@ -38,7 +39,7 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         auto core_address = specs.cores[i].deployment.rom_address;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", specs.cores[i].id, core_address);
         cores_idx[specs.cores[i].id] = i;
-        load_core(core_address, programs[i].program.binary);
+        this->load_core(core_address, programs[i].program.binary);
     }
 
     spdlog::info("------------------------------------------------------------------");
@@ -46,27 +47,27 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
     uint16_t max_transfers = 0;
     for(int i = 0; i<programs.size(); i++){
 
-        uint64_t complex_base_addr = addresses.bases.cores_control + addresses.offsets.cores_control*i;
-        auto  dma_address = complex_base_addr + addresses.offsets.dma;
+        uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*i;
+        auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
 
-        auto n_transfers = setup_output_dma(dma_address, specs.cores[i].id);
+        auto n_transfers = this->setup_output_dma(dma_address, specs.cores[i].id);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
     for(int i = 0; i<programs.size(); i++){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", specs.cores[i].id);
         auto control_address = specs.cores[i].deployment.control_address;
-        setup_memories(control_address, programs[i].memories);
+        this->setup_memories(control_address, programs[i].memories);
     }
 
 
     for(auto &c: specs.cores){
         uint64_t complex_base_addr = c.deployment.control_address;
-        setup_inputs(
+        this->setup_inputs(
                 c,
                 complex_base_addr,
-                addresses.bases.cores_inputs,
-                addresses.offsets.cores_inputs
+                this->addresses.bases.cores_inputs,
+                this->addresses.offsets.cores_inputs
         );
     }
 
@@ -74,12 +75,16 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         auto min_channels = c.deployment.has_reciprocal ? 11 : 8;
 
         if(c.channels> min_channels){
-            setup_core(c.deployment.control_address, c.channels);
+            this->setup_core(c.deployment.control_address, c.channels);
         } else{
-            setup_core(c.deployment.control_address, min_channels);
+            this->setup_core(c.deployment.control_address, min_channels);
         }
     }
 
 
     return responses::ok;
 }
+
+
+template class custom_deployer<fpga_bridge>;
+

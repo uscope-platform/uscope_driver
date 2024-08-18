@@ -1,5 +1,3 @@
-
-
 //   Copyright 2024 Filippo Savi <filssavi@gmail.com>
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
-#define USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
+
+#include <gtest/gtest.h>
+#include "deployment/hil_deployer.hpp"
+#include "emulator/emulator_manager.hpp"
+
+#include "../deployment/fpga_bridge_mock.hpp"
 
 
-#include <nlohmann/json.hpp>
-#include <memory>
+TEST(deployer, simple_deployment) {
 
-#include "hw_interface/fpga_bridge.hpp"
-#include "deployment/deployer_base.hpp"
+    hil_deployer d(hw_bridge);
+    d.set_layout_map(addr_map);
+    d.deploy(specs, programs);
 
-template <class hw_bridge>
-class custom_deployer : public deployer_base<hw_bridge>{
-public:
-    explicit custom_deployer(std::shared_ptr<fpga_bridge>  &h);
-
-    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
-private:
-    float clock_frequency;
-    std::map<std::string, uint32_t> cores_idx;
-
-};
+ASSERT_TRUE(true);
+}
 
 
-#endif //USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP

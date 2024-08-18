@@ -18,7 +18,6 @@
 #define USCOPE_DRIVER_HIL_DEPLOYER_HPP
 
 #include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
 #include <bitset>
 
 #include "hw_interface/fpga_bridge.hpp"
@@ -28,10 +27,10 @@
 #include "deployment/deployer_base.hpp"
 
 
-
-class hil_deployer : public deployer_base{
+template <class hw_bridge>
+class hil_deployer : public deployer_base<hw_bridge>{
 public:
-    explicit hil_deployer(std::shared_ptr<fpga_bridge>  &h);
+    explicit hil_deployer(std::shared_ptr<hw_bridge>  &h);
 
     responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
 

@@ -14,27 +14,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
-#define USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
+#ifndef USCOPE_DRIVER_FPGA_BRIDGE_MOCK_HPP
+#define USCOPE_DRIVER_FPGA_BRIDGE_MOCK_HPP
 
-
-#include <nlohmann/json.hpp>
-#include <memory>
-
+#include <gmock/gmock.h>  // Brings in gMock.
 #include "hw_interface/fpga_bridge.hpp"
-#include "deployment/deployer_base.hpp"
 
-template <class hw_bridge>
-class custom_deployer : public deployer_base<hw_bridge>{
+class fpga_bridge_mock {
+
 public:
-    explicit custom_deployer(std::shared_ptr<fpga_bridge>  &h);
 
-    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
-private:
-    float clock_frequency;
-    std::map<std::string, uint32_t> cores_idx;
-
+    MOCK_METHOD(responses::response_code, load_bitstream, (const std::string& bitstream), (override));
 };
 
 
-#endif //USCOPE_DRIVER_CUSTOM_DEPLOYER_HPP
+#endif //USCOPE_DRIVER_FPGA_BRIDGE_MOCK_HPP

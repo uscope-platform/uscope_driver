@@ -118,9 +118,10 @@ struct input_metadata_t{
     bool is_float;
 };
 
+template <class hw_bridge>
 class deployer_base {
 public:
-    deployer_base(std::shared_ptr<fpga_bridge>  &h);
+    deployer_base(std::shared_ptr<hw_bridge>  &h);
 
     void set_layout_map(nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
@@ -156,7 +157,7 @@ private:
 
 
     std::vector<input_metadata_t> inputs;
-    std::shared_ptr<fpga_bridge> hw;
+    std::shared_ptr<hw_bridge> hw;
 };
 
 

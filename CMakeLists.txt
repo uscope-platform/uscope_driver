@@ -31,7 +31,7 @@ include_directories(/usr/local/include/pthread)
 include_directories(/usr/local/include/event2)
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
-
+find_package(spdlog REQUIRED)
 find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
