@@ -1185,6 +1185,656 @@ TEST(deployer, scatter_interconnect_test) {
 
 }
 
+TEST(deployer, gather_interconnect_test) {
+
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"(
+    {
+    "cores": [
+        {
+            "order": 0,
+            "id": "test_producer",
+            "channels":2,
+            "options":{
+                "comparators": "full",
+                "efi_implementation":"none"
+            },
+            "sampling_frequency":1,
+            "input_data":[],
+            "inputs":[
+                {
+                    "name": "input_1",
+                    "type": "float",
+                    "reg_n": 3,
+                    "channel":[0,1],
+                    "source":{"type": "constant","value": [31.2, 32.7]}
+                },
+                {
+                    "name": "input_2",
+                    "type": "float",
+                    "reg_n": 4,
+                    "channel":[0,1],
+                    "source":{"type": "constant","value": [31.2, 32.7]}
+                }
+            ],
+            "outputs":[ { "name":"out", "type":"float", "reg_n":[5]}],
+            "memory_init":[],
+            "program": {
+                "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
+                "headers": []
+            },
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        },
+        {
+            "order": 1,
+            "id": "test_reducer",
+            "channels":1,
+            "options":{
+                "comparators": "full",
+                "efi_implementation":"none"
+            },
+            "sampling_frequency":1,
+            "input_data":[],
+            "inputs":[],
+            "outputs":[ { "name":"out", "type":"float", "reg_n":[5]}],
+            "memory_init":[],
+            "program": {
+                "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] + input_data[1];\n}\n",
+                "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
+                "headers": []
+            },
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [
+        {
+            "source": "test_producer",
+            "destination": "test_reducer",
+            "channels": [
+                {
+                    "name": "test_channel",
+                    "type": "gather_transfer",
+                    "source": {
+                        "channel": 0,
+                        "register": 5
+                    },
+                    "source_output": "out",
+                    "destination": {
+                        "channel": 0,
+                        "register": 1
+                    },
+                    "destination_input": "input_data",
+                    "length": 2
+                }
+            ]
+        }
+],
+    "emulation_time": 1,
+    "deployment_mode": false
+})");
+
+    std::string s_f = SCHEMAS_FOLDER;
+    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
+    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    auto programs = em.get_programs();
+
+
+    auto mock_hw = std::make_shared<fpga_bridge_mock>();
+    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    auto addr_map = get_addr_map();
+    d.set_layout_map(addr_map);
+    d.deploy(specs, programs);
+
+    auto rom_writes = mock_hw->rom_writes;
+    auto control_writes = mock_hw->control_writes;
+
+    std::vector<uint32_t> reference_program = {
+            0x20004,
+            0xc,
+            0x20003,
+            0x10004,
+            0x30005,
+            0xc,
+            0x60841,
+            0xc
+    };
+
+    ASSERT_EQ(rom_writes.size(), 2);
+    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
+    ASSERT_EQ(rom_writes[0].second, reference_program);
+
+    reference_program = {
+            0x20004,
+            0xc,
+            0x20001,
+            0x10002,
+            0x30005,
+            0xc,
+            0x60841,
+            0xc
+
+    };
+
+    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
+    ASSERT_EQ(rom_writes[1].second, reference_program);
+
+    // DMA 1
+    ASSERT_EQ(control_writes.size(), 20);
+    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
+    ASSERT_EQ(control_writes[0].second, 0x10005);
+
+    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
+    ASSERT_EQ(control_writes[1].second, 0x38);
+
+
+    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
+    ASSERT_EQ(control_writes[2].second, 0x21005);
+
+    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
+    ASSERT_EQ(control_writes[3].second, 0x38);
+
+    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
+    ASSERT_EQ(control_writes[4].second, 2);
+
+    // DMA 2
+    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
+    ASSERT_EQ(control_writes[5].second, 0x50005);
+
+    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
+    ASSERT_EQ(control_writes[6].second, 0x38);
+
+    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1000);
+    ASSERT_EQ(control_writes[7].second, 1);
+
+    // MEMORY INITIALIZATIONS
+
+    ASSERT_EQ(control_writes[8].first, 0x4'43c2'2008);
+    ASSERT_EQ(control_writes[8].second, 0x3);
+
+    ASSERT_EQ(control_writes[9].first, 0x4'43c2'2000);
+    ASSERT_EQ(control_writes[9].second, 0x41f9999a);
+
+    ASSERT_EQ(control_writes[10].first, 0x4'43c2'3008);
+    ASSERT_EQ(control_writes[10].second, 0x4);
+
+    ASSERT_EQ(control_writes[11].first, 0x4'43c2'3000);
+    ASSERT_EQ(control_writes[11].second, 0x41f9999a);
+
+    // SEQUENCER
+
+    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1004);
+    ASSERT_EQ(control_writes[12].second, 0);
+
+    ASSERT_EQ(control_writes[13].first, 0x4'43c1'0008);
+    ASSERT_EQ(control_writes[13].second, 2);
+
+    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1008);
+    ASSERT_EQ(control_writes[14].second, 0);
+
+    ASSERT_EQ(control_writes[15].first, 0x4'43c1'000C);
+    ASSERT_EQ(control_writes[15].second, 78);
+
+    ASSERT_EQ(control_writes[16].first, 0x4'43c1'0004);
+    ASSERT_EQ(control_writes[16].second, 100'000'000);
+
+    ASSERT_EQ(control_writes[17].first, 0x4'43c1'1000);
+    ASSERT_EQ(control_writes[17].second, 3);
+
+    // CORES
+
+    ASSERT_EQ(control_writes[18].first, 0x443c20000);
+    ASSERT_EQ(control_writes[18].second,11);
+
+    ASSERT_EQ(control_writes[19].first, 0x443c30000);
+    ASSERT_EQ(control_writes[19].second,11);
+
+}
+
+TEST(deployer, vector_interconnect_test) {
+
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"(
+    {
+        "cores": [
+            {
+                "order": 0,
+                "id": "test_producer",
+                "channels":2,
+                "options":{
+                    "comparators": "full",
+                    "efi_implementation":"none"
+                },
+                "sampling_frequency":1,
+                "input_data":[],
+                "inputs":[
+                    {
+                        "name": "input_1",
+                        "type": "float",
+                        "reg_n": 3,
+                        "channel":[0,1],
+                        "source":{"type": "constant","value": [31.2, 32.7]}
+                    },
+                    {
+                        "name": "input_2",
+                        "type": "float",
+                        "reg_n": 4,
+                        "channel":[0,1],
+                        "source":{"type": "constant","value": [31.2, 32.7]}
+                    }
+                ],
+                "outputs":[],
+                "memory_init":[],
+                "program": {
+                    "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                    "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
+                    "headers": []
+                },
+                "deployment": {
+                    "has_reciprocal": false,
+                    "control_address": 18316525568,
+                    "rom_address": 17179869184
+                }
+            },
+            {
+                "order": 1,
+                "id": "test_consumer",
+                "channels":2,
+                "options":{
+                    "comparators": "full",
+                    "efi_implementation":"none"
+                },
+                "sampling_frequency":1,
+                "input_data":[],
+                "inputs":[],
+                "outputs":[ { "name":"out", "type":"float", "reg_n":[7]}],
+                "memory_init":[],
+                "program": {
+                    "content": "int main(){\n  float input;float out = input*3.5;\n}",
+                    "build_settings":{"io":{"inputs":["input"],"outputs":["out"],"memories":[]}},
+                    "headers": []
+                },
+                "deployment": {
+                    "has_reciprocal": false,
+                    "control_address": 18316525568,
+                    "rom_address": 17179869184
+                }
+            }
+        ],
+        "interconnect": [
+            {
+                "source": "test_producer",
+                "destination": "test_consumer",
+                "channels": [
+                    {
+                        "name": "test_channel",
+                        "type": "vector_transfer",
+                        "source": {
+                            "channel": 0,
+                            "register": 5
+                        },
+                        "source_output": "out",
+                        "destination": {
+                            "channel": 0,
+                            "register": 1
+                        },
+                        "destination_input": "input",
+                        "length": 2
+                    }
+                ]
+            }
+        ],
+        "emulation_time": 1,
+    "deployment_mode": false
+    })");
+
+    std::string s_f = SCHEMAS_FOLDER;
+    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
+    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    auto programs = em.get_programs();
+
+
+    auto mock_hw = std::make_shared<fpga_bridge_mock>();
+    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    auto addr_map = get_addr_map();
+    d.set_layout_map(addr_map);
+    d.deploy(specs, programs);
+
+    auto rom_writes = mock_hw->rom_writes;
+    auto control_writes = mock_hw->control_writes;
+
+    std::vector<uint32_t> reference_program = {
+            0x20004,
+            0xc,
+            0x20003,
+            0x10004,
+            0x30005,
+            0xc,
+            0x60841,
+            0xc
+
+    };
+
+    ASSERT_EQ(rom_writes.size(), 2);
+    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
+    ASSERT_EQ(rom_writes[0].second, reference_program);
+
+    reference_program = {
+            0x40003,
+            0xc,
+            0x10001,
+            0x30007,
+            0xc,
+            0x46,
+            0x40600000,
+            0x61023,
+            0xc
+    };
+
+    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
+    ASSERT_EQ(rom_writes[1].second, reference_program);
+
+    // DMA 1
+    ASSERT_EQ(control_writes.size(), 22);
+    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
+    ASSERT_EQ(control_writes[0].second, 0x10005);
+
+    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
+    ASSERT_EQ(control_writes[1].second, 0x38);
+
+
+    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
+    ASSERT_EQ(control_writes[2].second, 0x10011005);
+
+    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
+    ASSERT_EQ(control_writes[3].second, 0x38);
+
+    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
+    ASSERT_EQ(control_writes[4].second, 2);
+
+    // DMA 2
+    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
+    ASSERT_EQ(control_writes[5].second, 0x70007);
+
+    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
+    ASSERT_EQ(control_writes[6].second, 0x38);
+
+    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1008);
+    ASSERT_EQ(control_writes[7].second, 0x31007);
+
+    ASSERT_EQ(control_writes[8].first, 0x4'43c3'1048);
+    ASSERT_EQ(control_writes[8].second, 0x38);
+
+    ASSERT_EQ(control_writes[9].first, 0x4'43c3'1000);
+    ASSERT_EQ(control_writes[9].second, 2);
+
+    // MEMORY INITIALIZATIONS
+
+    ASSERT_EQ(control_writes[10].first, 0x4'43c2'2008);
+    ASSERT_EQ(control_writes[10].second, 0x3);
+
+    ASSERT_EQ(control_writes[11].first, 0x4'43c2'2000);
+    ASSERT_EQ(control_writes[11].second, 0x41f9999a);
+
+    ASSERT_EQ(control_writes[12].first, 0x4'43c2'3008);
+    ASSERT_EQ(control_writes[12].second, 0x4);
+
+    ASSERT_EQ(control_writes[13].first, 0x4'43c2'3000);
+    ASSERT_EQ(control_writes[13].second, 0x41f9999a);
+
+    // SEQUENCER
+
+    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1004);
+    ASSERT_EQ(control_writes[14].second, 0);
+
+    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0008);
+    ASSERT_EQ(control_writes[15].second, 2);
+
+    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1008);
+    ASSERT_EQ(control_writes[16].second, 0);
+
+    ASSERT_EQ(control_writes[17].first, 0x4'43c1'000C);
+    ASSERT_EQ(control_writes[17].second, 78);
+
+    ASSERT_EQ(control_writes[18].first, 0x4'43c1'0004);
+    ASSERT_EQ(control_writes[18].second, 100'000'000);
+
+    ASSERT_EQ(control_writes[19].first, 0x4'43c1'1000);
+    ASSERT_EQ(control_writes[19].second, 3);
+
+    // CORES
+
+    ASSERT_EQ(control_writes[20].first, 0x443c20000);
+    ASSERT_EQ(control_writes[20].second,11);
+
+    ASSERT_EQ(control_writes[21].first, 0x443c30000);
+    ASSERT_EQ(control_writes[21].second,11);
+
+}
+
+TEST(deployer, 2d_vector_interconnect_test) {
+
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"(
+    {
+        "cores": [
+            {
+                "order": 0,
+                "id": "test_producer",
+                "channels":2,
+                "options":{
+                    "comparators": "full",
+                    "efi_implementation":"none"
+                },
+                "sampling_frequency":1,
+                "input_data":[],
+                "inputs":[],
+                "outputs":[],
+                "memory_init":[],
+                "program": {
+                    "content": "int main(){\n  float out[2] = {15.6, 17.2};\n}",
+                    "build_settings":{"io":{"inputs":[],"outputs":["out"],"memories":[]}},
+                    "headers": []
+                },
+                "deployment": {
+                    "has_reciprocal": false,
+                    "control_address": 18316525568,
+                    "rom_address": 17179869184
+                }
+            },
+            {
+                "order": 1,
+                "id": "test_consumer",
+                "channels":2,
+                "options":{
+                    "comparators": "full",
+                    "efi_implementation":"none"
+                },
+                "sampling_frequency":1,
+                "input_data":[],
+                "inputs":[],
+                "outputs":[ { "name":"consumer_out", "type":"float", "reg_n":[7,8]}],
+                "memory_init":[],
+                "program": {
+                    "content": "int main(){\n  float input[2]; \n  float consumer_out[2]; \n  consumer_out[0] = input[0]*3.5; \n  consumer_out[1] = input[1]*3.5;\n}",
+                    "build_settings":{"io":{"inputs":["input"],"outputs":["consumer_out"],"memories":[]}},
+                    "headers": []
+                },
+                "deployment": {
+                    "has_reciprocal": false,
+                    "control_address": 18316525568,
+                    "rom_address": 17179869184
+                }
+            }
+        ],
+        "interconnect": [
+            {
+                "source": "test_producer",
+                "destination": "test_consumer",
+                "channels": [
+                    {
+                        "name": "test_channel",
+                        "type": "2d_vector_transfer",
+                        "source": {
+                            "channel": 0,
+                            "register": [5,6]
+                        },
+                        "source_output": "out",
+                        "destination": {
+                            "channel": 0,
+                            "register": [1,2]
+                        },
+                        "destination_input": "input",
+                        "length": 2,
+                        "stride": 2
+                    }
+                ]
+            }
+        ],
+        "emulation_time": 2,
+    "deployment_mode": false
+    })");
+
+    std::string s_f = SCHEMAS_FOLDER;
+    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
+    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    auto programs = em.get_programs();
+
+
+    auto mock_hw = std::make_shared<fpga_bridge_mock>();
+    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    auto addr_map = get_addr_map();
+    d.set_layout_map(addr_map);
+    d.deploy(specs, programs);
+
+    auto rom_writes = mock_hw->rom_writes;
+    auto control_writes = mock_hw->control_writes;
+
+    std::vector<uint32_t> reference_program = {
+            0x50003,
+            0xc,
+            0x10005,
+            0x20006,
+            0xc,
+            0x26,
+            0x4179999a,
+            0x46,
+            0x4189999a,
+            0xc
+    };
+
+    ASSERT_EQ(rom_writes.size(), 2);
+    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
+    ASSERT_EQ(rom_writes[0].second, reference_program);
+
+    reference_program = {
+            0x50005,
+            0xc,
+            0x20001,
+            0x10002,
+            0x40007,
+            0x20008,
+            0xc,
+            0x66,
+            0x40600000,
+            0x81843,
+            0x41823,
+            0xc
+
+    };
+
+    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
+    ASSERT_EQ(rom_writes[1].second, reference_program);
+
+    // DMA 1
+    ASSERT_EQ(control_writes.size(), 22);
+    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
+    ASSERT_EQ(control_writes[0].second, 0x10005);
+
+    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
+    ASSERT_EQ(control_writes[1].second, 0x38);
+
+    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
+    ASSERT_EQ(control_writes[2].second, 0x10011005);
+
+    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
+    ASSERT_EQ(control_writes[3].second, 0x38);
+
+    ASSERT_EQ(control_writes[4].first, 0x4'43c2'100c);
+    ASSERT_EQ(control_writes[4].second, 0x20006);
+
+    ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
+    ASSERT_EQ(control_writes[5].second, 0x38);
+
+
+    ASSERT_EQ(control_writes[6].first, 0x4'43c2'1010);
+    ASSERT_EQ(control_writes[6].second, 0x10021006);
+
+    ASSERT_EQ(control_writes[7].first, 0x4'43c2'1050);
+    ASSERT_EQ(control_writes[7].second, 0x38);
+
+    ASSERT_EQ(control_writes[8].first, 0x4'43c2'1000);
+    ASSERT_EQ(control_writes[8].second, 4);
+
+    // DMA 2
+    ASSERT_EQ(control_writes[9].first, 0x4'43c3'1004);
+    ASSERT_EQ(control_writes[9].second, 0x70007);
+
+    ASSERT_EQ(control_writes[10].first, 0x4'43c3'1044);
+    ASSERT_EQ(control_writes[10].second, 0x38);
+
+    ASSERT_EQ(control_writes[11].first, 0x4'43c3'1008);
+    ASSERT_EQ(control_writes[11].second, 0x80008);
+
+    ASSERT_EQ(control_writes[12].first, 0x4'43c3'1048);
+    ASSERT_EQ(control_writes[12].second, 0x38);
+
+    ASSERT_EQ(control_writes[13].first, 0x4'43c3'1000);
+    ASSERT_EQ(control_writes[13].second, 2);
+
+    // MEMORY INITIALIZATIONS
+
+    // SEQUENCER
+
+    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1004);
+    ASSERT_EQ(control_writes[14].second, 0);
+
+    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0008);
+    ASSERT_EQ(control_writes[15].second, 2);
+
+    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1008);
+    ASSERT_EQ(control_writes[16].second, 0);
+
+    ASSERT_EQ(control_writes[17].first, 0x4'43c1'000C);
+    ASSERT_EQ(control_writes[17].second, 93);
+
+    ASSERT_EQ(control_writes[18].first, 0x4'43c1'0004);
+    ASSERT_EQ(control_writes[18].second, 100'000'000);
+
+    ASSERT_EQ(control_writes[19].first, 0x4'43c1'1000);
+    ASSERT_EQ(control_writes[19].second, 3);
+
+    // CORES
+
+    ASSERT_EQ(control_writes[20].first, 0x443c20000);
+    ASSERT_EQ(control_writes[20].second,11);
+
+    ASSERT_EQ(control_writes[21].first, 0x443c30000);
+    ASSERT_EQ(control_writes[21].second,11);
+
+}
+
 TEST(deployer, simple_single_core_output_select) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
