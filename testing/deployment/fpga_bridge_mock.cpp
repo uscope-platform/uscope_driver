@@ -21,10 +21,12 @@ responses::response_code fpga_bridge_mock::load_bitstream(const std::string &bit
 }
 
 responses::response_code fpga_bridge_mock::single_write_register(const nlohmann::json &write_obj) {
+    control_writes.push_back(std::make_pair(write_obj["address"], write_obj["value"]));
     return responses::ok;
 }
 
 responses::response_code fpga_bridge_mock::apply_program(uint64_t address, std::vector<uint32_t> program) {
+    rom_writes.push_back(std::make_pair(address, program));
     return responses::ok;
 }
 
@@ -49,7 +51,6 @@ std::string fpga_bridge_mock::get_hardware_version() {
 }
 
 void fpga_bridge_mock::write_direct(uint64_t addr, uint32_t val) {
-
 }
 
 void fpga_bridge_mock::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {

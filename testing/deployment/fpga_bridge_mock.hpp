@@ -43,8 +43,8 @@ public:
     uint32_t get_pl_clock( uint8_t clk_n);
     void set_pl_clock(uint8_t clk_n, uint32_t freq);
 
-private:
-
+    std::vector<std::pair<uint64_t, uint32_t>> control_writes;
+    std::vector<std::pair<uint64_t, std::vector<uint32_t>>> rom_writes;
 };
 
 

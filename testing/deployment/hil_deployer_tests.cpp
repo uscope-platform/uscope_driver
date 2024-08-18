@@ -59,7 +59,8 @@ nlohmann::json get_addr_map(){
     return addr_map;
 }
 
-TEST(deployer, simple_deployment) {
+
+TEST(deployer, simple_single_core_deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
@@ -75,18 +76,12 @@ TEST(deployer, simple_deployment) {
                     "source": {
                         "type": "constant",
                         "value": [
-                            31.2,
-                            32.7,
-                            62.1,
-                            64
+                            31.2
                         ]
                     },
                     "reg_n": 3,
                     "channel": [
-                        0,
-                        1,
-                        2,
-                        3
+                        0
                     ]
                 },
                 {
@@ -95,18 +90,12 @@ TEST(deployer, simple_deployment) {
                     "source": {
                         "type": "constant",
                         "value": [
-                            4,
-                            2,
-                            6,
-                            12
+                            4
                         ]
                     },
                     "reg_n": 4,
                     "channel": [
-                        0,
-                        1,
-                        2,
-                        3
+                        0
                     ]
                 }
             ],
@@ -120,7 +109,7 @@ TEST(deployer, simple_deployment) {
                 }
             ],
             "memory_init": [],
-            "channels": 4,
+            "channels": 1,
             "options": {
                 "comparators": "reducing",
                 "efi_implementation": "none"
@@ -153,19 +142,77 @@ TEST(deployer, simple_deployment) {
     "emulation_time": 2,
     "deployment_mode": false
 })");
+
     std::string s_f = SCHEMAS_FOLDER;
     auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
     fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
     auto programs = em.get_programs();
 
 
-auto mock_hw = std::make_shared<fpga_bridge_mock>();
-hil_deployer<fpga_bridge_mock> d(mock_hw);
-auto addr_map = get_addr_map();
-d.set_layout_map(addr_map);
-d.deploy(specs, programs);
+    auto mock_hw = std::make_shared<fpga_bridge_mock>();
+    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    auto addr_map = get_addr_map();
+    d.set_layout_map(addr_map);
+    d.deploy(specs, programs);
 
-ASSERT_TRUE(true);
+    auto rom_writes = mock_hw->rom_writes;
+    auto control_writes = mock_hw->control_writes;
+
+    std::vector<uint32_t> reference_program = {
+            0x20004,
+            0xc,
+            0x20003,
+            0x10004,
+            0x30005,
+            0xc,
+            0x60841,
+            0xc,
+    };
+
+    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
+    ASSERT_EQ(rom_writes[0].second, reference_program);
+
+    // DMA
+    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
+    ASSERT_EQ(control_writes[0].second, 0x50005);
+
+    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
+    ASSERT_EQ(control_writes[1].second, 0x38);
+
+    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
+    ASSERT_EQ(control_writes[2].second, 1);
+
+    // INPUTS
+    ASSERT_EQ(control_writes[3].first, 0x4'43c2'2008);
+    ASSERT_EQ(control_writes[3].second, 3);
+
+    ASSERT_EQ(control_writes[4].first, 0x4'43c2'2000);
+    ASSERT_EQ(control_writes[4].second, 0x41f9999a);
+
+    ASSERT_EQ(control_writes[5].first, 0x4'43c2'3008);
+    ASSERT_EQ(control_writes[5].second, 4);
+
+    ASSERT_EQ(control_writes[6].first, 0x4'43c2'3000);
+    ASSERT_EQ(control_writes[6].second, 0x40800000);
+
+    // SEQUENCER
+
+    ASSERT_EQ(control_writes[7].first, 0x4'43c1'1004);
+    ASSERT_EQ(control_writes[7].second, 0);
+
+    ASSERT_EQ(control_writes[8].first, 0x4'43c1'0008);
+    ASSERT_EQ(control_writes[8].second, 2);
+
+    ASSERT_EQ(control_writes[9].first, 0x4'43c1'0004);
+    ASSERT_EQ(control_writes[9].second, 100'000'000);
+
+    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1000);
+    ASSERT_EQ(control_writes[10].second, 1);
+
+    // CORES
+
+    ASSERT_EQ(control_writes[11].first, 0x443c20000);
+    ASSERT_EQ(control_writes[11].second,11);
+
 }
-
 
