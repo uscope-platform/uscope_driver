@@ -15,9 +15,11 @@
 //  limitations under the License.
 
 #include "deployment/hil_deployer.hpp"
+#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 template <class hw_bridge>
-hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_base<hw_bridge>(h) {
+
+        hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_base<hw_bridge>(h) {
 
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
@@ -250,3 +252,4 @@ std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_shift(const st
 }
 
 template class hil_deployer<fpga_bridge>;
+template class hil_deployer<fpga_bridge_mock>;

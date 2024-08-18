@@ -38,21 +38,12 @@ find_package(CLI11 REQUIRED)
 find_package(cppzmq REQUIRED)
 find_package(GTest REQUIRED)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
-    enable_testing()
-    add_subdirectory(testing)
-else()
-    set(schema_folder "/usr/local/etc/fcore_toolchain")
-endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-
 # compiles code files from ./src folder
 file(GLOB INC_SOURCES "includes/*.h*")
 
 
 
 set(DRIVER_SOURCES /
-        src/uscope_driver.cpp
         src/server_frontend/infrastructure/server_connector.cpp
         src/server_frontend/infrastructure/command_processor.cpp
         src/server_frontend/infrastructure/schema_validator.cpp
@@ -73,7 +64,17 @@ set(DRIVER_SOURCES /
         src/deployment/custom_deployer.cpp
 )
 
-add_executable(uscope_driver ${DRIVER_SOURCES})
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
+    enable_testing()
+    add_subdirectory(testing)
+else()
+    set(schema_folder "/usr/local/etc/fcore_toolchain")
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+
+add_executable(uscope_driver src/uscope_driver.cpp ${DRIVER_SOURCES})
 target_link_libraries(uscope_driver PRIVATE
         rt
         ValiJSON::valijson

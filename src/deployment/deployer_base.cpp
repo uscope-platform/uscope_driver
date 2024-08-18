@@ -15,6 +15,7 @@
 //  limitations under the License.
 
 #include "deployment/deployer_base.hpp"
+#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 template <class hw_bridge>
 deployer_base<hw_bridge>::deployer_base(std::shared_ptr<hw_bridge> &h) {
@@ -191,3 +192,4 @@ void deployer_base<hw_bridge>::setup_base(const fcore::emulator::emulator_specs 
 }
 
 template class deployer_base<fpga_bridge>;
+template class deployer_base<fpga_bridge_mock>;

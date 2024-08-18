@@ -4,10 +4,10 @@ set(TEST_SOURCES
         deployment/fpga_bridge_mock.cpp
         )
 
+set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)
 
-
-
-add_executable(test_target ${TEST_SOURCES})
+list(TRANSFORM DRIVER_SOURCES PREPEND "../")
+add_executable(test_target ${TEST_SOURCES} ${DRIVER_SOURCES})
 target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         spdlog::spdlog
         ValiJSON::valijson
@@ -18,9 +18,12 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         GTest::gtest_main
         GTest::gmock
         GTest::gmock_main
+        CLI11::CLI11
+        cppzmq
         )
 
 target_include_directories(test_target PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
+target_compile_definitions(test_target PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 
 include(GoogleTest)
 gtest_discover_tests(test_target)

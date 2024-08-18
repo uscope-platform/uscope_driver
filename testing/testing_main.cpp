@@ -15,6 +15,13 @@
 
 #include <gtest/gtest.h>
 
+#include "configuration.hpp"
+#include "hw_interface/interfaces_dictionary.hpp"
+
+interfaces_dictionary if_dict;
+configuration runtime_config;
+
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
