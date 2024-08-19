@@ -25,7 +25,6 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         )
 
 target_include_directories(test_target PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
-target_compile_definitions(test_target PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 target_compile_definitions(test_target PRIVATE ENABLE_MOCKS)
 
 include(GoogleTest)

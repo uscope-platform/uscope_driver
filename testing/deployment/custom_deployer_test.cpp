@@ -394,9 +394,8 @@ TEST(custom_deployer, deployment) {
     "deployment_mode": true
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 

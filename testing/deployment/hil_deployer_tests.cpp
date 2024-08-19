@@ -143,9 +143,9 @@ TEST(deployer, simple_single_core_deployment) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -302,9 +302,9 @@ TEST(deployer, simple_single_core_integer_input) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -448,9 +448,9 @@ TEST(deployer, simple_single_core_memory_init) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -628,9 +628,9 @@ TEST(deployer, multichannel_single_core_deployment) {
             "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -877,9 +877,9 @@ TEST(deployer, simple_multi_core_deployment) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -1121,9 +1121,9 @@ TEST(deployer, sclar_interconnect_test) {
   "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -1329,9 +1329,9 @@ TEST(deployer, scatter_interconnect_test) {
     "deployment_mode": false
     })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -1541,9 +1541,9 @@ TEST(deployer, gather_interconnect_test) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -1756,9 +1756,9 @@ TEST(deployer, vector_interconnect_test) {
     "deployment_mode": false
     })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -1964,9 +1964,9 @@ TEST(deployer, 2d_vector_interconnect_test) {
     "deployment_mode": false
     })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -2187,9 +2187,9 @@ TEST(deployer, simple_single_core_output_select) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -2361,9 +2361,9 @@ TEST(deployer, simple_single_core_input_set) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 
@@ -2526,9 +2526,9 @@ TEST(deployer, simple_single_core_start_stop) {
     "deployment_mode": false
 })");
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec_json, s_f + "/emulator_spec_schema.json" );
-    fcore::emulator_manager em(spec_json, false, SCHEMAS_FOLDER);
+    
+    auto specs = fcore::emulator::emulator_specs(spec_json);
+    fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
 

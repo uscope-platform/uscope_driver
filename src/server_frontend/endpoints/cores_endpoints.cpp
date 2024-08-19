@@ -74,9 +74,8 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
 
-        std::string s_f = SCHEMAS_FOLDER;
-        auto specs = fcore::emulator::emulator_specs(arguments,s_f + "/emulator_spec_schema.json");
-        fcore::emulator_manager em(arguments, runtime_config.debug_hil, s_f);
+        auto specs = fcore::emulator::emulator_specs(arguments);
+        fcore::emulator_manager em(arguments, runtime_config.debug_hil);
         auto programs = em.get_programs();
 
         if(specs.custom_deploy_mode){

@@ -78,13 +78,10 @@ target_link_libraries(uscope_driver PRIVATE
 )
 
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
-target_compile_definitions(uscope_driver PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(schema_folder "/usr/local/etc/fcore_toolchain")
 else()
-    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
     enable_testing()
     target_sources(uscope_driver PRIVATE testing/deployment/fpga_bridge_mock.cpp)
     target_compile_definitions(uscope_driver PRIVATE ENABLE_MOCKS)
@@ -136,5 +133,4 @@ target_link_libraries(test_hil_deployer PRIVATE
 )
 
 target_include_directories(test_hil_deployer PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
-target_compile_definitions(test_hil_deployer PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 
