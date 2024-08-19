@@ -29,7 +29,7 @@ custom_deployer<hw_bridge>::custom_deployer(std::shared_ptr<hw_bridge> &h): depl
 
 template<class hw_bridge>
 responses::response_code custom_deployer<hw_bridge>::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
-    std::string s_f = SCHEMAS_FOLDER;
+
 
 
     this->setup_base(specs);

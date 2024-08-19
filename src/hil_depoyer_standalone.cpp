@@ -83,9 +83,8 @@ int main (int argc, char **argv) {
     addr_map["offsets"] = offsets;
 
 
-    std::string s_f = SCHEMAS_FOLDER;
-    auto specs = fcore::emulator::emulator_specs(spec,s_f + "/emulator_spec_schema.json");
-    fcore::emulator_manager em(spec, runtime_config.debug_hil, s_f);
+    auto specs = fcore::emulator::emulator_specs(spec);
+    fcore::emulator_manager em(spec, runtime_config.debug_hil);
     auto programs = em.get_programs();
 
 
