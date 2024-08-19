@@ -88,4 +88,8 @@ responses::response_code custom_deployer<hw_bridge>::deploy(fcore::emulator::emu
 
 
 template class custom_deployer<fpga_bridge>;
-template class custom_deployer<fpga_bridge_mock>;
+
+#ifdef ENABLE_MOCKS
+    template class custom_deployer<fpga_bridge_mock>;
+#endif
+

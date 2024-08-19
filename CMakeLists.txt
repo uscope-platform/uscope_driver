@@ -62,17 +62,8 @@ set(DRIVER_SOURCES /
         src/deployment/hil_bus_map.cpp
         src/deployment/deployer_base.cpp
         src/deployment/custom_deployer.cpp
-        testing/deployment/fpga_bridge_mock.cpp
 )
 
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
-    enable_testing()
-    add_subdirectory(testing)
-else()
-    set(schema_folder "/usr/local/etc/fcore_toolchain")
-endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 
 add_executable(uscope_driver src/uscope_driver.cpp ${DRIVER_SOURCES})
@@ -89,6 +80,16 @@ target_link_libraries(uscope_driver PRIVATE
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
 target_compile_definitions(uscope_driver PRIVATE SCHEMAS_FOLDER="${schema_folder}")
 
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(schema_folder "/usr/local/etc/fcore_toolchain")
+else()
+    set(schema_folder "${fcore_toolchain_SOURCE_DIR}/schemas")
+    enable_testing()
+    target_sources(uscope_driver PRIVATE testing/deployment/fpga_bridge_mock.cpp)
+    target_compile_definitions(uscope_driver PRIVATE ENABLE_MOCKS)
+    add_subdirectory(testing)
+endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 add_custom_target(update_version
     COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Version Header Update"

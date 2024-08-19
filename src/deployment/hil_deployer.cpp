@@ -251,4 +251,7 @@ std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_shift(const st
 }
 
 template class hil_deployer<fpga_bridge>;
+#ifdef ENABLE_MOCKS
 template class hil_deployer<fpga_bridge_mock>;
+#endif
+

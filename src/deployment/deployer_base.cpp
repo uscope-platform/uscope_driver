@@ -193,4 +193,8 @@ void deployer_base<hw_bridge>::setup_base(const fcore::emulator::emulator_specs 
 }
 
 template class deployer_base<fpga_bridge>;
+#ifdef ENABLE_MOCKS
 template class deployer_base<fpga_bridge_mock>;
+#endif
+
+
