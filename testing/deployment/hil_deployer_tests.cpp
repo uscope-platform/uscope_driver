@@ -667,19 +667,19 @@ TEST(deployer, multichannel_single_core_deployment) {
     ASSERT_EQ(control_writes[1].second, 0x38);
 
     ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x11005);
+    ASSERT_EQ(control_writes[2].second, 0x3ed1005);
 
     ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
     ASSERT_EQ(control_writes[3].second, 0x38);
 
     ASSERT_EQ(control_writes[4].first, 0x4'43c2'100c);
-    ASSERT_EQ(control_writes[4].second, 0x22005);
+    ASSERT_EQ(control_writes[4].second, 0x7d52005);
 
     ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
     ASSERT_EQ(control_writes[5].second, 0x38);
 
     ASSERT_EQ(control_writes[6].first, 0x4'43c2'1010);
-    ASSERT_EQ(control_writes[6].second, 0x33005);
+    ASSERT_EQ(control_writes[6].second, 0xbbd3005);
 
     ASSERT_EQ(control_writes[7].first, 0x4'43c2'1050);
     ASSERT_EQ(control_writes[7].second, 0x38);
@@ -1403,7 +1403,7 @@ TEST(deployer, scatter_interconnect_test) {
     ASSERT_EQ(control_writes[6].second, 0x38);
 
     ASSERT_EQ(control_writes[7].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[7].second, 0x31005);
+    ASSERT_EQ(control_writes[7].second, 0x3ed1005);
 
     ASSERT_EQ(control_writes[8].first, 0x4'43c3'1048);
     ASSERT_EQ(control_writes[8].second, 0x38);
@@ -1828,7 +1828,7 @@ TEST(deployer, vector_interconnect_test) {
     ASSERT_EQ(control_writes[6].second, 0x38);
 
     ASSERT_EQ(control_writes[7].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[7].second, 0x31007);
+    ASSERT_EQ(control_writes[7].second, 0x3ef1007);
 
     ASSERT_EQ(control_writes[8].first, 0x4'43c3'1048);
     ASSERT_EQ(control_writes[8].second, 0x38);
@@ -2016,7 +2016,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
     ASSERT_EQ(rom_writes[1].second, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 22);
+    ASSERT_EQ(control_writes.size(), 26);
     ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
     ASSERT_EQ(control_writes[0].second, 0x10005);
 
@@ -2035,7 +2035,6 @@ TEST(deployer, 2d_vector_interconnect_test) {
     ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
     ASSERT_EQ(control_writes[5].second, 0x38);
 
-
     ASSERT_EQ(control_writes[6].first, 0x4'43c2'1010);
     ASSERT_EQ(control_writes[6].second, 0x10021006);
 
@@ -2053,43 +2052,55 @@ TEST(deployer, 2d_vector_interconnect_test) {
     ASSERT_EQ(control_writes[10].second, 0x38);
 
     ASSERT_EQ(control_writes[11].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[11].second, 0x80008);
+    ASSERT_EQ(control_writes[11].second, 0x3ef1007);
 
     ASSERT_EQ(control_writes[12].first, 0x4'43c3'1048);
     ASSERT_EQ(control_writes[12].second, 0x38);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[13].second, 2);
+    ASSERT_EQ(control_writes[13].first, 0x4'43c3'100c);
+    ASSERT_EQ(control_writes[13].second, 0x80008);
+
+    ASSERT_EQ(control_writes[14].first, 0x4'43c3'104c);
+    ASSERT_EQ(control_writes[14].second, 0x38);
+
+    ASSERT_EQ(control_writes[15].first, 0x4'43c3'1010);
+    ASSERT_EQ(control_writes[15].second, 0x3f01008);
+
+    ASSERT_EQ(control_writes[16].first, 0x4'43c3'1050);
+    ASSERT_EQ(control_writes[16].second, 0x38);
+
+    ASSERT_EQ(control_writes[17].first, 0x4'43c3'1000);
+    ASSERT_EQ(control_writes[17].second, 4);
 
     // MEMORY INITIALIZATIONS
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[14].second, 0);
+    ASSERT_EQ(control_writes[18].first, 0x4'43c1'1004);
+    ASSERT_EQ(control_writes[18].second, 0);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[15].second, 2);
+    ASSERT_EQ(control_writes[19].first, 0x4'43c1'0008);
+    ASSERT_EQ(control_writes[19].second, 2);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[16].second, 0);
+    ASSERT_EQ(control_writes[20].first, 0x4'43c1'1008);
+    ASSERT_EQ(control_writes[20].second, 0);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[17].second, 93);
+    ASSERT_EQ(control_writes[21].first, 0x4'43c1'000C);
+    ASSERT_EQ(control_writes[21].second, 93);
 
-    ASSERT_EQ(control_writes[18].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[18].second, 100'000'000);
+    ASSERT_EQ(control_writes[22].first, 0x4'43c1'0004);
+    ASSERT_EQ(control_writes[22].second, 100'000'000);
 
-    ASSERT_EQ(control_writes[19].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[19].second, 3);
+    ASSERT_EQ(control_writes[23].first, 0x4'43c1'1000);
+    ASSERT_EQ(control_writes[23].second, 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[20].first, 0x443c20000);
-    ASSERT_EQ(control_writes[20].second,11);
+    ASSERT_EQ(control_writes[24].first, 0x443c20000);
+    ASSERT_EQ(control_writes[24].second,11);
 
-    ASSERT_EQ(control_writes[21].first, 0x443c30000);
-    ASSERT_EQ(control_writes[21].second,11);
+    ASSERT_EQ(control_writes[25].first, 0x443c30000);
+    ASSERT_EQ(control_writes[25].second,11);
 
 }
 
@@ -2221,7 +2232,7 @@ TEST(deployer, simple_single_core_output_select) {
     ASSERT_EQ(control_writes[1].second, 0x38);
 
     ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x11005);
+    ASSERT_EQ(control_writes[2].second, 0x3ed1005);
 
     ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
     ASSERT_EQ(control_writes[3].second, 0x38);
@@ -2263,7 +2274,7 @@ TEST(deployer, simple_single_core_output_select) {
 
     // select_output
     ASSERT_EQ(control_writes[14].first, 0x443c50004);
-    ASSERT_EQ(control_writes[14].second,1);
+    ASSERT_EQ(control_writes[14].second,0x3ed);
 
 }
 

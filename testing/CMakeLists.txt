@@ -2,6 +2,7 @@ set(TEST_SOURCES
         testing_main.cpp
         deployment/hil_deployer_tests.cpp
         deployment/fpga_bridge_mock.cpp
+        deployment/custom_deployer_test.cpp
         )
 
 set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)

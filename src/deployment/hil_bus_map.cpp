@@ -91,26 +91,13 @@ void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c
 
 void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &core) {
     for(auto &out:core.outputs){
-        if(out.address.size()>1){ // TODO: unify the two branches to handle the channelized vector output
-            for(auto addr:out.address){
-                if(!interconnect_exposed_outputs[core.id].contains(out.name)){
-                    bus_map_entry e;
-                    e.core_name = core.id;
-                    e.destination_bus_address = get_free_address(addr);
-                    e.source_io_address = addr;
-                    e.source_channel = 0;
-                    e.destination_channel = 0;
-                    e.type = 'o';
-                    bus_map.push_back(e);
-                }
-            }
-        } else {
+        for(int j = 0; j<out.address.size(); j++){
             for(int i = 0; i<core.channels; i++){
                 if(!interconnect_exposed_outputs[core.id].contains(out.name)){
                     bus_map_entry e;
                     e.core_name = core.id;
-                    e.destination_bus_address = get_free_address(out.address[0]);
-                    e.source_io_address = out.address[0];
+                    e.destination_bus_address = get_free_address(out.address[j] + 1000*i);
+                    e.source_io_address = out.address[j];
                     e.source_channel = i;
                     e.destination_channel = 0;
                     e.type = 'o';
@@ -118,7 +105,6 @@ void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &co
                 }
             }
         }
-
     }
 
 

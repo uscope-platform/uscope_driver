@@ -18,8 +18,7 @@
 #include "../testing/deployment/fpga_bridge_mock.hpp"
 
 template <class hw_bridge>
-
-        hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_base<hw_bridge>(h) {
+hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_base<hw_bridge>(h) {
 
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 

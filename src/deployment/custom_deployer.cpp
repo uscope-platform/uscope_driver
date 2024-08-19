@@ -15,9 +15,10 @@
 //  limitations under the License.
 
 #include "deployment/custom_deployer.hpp"
+#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 template<class hw_bridge>
-custom_deployer<hw_bridge>::custom_deployer(std::shared_ptr<fpga_bridge> &h): deployer_base<hw_bridge>(h) {
+custom_deployer<hw_bridge>::custom_deployer(std::shared_ptr<hw_bridge> &h): deployer_base<hw_bridge>(h) {
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
 
     if(clock_f != nullptr){
@@ -87,4 +88,4 @@ responses::response_code custom_deployer<hw_bridge>::deploy(fcore::emulator::emu
 
 
 template class custom_deployer<fpga_bridge>;
-
+template class custom_deployer<fpga_bridge_mock>;
