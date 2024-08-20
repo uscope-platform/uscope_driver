@@ -73,9 +73,11 @@ TEST(custom_deployer, deployment) {
             "inputs": [
                 {
                     "name": "sin_t",
-                    "type": "integer",
-                    "width": 14,
-                    "signed": false,
+                    "metadata": {
+                        "type": "integer",
+                        "width": 14,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -89,9 +91,11 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "cos_t",
-                    "type": "integer",
-                    "width": 10,
-                    "signed": true,
+                    "metadata": {
+                        "type": "integer",
+                        "width": 10,
+                        "signed": true
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -103,9 +107,11 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "v_in",
-                    "type": "float",
-                    "width": 32,
-                    "signed": false,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -117,9 +123,11 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "i_out",
-                    "type": "float",
-                    "width": 32,
-                    "signed": false,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -133,9 +141,11 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "i_d_ref",
-                    "type": "float",
-                    "width": 32,
-                    "signed": false,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -147,9 +157,11 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "i_q_ref",
-                    "type": "float",
-                    "width": 32,
-                    "signed": false,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -163,32 +175,38 @@ TEST(custom_deployer, deployment) {
             "outputs": [
                 {
                     "name": "v_out",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         10,
                         11,
                         12
-                    ],
-                    "width": 32,
-                    "signed": false
+                    ]
                 },
                 {
                     "name": "i_in",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         13
-                    ],
-                    "width": 32,
-                    "signed": false
+                    ]
                 }
             ],
             "memory_init": [
                 {
                     "name": "d_integrator",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "is_output": false,
-                    "width": 32,
-                    "signed": false,
                     "reg_n": [
                         14
                     ],
@@ -198,10 +216,12 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "q_integrator",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "is_output": false,
-                    "width": 32,
-                    "signed": false,
                     "reg_n": [
                         15
                     ],
@@ -255,9 +275,11 @@ TEST(custom_deployer, deployment) {
             "inputs": [
                 {
                     "name": "voltages",
-                    "type": "float",
-                    "width": 32,
-                    "signed": false,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "source": {
                         "type": "external",
                         "value": ""
@@ -275,48 +297,60 @@ TEST(custom_deployer, deployment) {
             "outputs": [
                 {
                     "name": "currents",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         4,
                         5,
                         6
-                    ],
-                    "width": 32,
-                    "signed": false
+                    ]
                 },
                 {
                     "name": "speed",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         7
                     ]
                 },
                 {
                     "name": "sin_t",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         8
-                    ],
-                    "width": 32,
-                    "signed": false
+                    ]
                 },
                 {
                     "name": "cos_t",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "reg_n": [
                         9
-                    ],
-                    "width": 32,
-                    "signed": false
+                    ]
                 }
             ],
             "memory_init": [
                 {
                     "name": "i_d",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "is_output": false,
-                    "width": 32,
-                    "signed": false,
                     "reg_n": [
                         22
                     ],
@@ -326,10 +360,12 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "i_q",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "is_output": false,
-                    "width": 32,
-                    "signed": false,
                     "reg_n": [
                         23
                     ],
@@ -339,10 +375,12 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "theta_m",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
                     "is_output": false,
-                    "width": 32,
-                    "signed": false,
                     "reg_n": [
                         24
                     ],

@@ -101,6 +101,9 @@ void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &co
                     e.source_channel = i;
                     e.destination_channel = 0;
                     e.type = 'o';
+
+                    e.metadata = out.metadata;
+
                     bus_map.push_back(e);
                 }
             }

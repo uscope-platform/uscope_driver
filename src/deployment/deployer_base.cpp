@@ -135,7 +135,7 @@ void deployer_base<hw_bridge>::setup_inputs(const fcore::emulator::emulator_core
             input_metadata_t metadata;
 
             uint32_t input_value;
-            metadata.is_float = in.data_type == fcore::emulator::type_float;
+            metadata.is_float = in.metadata.type == fcore::emulator::type_float;
             metadata.core = c.id;
             metadata.const_ip_addr = complex_address + offset;
             metadata.dest = address;

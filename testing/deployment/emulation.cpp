@@ -33,21 +33,25 @@ TEST(emulator, simple_emulation) {
                 "outputs": [
                     {
                         "name": "out",
-                        "type": "float",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": false
+                        },
                         "reg_n": [
                             5,6
-                        ],
-                        "width": 32,
-                        "signed": false
+                        ]
                     }
                 ],
                 "memory_init": [
                     {
                         "name": "mem",
-                        "type": "float",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": false
+                        },
                         "is_output": true,
-                        "width": 32,
-                        "signed": false,
                         "reg_n": [
                             32
                         ],

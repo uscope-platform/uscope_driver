@@ -72,7 +72,11 @@ TEST(deployer, simple_single_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -86,7 +90,11 @@ TEST(deployer, simple_single_core_deployment) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -102,7 +110,11 @@ TEST(deployer, simple_single_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -231,7 +243,11 @@ TEST(deployer, simple_single_core_integer_input) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -245,7 +261,11 @@ TEST(deployer, simple_single_core_integer_input) {
                 },
                 {
                     "name": "input_2",
-                    "type": "integer",
+                    "metadata":{
+                        "type": "integer",
+                        "width":16,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -261,7 +281,11 @@ TEST(deployer, simple_single_core_integer_input) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -391,7 +415,11 @@ TEST(deployer, simple_single_core_memory_init) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -400,14 +428,22 @@ TEST(deployer, simple_single_core_memory_init) {
             "memory_init": [
                 {
                     "name": "mem",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true
+                    },
                     "is_output": true,
                     "reg_n": 4,
                     "value": 14
                 },
                 {
                     "name": "mem_2",
-                    "type": "integer",
+                    "metadata":{
+                        "type": "integer",
+                        "width":16,
+                        "signed":true
+                    },
                     "is_output": true,
                     "reg_n": 3,
                     "value": 12
@@ -540,92 +576,104 @@ TEST(deployer, multichannel_single_core_deployment) {
     "cores": [
     {
         "id": "test",
-                "order": 0,
-                "input_data": [],
-                "inputs": [
-        {
-            "name": "input_1",
+        "order": 0,
+        "input_data": [],
+        "inputs": [
+            {
+                "name": "input_1",
+                "metadata":{
                     "type": "float",
-                    "source": {
-                "type": "constant",
-                        "value": [
-                31.2,
+                    "width":16,
+                    "signed":true
+                },
+                "source": {
+                    "type": "constant",
+                    "value": [
+                        31.2,
                         32.7,
                         62.1,
                         64
-                ]
-            },
-            "reg_n": 3,
-                    "channel": [
-            0,
+                    ]
+                },
+                "reg_n": 3,
+                "channel": [
+                    0,
                     1,
                     2,
                     3
-            ]
-        },
-        {
-            "name": "input_2",
+                ]
+            },
+            {
+                "name": "input_2",
+                "metadata":{
                     "type": "float",
-                    "source": {
-                "type": "constant",
-                        "value": [
-                4,
+                    "width":16,
+                    "signed":true
+                },
+                "source": {
+                    "type": "constant",
+                    "value": [
+                        4,
                         2,
                         6,
                         12
-                ]
-            },
-            "reg_n": 4,
-                    "channel": [
-            0,
+                    ]
+                },
+                "reg_n": 4,
+                "channel": [
+                    0,
                     1,
                     2,
                     3
-            ]
-        }
+                ]
+            }
         ],
         "outputs": [
-        {
-            "name": "out",
+            {
+                "name": "out",
+                "metadata":{
                     "type": "float",
-                    "reg_n": [
-            5
-            ]
-        }
+                    "width":16,
+                    "signed":true
+                },
+                "reg_n": [
+                    5
+                ]
+            }
         ],
         "memory_init": [],
-                "channels": 4,
-                "options": {
+        "channels": 4,
+        "options": {
             "comparators": "reducing",
-                    "efi_implementation": "none"
+            "efi_implementation": "none"
         },
         "program": {
             "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                    "build_settings": {
+            "build_settings": {
                 "io": {
                     "inputs": [
-                    "input_1",
-                            "input_2"
+                        "input_1",
+                        "input_2"
                     ],
                     "memories": [],
-                            "outputs": [
-                    "out"
+                    "outputs": [
+                        "out"
                     ]
                 }
             },
             "headers": []
         },
         "sampling_frequency": 1,
-                "deployment": {
+        "deployment": {
             "has_reciprocal": false,
-                    "control_address": 18316525568,
-                    "rom_address": 17179869184
+            "control_address": 18316525568,
+            "rom_address": 17179869184
         }
     }
     ],
     "interconnect": [],
-            "emulation_time": 2,
-            "deployment_mode": false
+    "emulation_time": 2,
+    "deployment_mode": false
 })");
 
     
@@ -734,7 +782,11 @@ TEST(deployer, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -748,7 +800,11 @@ TEST(deployer, simple_multi_core_deployment) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -764,7 +820,11 @@ TEST(deployer, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -806,7 +866,11 @@ TEST(deployer, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -820,7 +884,11 @@ TEST(deployer, simple_multi_core_deployment) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -836,7 +904,11 @@ TEST(deployer, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata":{
+                        "type": "float",
+                        "width":32,
+                        "signed":true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -994,132 +1066,162 @@ TEST(deployer, sclar_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
-  "cores": [
-    {
-      "id": "test",
-      "input_data": [
-      ],
-      "inputs": [
+    "cores": [
         {
-          "name": "input_1",
-          "type": "float",
-          "reg_n": 1,
-          "source":{"type": "constant","value": [31.2]},
-          "channel": 0
-        },
-        {
-          "name": "input_2",
-          "type": "float",
-          "source":{"type": "constant","value": [32.7]},
-          "reg_n": 2,
-          "channel": 0
-        }
-      ],
-      "outputs": [
-        {
-          "reg_n":[4],
-          "type":"integer",
-          "name":"out"
-        }
-      ],
-      "memory_init": [],
-      "program":{
-        "content": "int main(){float input_1; float input_2; float out; out = fti(input_1 + input_2); out2=out;}",
-        "build_settings": {
-          "io": {
+            "id": "test",
+            "input_data": [],
             "inputs": [
-              "input_1",
-              "input_2"
+                {
+                    "name": "input_1",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "reg_n": 1,
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            31.2
+                        ]
+                    },
+                    "channel": 0
+                },
+                {
+                    "name": "input_2",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            32.7
+                        ]
+                    },
+                    "reg_n": 2,
+                    "channel": 0
+                }
             ],
             "outputs": [
-              "out",
-              "out2"
+                {
+                    "reg_n": [
+                        4
+                    ],
+                    "metadata": {
+                        "type": "integer",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "name": "out"
+                }
             ],
-            "memories": []
-          }
+            "memory_init": [],
+            "program": {
+                "content": "int main(){float input_1; float input_2; float out; out = fti(input_1 + input_2); out2=out;}",
+                "build_settings": {
+                    "io": {
+                        "inputs": [
+                            "input_1",
+                            "input_2"
+                        ],
+                        "outputs": [
+                            "out",
+                            "out2"
+                        ],
+                        "memories": []
+                    }
+                },
+                "headers": []
+            },
+            "order": 0,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "efi_sort"
+            },
+            "channels": 1,
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
         },
-        "headers": []
-      },
-      "order": 0,
-      "options":{
-        "comparators":"reducing",
-        "efi_implementation":"efi_sort"
-      },
-      "channels":1,
-      "sampling_frequency": 1,
-      "deployment": {
-        "has_reciprocal": false,
-        "control_address": 18316525568,
-        "rom_address": 17179869184
-      }
-    },
-    {
-      "id": "test_move",
-      "inputs": [],
-      "input_data": [],
-      "outputs": [
         {
-          "reg_n":[5],
-          "type":"integer",
-          "name":"out"
-        }
-      ],
-      "memory_init": [],
-      "program":{
-        "content": "int main(){float input; float out; float val = itf(input); out = fti(val+1.0);}",
-        "build_settings": {
-          "io": {
-            "inputs": [
-              "input"
-            ],
+            "id": "test_move",
+            "inputs": [],
+            "input_data": [],
             "outputs": [
-              "out"
+                {
+                    "reg_n": [
+                        5
+                    ],
+                    "metadata": {
+                        "type": "integer",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "name": "out"
+                }
             ],
-            "memories": []
-          }
-        },
-        "headers": []
-      },
-      "order": 1,
-      "options":{
-        "comparators":"reducing",
-        "efi_implementation":"efi_sort"
-      },
-      "channels":1,
-      "sampling_frequency": 1,
-      "deployment": {
-        "has_reciprocal": false,
-        "control_address": 18316525568,
-        "rom_address": 17179869184
-      }
-    }
-  ],
-  "interconnect":[
-    {
-      "source":"test",
-      "destination":"test_move",
-      "channels":[
-        {
-          "name": "interconnect_name",
-          "length": 1,
-          "type": "scalar_transfer",
-          "source_output":"out2",
-          "source": {
-            "channel": 0,
-            "register": 6
-          },
-          "destination_input": "input",
-          "destination": {
-            "channel": 0,
-            "register": 1
-          }
+            "memory_init": [],
+            "program": {
+                "content": "int main(){float input; float out; float val = itf(input); out = fti(val+1.0);}",
+                "build_settings": {
+                    "io": {
+                        "inputs": [
+                            "input"
+                        ],
+                        "outputs": [
+                            "out"
+                        ],
+                        "memories": []
+                    }
+                },
+                "headers": []
+            },
+            "order": 1,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "efi_sort"
+            },
+            "channels": 1,
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
         }
-      ]
-    }
-  ],
-  "emulation_time": 2,
-  "deployment_mode": false
-})");
+    ],
+    "interconnect": [
+        {
+            "source": "test",
+            "destination": "test_move",
+            "channels": [
+                {
+                    "name": "interconnect_name",
+                    "length": 1,
+                    "type": "scalar_transfer",
+                    "source_output": "out2",
+                    "source": {
+                        "channel": 0,
+                        "register": 6
+                    },
+                    "destination_input": "input",
+                    "destination": {
+                        "channel": 0,
+                        "register": 1
+                    }
+                }
+            ]
+        }
+    ],
+    "emulation_time": 2,
+    "deployment_mode": false
+}
+)");
 
     
     auto specs = fcore::emulator::emulator_specs(spec_json);
@@ -1288,7 +1390,17 @@ TEST(deployer, scatter_interconnect_test) {
                 "sampling_frequency":1,
                 "input_data":[],
                 "inputs":[],
-                "outputs":[ { "name":"out", "type":"float", "reg_n":[5]}],
+                "outputs":[
+                    {
+                        "name":"out",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true
+                        },
+                        "reg_n":[5]
+                    }
+                ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input;float out = input*3.5;\n}",
@@ -1463,20 +1575,38 @@ TEST(deployer, gather_interconnect_test) {
             "inputs":[
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "reg_n": 3,
                     "channel":[0,1],
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "reg_n": 4,
                     "channel":[0,1],
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 }
             ],
-            "outputs":[ { "name":"out", "type":"float", "reg_n":[5]}],
+            "outputs":[
+                {
+                    "name":"out",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "reg_n":[5]
+                }
+            ],
             "memory_init":[],
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
@@ -1500,7 +1630,17 @@ TEST(deployer, gather_interconnect_test) {
             "sampling_frequency":1,
             "input_data":[],
             "inputs":[],
-            "outputs":[ { "name":"out", "type":"float", "reg_n":[5]}],
+            "outputs":[
+                {
+                    "name":"out",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "reg_n":[5]
+                }
+            ],
             "memory_init":[],
             "program": {
                 "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] + input_data[1];\n}\n",
@@ -1678,14 +1818,22 @@ TEST(deployer, vector_interconnect_test) {
                 "inputs":[
                     {
                         "name": "input_1",
-                        "type": "float",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true
+                        },
                         "reg_n": 3,
                         "channel":[0,1],
                         "source":{"type": "constant","value": [31.2, 32.7]}
                     },
                     {
                         "name": "input_2",
-                        "type": "float",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true
+                        },
                         "reg_n": 4,
                         "channel":[0,1],
                         "source":{"type": "constant","value": [31.2, 32.7]}
@@ -1715,7 +1863,17 @@ TEST(deployer, vector_interconnect_test) {
                 "sampling_frequency":1,
                 "input_data":[],
                 "inputs":[],
-                "outputs":[ { "name":"out", "type":"float", "reg_n":[7]}],
+                "outputs":[
+                    {
+                        "name":"out",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true
+                        },
+                        "reg_n":[7]
+                    }
+                ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input;float out = input*3.5;\n}",
@@ -1922,7 +2080,17 @@ TEST(deployer, 2d_vector_interconnect_test) {
                 "sampling_frequency":1,
                 "input_data":[],
                 "inputs":[],
-                "outputs":[ { "name":"consumer_out", "type":"float", "reg_n":[7,8]}],
+                "outputs":[
+                    {
+                        "name":"consumer_out",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true
+                        },
+                        "reg_n":[7,8]
+                    }
+                ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input[2]; \n  float consumer_out[2]; \n  consumer_out[0] = input[0]*3.5; \n  consumer_out[1] = input[1]*3.5;\n}",
@@ -2116,7 +2284,11 @@ TEST(deployer, simple_single_core_output_select) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2130,7 +2302,11 @@ TEST(deployer, simple_single_core_output_select) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2146,7 +2322,11 @@ TEST(deployer, simple_single_core_output_select) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -2290,7 +2470,11 @@ TEST(deployer, simple_single_core_input_set) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2304,7 +2488,11 @@ TEST(deployer, simple_single_core_input_set) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2320,7 +2508,11 @@ TEST(deployer, simple_single_core_input_set) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "reg_n": [
                         5
                     ]
@@ -2455,7 +2647,11 @@ TEST(deployer, simple_single_core_start_stop) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2469,7 +2665,11 @@ TEST(deployer, simple_single_core_start_stop) {
                 },
                 {
                     "name": "input_2",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "source": {
                         "type": "constant",
                         "value": [
@@ -2485,7 +2685,11 @@ TEST(deployer, simple_single_core_start_stop) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
                     "reg_n": [
                         5
                     ]

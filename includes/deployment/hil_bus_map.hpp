@@ -28,6 +28,8 @@
 
 #include "emulator/emulator_manager.hpp"
 
+
+
 class bus_map_entry{
 public:
     uint16_t source_io_address;
@@ -36,6 +38,7 @@ public:
     uint16_t destination_channel;
     std::string core_name;
     std::string type;
+    fcore::emulator::iom_metadata metadata;
 };
 
 
