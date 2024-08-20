@@ -417,7 +417,7 @@ TEST(deployer, simple_single_core_memory_init) {
                     "name": "out",
                     "metadata":{
                         "type": "float",
-                        "width":16,
+                        "width":32,
                         "signed":true
                     },
                     "reg_n": [
@@ -430,7 +430,7 @@ TEST(deployer, simple_single_core_memory_init) {
                     "name": "mem",
                     "metadata":{
                         "type": "float",
-                        "width":16,
+                        "width":32,
                         "signed":true
                     },
                     "is_output": true,
@@ -533,7 +533,7 @@ TEST(deployer, simple_single_core_memory_init) {
     ASSERT_EQ(control_writes[4].second, 0x30003);
 
     ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
-    ASSERT_EQ(control_writes[5].second, 0x38);
+    ASSERT_EQ(control_writes[5].second, 0x18);
 
     ASSERT_EQ(control_writes[6].first, 0x4'43c2'1000);
     ASSERT_EQ(control_writes[6].second, 3);
@@ -1061,7 +1061,7 @@ TEST(deployer, simple_multi_core_deployment) {
 
 }
 
-TEST(deployer, sclar_interconnect_test) {
+TEST(deployer, scalar_interconnect_test) {
 
 
     nlohmann::json spec_json = nlohmann::json::parse(
@@ -1110,7 +1110,7 @@ TEST(deployer, sclar_interconnect_test) {
                         4
                     ],
                     "metadata": {
-                        "type": "integer",
+                        "type": "float",
                         "width": 32,
                         "signed": true
                     },
@@ -1158,7 +1158,7 @@ TEST(deployer, sclar_interconnect_test) {
                         5
                     ],
                     "metadata": {
-                        "type": "integer",
+                        "type": "float",
                         "width": 32,
                         "signed": true
                     },
@@ -2086,7 +2086,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": true
+                            "signed": false
                         },
                         "reg_n":[7,8]
                     }
