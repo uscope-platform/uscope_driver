@@ -86,7 +86,11 @@ void deployer_base<hw_bridge>::setup_output_entry(const bus_map_entry &e, uint64
 
     uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
 
-    write_register(metadata_address, get_metadata_value(32, false, true));
+    write_register(metadata_address, get_metadata_value(
+            e.metadata.width,
+            e.metadata.is_signed,
+            e.metadata.type == fcore::emulator::type_float
+    ));
 }
 
 template <class hw_bridge>

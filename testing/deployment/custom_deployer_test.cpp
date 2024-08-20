@@ -322,9 +322,9 @@ TEST(custom_deployer, deployment) {
                 {
                     "name": "sin_t",
                     "metadata": {
-                        "type": "float",
-                        "width": 32,
-                        "signed": false
+                        "type": "integer",
+                        "width": 16,
+                        "signed": true
                     },
                     "reg_n": [
                         8
@@ -333,8 +333,8 @@ TEST(custom_deployer, deployment) {
                 {
                     "name": "cos_t",
                     "metadata": {
-                        "type": "float",
-                        "width": 32,
+                        "type": "integer",
+                        "width": 14,
                         "signed": false
                     },
                     "reg_n": [
@@ -495,10 +495,10 @@ TEST(custom_deployer, deployment) {
             0x3ee1006, 0x38,
             0x70007, 0x38,
             0x3ef1007, 0x38,
-            0x80008, 0x38,
-            0x3f01008, 0x38,
-            0x90009, 0x38,
-            0x3f11009, 0x38,
+            0x80008, 0x18,
+            0x3f01008, 0x18,
+            0x90009, 0x6,
+            0x3f11009, 0x6,
             12,
             0, 0,
             0, 0, 0,
