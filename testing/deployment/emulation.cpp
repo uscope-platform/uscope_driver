@@ -97,6 +97,6 @@ TEST(emulator, simple_emulation) {
     hil_emulator emu;
     auto results = emu.emulate(spec_json);
 
-    std::string expected_result = "{\n    \"test_producer\": {\n        \"error_code\": \"\",\n        \"outputs\": {\n            \"mem\": {\n                \"0\": [\n                    [\n                        1.0,\n                        2.0\n                    ]\n                ]\n            },\n            \"out\": {\n                \"0\": [\n                    [\n                        101.0,\n                        102.0\n                    ],\n                    [\n                        1001.0,\n                        1002.0\n                    ]\n                ]\n            }\n        }\n    },\n    \"timebase\": [\n        0.0\n    ]\n}";
+    std::string expected_result = "{\"test_producer\":{\"error_code\":\"\",\"outputs\":{\"mem\":{\"0\":[[1.0,2.0]]},\"out\":{\"0\":[[101.0,102.0],[1001.0,1002.0]]}}},\"timebase\":[0.0]}";
     EXPECT_EQ(results, expected_result);
 }

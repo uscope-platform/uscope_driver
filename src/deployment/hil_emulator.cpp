@@ -18,15 +18,14 @@ std::string hil_emulator::emulate(nlohmann::json &specs) {
 
     spdlog::info("EMULATE HIL");
 
-    std::string results;
 
     fcore::emulator_manager emu_manager(specs, false);
     emu_manager.process();
     spdlog::info("COMPILATION DONE");
     emu_manager.emulate();
-    results = emu_manager.get_results();
+    auto results = emu_manager.get_results();
     spdlog::info("EMULATION RESULTS AVAILABLE");
-    return results;
+    return results.dump();
 }
 
 
