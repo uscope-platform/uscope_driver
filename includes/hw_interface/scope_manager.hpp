@@ -87,6 +87,7 @@ public:
     responses::response_code set_scaling_factors(std::vector<float> &sf);
     responses::response_code set_channel_status(std::unordered_map<int, bool>status);
     std::string get_acquisition_status();
+    void disable_dma(bool status);
     responses::response_code set_acquisition(const acquisition_metadata &data);
     void set_scope_address(uint64_t addr, uint64_t buffer_offset);
 private:

@@ -31,6 +31,7 @@ private:
     nlohmann::json process_read_data();
     nlohmann::json process_set_scaling_factors(nlohmann::json &arguments);
     nlohmann::json process_set_channel_status(nlohmann::json &arguments);
+    nlohmann::json process_disable_dma(nlohmann::json &arguments);
     nlohmann::json process_get_acquisition_status();
     nlohmann::json process_set_scope_address(nlohmann::json &arguments);
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);

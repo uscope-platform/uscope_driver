@@ -219,3 +219,7 @@ void scope_manager::set_scope_address(uint64_t addr, uint64_t buffer_offset) {
     scope_base_address = addr;
 }
 
+void scope_manager::disable_dma(bool status) {
+    hw->write_direct(scope_base_address + am.mux_base + am.mux.ctrl, status);
+}
+

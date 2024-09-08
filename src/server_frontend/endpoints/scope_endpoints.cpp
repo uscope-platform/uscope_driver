@@ -23,8 +23,10 @@ scope_endpoints::scope_endpoints(std::shared_ptr<scope_manager> &sc) {
 nlohmann::json scope_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
     if( command_string == "read_data"){
         return process_read_data();
-    } else if( command_string == "set_scaling_factors"){
+    } else if( command_string == "set_scaling_factors") {
         return process_set_scaling_factors(arguments);
+    }else if(command_string == "disable_scope_dma"){
+        return process_disable_dma(arguments);
     } else if( command_string == "set_channel_status"){
         return process_set_channel_status(arguments);
     } else if(command_string == "get_acquisition_status") {
@@ -152,5 +154,13 @@ nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &argume
 
     resp["response_code"] = responses::ok;
     scope->set_scope_address(arguments["address"],arguments["dma_buffer_offset"]);
+    return resp;
+}
+
+nlohmann::json scope_endpoints::process_disable_dma(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    bool status = arguments;
+    resp["response_code"] = responses::ok;
+    scope->disable_dma(status);
     return resp;
 }

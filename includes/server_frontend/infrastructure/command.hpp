@@ -29,7 +29,7 @@ namespace commands {
                                               "apply_filter"};
 
     static std::set<std::string> scope_commands = {"read_data", "set_scaling_factors", "set_channel_status",
-                                            "set_scaling_factors", "set_channel_status",
+                                            "set_scaling_factors", "set_channel_status", "disable_scope_dma"
                                              "get_acquisition_status", "set_acquisition", "set_scope_address"};
 
     static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil", "compile_program",
