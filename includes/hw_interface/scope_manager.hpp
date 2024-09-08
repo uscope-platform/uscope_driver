@@ -93,7 +93,7 @@ public:
 private:
 
     uint64_t scope_base_address;
-
+    bool first_load;
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
 

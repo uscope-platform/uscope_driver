@@ -159,7 +159,7 @@ nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &argume
 
 nlohmann::json scope_endpoints::process_disable_dma(nlohmann::json &arguments) {
     nlohmann::json resp;
-    bool status = arguments;
+    bool status = arguments["status"];
     resp["response_code"] = responses::ok;
     scope->disable_dma(status);
     return resp;

@@ -27,6 +27,7 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
+    first_load = true;
 
     hw = std::move(h);
     n_buffers_left = 0;
@@ -220,6 +221,16 @@ void scope_manager::set_scope_address(uint64_t addr, uint64_t buffer_offset) {
 }
 
 void scope_manager::disable_dma(bool status) {
+    if(first_load){
+        first_load = false;
+        return;
+    }
+    if(status)
+        spdlog::info("DISABLE_SCOPE_DMA");
+    else
+        spdlog::info("ENABLE_SCOPE_DMA");
+
     hw->write_direct(scope_base_address + am.mux_base + am.mux.ctrl, status);
+    usleep(50'000);
 }
 
