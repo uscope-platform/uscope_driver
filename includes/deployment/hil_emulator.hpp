@@ -23,9 +23,18 @@
 
 #include "emulator/emulator_manager.hpp"
 
+struct emulation_results{
+    std::string results;
+    bool results_valid;
+    std::string duplicates;
+    int code;
+};
+
+void to_json(nlohmann::json& j, const emulation_results& p);
+
 class hil_emulator {
 public:
-    std::string emulate(nlohmann::json &specs);
+    emulation_results emulate(nlohmann::json &specs);
 private:
 };
 

@@ -30,8 +30,7 @@ namespace responses {
         internal_erorr = 6,
         emulation_error = 7,
         deployment_error= 8,
-        hil_bus_conflict_warning = 9,
-        compilation_error = 10
+        hil_bus_conflict_warning = 9
     } response_code;
 
     template<typename response_code>

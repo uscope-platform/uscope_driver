@@ -98,17 +98,10 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
 nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
 
     nlohmann::json resp;
-    try{
-        resp["response_code"] = responses::ok;
-        resp["data"] = emulator.emulate(arguments);
-    } catch (std::domain_error &e) {
-        resp["response_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
-        resp["data"] = std::string("HIL BUS CONFLICT DETECTED\n");
-        resp["duplicates"] = e.what();
-    } catch (std::runtime_error &e) {
-        resp["response_code"] = responses::as_integer(responses::emulation_error);
-        resp["data"] = std::string("EMULATION ERROR:\n") + e.what();
-    }
+
+    resp["response_code"] = responses::ok;
+    resp["data"] = emulator.emulate(arguments);
+
     return resp;
 }
 
@@ -162,16 +155,19 @@ nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &argument
         resp["data"] = "DRIVER ERROR: Invalid arguments for the compile program command\n"+ error_message;
         return resp;
     }
+    nlohmann::json compilation_result;
     try{
         std::string content = arguments["content"];
         auto headers = arguments["headers"];
         auto io = arguments["io"];
-        resp["data"] = toolchain.compile(content,headers, io);
-        resp["response_code"] = responses::as_integer(responses::ok);
+        compilation_result["status"] = "ok";
+        compilation_result["hex"] = toolchain.compile(content,headers, io);
     } catch (std::runtime_error &e){
-        resp["data"] = e.what();
-        resp["response_code"] = responses::as_integer(responses::compilation_error);
+        compilation_result["status"] = "error";
+        compilation_result["error"] = e.what();
     }
+    resp["data"] = compilation_result;
+    resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
 
