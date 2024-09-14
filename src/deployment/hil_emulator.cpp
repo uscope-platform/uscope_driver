@@ -17,25 +17,6 @@
 emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     emulation_results ret_val;
     try{
-
-        ret_val.results ="HIL BUS CONFLICT DETECTED\n";
-        ret_val.results_valid = false;
-        nlohmann::json test;
-        test = std::vector<nlohmann::json>();
-        nlohmann::json a;
-        a["source"] = "test";
-        a["name"] = "signal";
-        a["address"] = 2;
-        test.push_back(a);
-
-        a["source"] = "test2";
-        a["name"] = "signal1";
-        a["address"] = 223;
-        test.push_back(a);
-
-        ret_val.duplicates = test.dump();
-        ret_val.code = 9;
-        return ret_val;
         spdlog::info("EMULATE HIL");
         fcore::emulator_manager emu_manager(specs, false);
         emu_manager.process();
