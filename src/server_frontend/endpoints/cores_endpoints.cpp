@@ -77,20 +77,30 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
         auto specs = fcore::emulator::emulator_specs(arguments);
         fcore::emulator_manager em(arguments, runtime_config.debug_hil);
         auto programs = em.get_programs();
-
         if(specs.custom_deploy_mode){
             resp["response_code"] = custom.deploy(specs, programs);
         } else {
             resp["response_code"] = hil.deploy(specs, programs);
         }
-
     } catch (std::domain_error &e) {
-        resp["response_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
-        resp["data"] = std::string("HIL BUS CONFLICT DETECTED\n");
-        resp["duplicates"] = e.what();
+
+        nlohmann::json data;
+        data["response_code"] = responses::as_integer(responses::ok);
+
+        resp["error_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
+        data["error"] = std::string("HIL BUS CONFLICT DETECTED\n");
+        data["duplicates"] = e.what();
+        resp["data"] = data;
+
     } catch (std::runtime_error &e){
-        resp["response_code"] = responses::as_integer(responses::deployment_error);
-        resp["data"] = std::string("HIL DEPLOYMENT ERROR:\n") + e.what();
+
+        nlohmann::json data;
+        resp["response_code"] = responses::as_integer(responses::ok);
+
+        data["error_code"] = responses::as_integer(responses::deployment_error);
+        data["error"] = std::string("HIL DEPLOYMENT ERROR:\n") + e.what();
+        data["duplicates"] = std::vector<std::string>();
+        resp["data"] = data;
     }
     return resp;
 }
