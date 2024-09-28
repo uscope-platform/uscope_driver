@@ -93,7 +93,7 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply filter command\n"+ error_message;
         return resp;
     }
-    uint32_t address = arguments["address"];
+    uint64_t address = arguments["address"];
     std::vector<uint32_t> taps = arguments["taps"];
     resp["response_code"] = hw->apply_filter(address, taps);
     return resp;
