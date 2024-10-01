@@ -72,10 +72,12 @@ nlohmann::json platform_endpoints::process_set_clock(nlohmann::json &arguments) 
     if(!(arguments.contains("is_primary") && arguments.contains("id") && arguments.contains("value"))){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The arguments for the set clock clock command must contain the id and is_primary and value keys\n";
+        return resp;
     }
     if(arguments["is_primary"].type() != nlohmann::detail::value_t::boolean){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: The is_primary argument of the get clock command must be boolean\n";
+        return resp;
     }
     bool is_primary = arguments["is_primary"];
 
