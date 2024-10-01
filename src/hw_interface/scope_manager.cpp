@@ -230,7 +230,10 @@ void scope_manager::disable_dma(bool status) {
     else
         spdlog::info("ENABLE_SCOPE_DMA");
 
-    hw->write_direct(scope_base_address + am.mux_base + am.mux.ctrl, status);
-    usleep(50'000);
+    auto write_addr = scope_base_address + am.mux_base + am.mux.ctrl;
+    if(write_addr != 0){
+        hw->write_direct(write_addr, status);
+        usleep(50'000);
+    }
 }
 
