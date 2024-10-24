@@ -115,12 +115,12 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
         std::ofstream ofs("/sys/class/fpga_manager/fpga0/flags");
         ofs << "0";
         ofs.flush();
+        std::string prefix = "/lib/firmware";
+        std::string file = bitstream.substr(prefix.length());
 
-        std::string filename = "/lib/firmware/" + bitstream;
-
-        if(std::filesystem::exists(filename)){
+        if(std::filesystem::exists(bitstream)){
             ofs = std::ofstream("/sys/class/fpga_manager/fpga0/firmware");
-            ofs << bitstream;
+            ofs << file;
             ofs.flush();
 
             std::string state;
