@@ -62,6 +62,9 @@ responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &d
     spdlog::trace("READ_DATA: STARTING");
     ssize_t read_data = read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(uint64_t));
     if(read_data==0) return responses::ok;
+    if(read_data<0) {
+        spdlog::critical(std::strerror(errno));
+    }
     spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL ({0} words transferred)", read_data/sizeof(uint64_t));
     data = shunt_data(dma_buffer);
     spdlog::trace("READ_DATA: SHUNTING DONE");
