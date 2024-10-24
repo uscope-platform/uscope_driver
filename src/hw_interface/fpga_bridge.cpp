@@ -139,7 +139,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
                 return responses::ok;
             }
         } else {
-            spdlog::error("Bitstream not found {0}", filename);
+            spdlog::error("Bitstream not found {0}", file);
             return responses::bitstream_not_found;
         }
     } else{
