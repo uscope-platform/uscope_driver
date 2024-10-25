@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-#include "hw_interface/bus_accessor.hpp"
+#include "hw_interface/bus/bus_accessor.hpp"
 
 void sigsegv_handler(int dummy) {
     spdlog::error("Segmentation fault encounteded while communicating with FPGA");
@@ -30,7 +30,6 @@ bus_accessor::bus_accessor() {
     spdlog::info("fpga_bridge initialization started");
 
     std::string arch = std::getenv("ARCH");
-    uint64_t control_addr, core_addr;
     if(arch == "zynqmp"){
         control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
         core_addr = ZYNQMP_FCORE_BASE_ADDR;
@@ -91,11 +90,42 @@ bus_accessor::bus_accessor() {
     spdlog::info("fpga_bridge initialization done");
 }
 
-void bus_accessor::write_register(uint64_t address, uint64_t data) {
+void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
+    if(addresses.size() ==1){
+        registers[register_address_to_index(addresses[0])] = data;
+    } else {
+        registers[register_address_to_index(addresses[1]+4)] = addresses[0];
+        registers[register_address_to_index(addresses[1])] = data;
+    }
+}
+
+uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
+    if(address.size()==1){
+        return registers[register_address_to_index(address[0])];
+    } else{
+        return 0;
+    }
 
 }
 
-uint32_t bus_accessor::read_register(uint64_t address) {
-    return 0;
+uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
+    if(core_addr>address){
+        spdlog::critical("Tried to write the core address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
+        exit(-1);
+    }
+    return (address - core_addr) / 4;
+}
+
+uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
+    if(control_addr>address){
+        spdlog::critical("Tried to write the control address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
+        exit(-1);
+    }
+    return (address - control_addr) / 4;
+}
+
+void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
+    for(int i = 0; i< program.size(); i++)
+        fCore[i+fcore_address_to_index(address)] = program[i];
 }
 

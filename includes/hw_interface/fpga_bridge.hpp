@@ -36,10 +36,10 @@
 #include "hw_interface/interfaces_dictionary.hpp"
 #include "configuration.hpp"
 
-#define ZYNQ_REGISTERS_BASE_ADDR 0x43c00000
-#define ZYNQ_FCORE_BASE_ADDR 0x83c00000
-#define ZYNQMP_REGISTERS_BASE_ADDR 0x400000000
-#define ZYNQMP_FCORE_BASE_ADDR 0x500000000
+
+#include "bus/bus_accessor.hpp"
+#include "bus/bus_sink.hpp"
+
 
 void sigsegv_handler(int dummy);
 void sigbus_handler(int dummy);
@@ -61,15 +61,14 @@ public:
     void write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
     uint32_t read_direct(uint64_t address);
 
-    uint64_t register_address_to_index(uint64_t address) const;
-    uint64_t fcore_address_to_index(uint64_t address) const;
-
     uint32_t get_pl_clock( uint8_t clk_n);
     void set_pl_clock(uint8_t clk_n, uint32_t freq);
 
+    std::vector<bus_op> get_bus_operations();
+
 private:
-    volatile uint32_t *registers;
-    volatile uint32_t *fCore;
+
+    std::variant<bus_sink, bus_accessor> busses;
     uint64_t control_addr;
     uint64_t core_addr;
 

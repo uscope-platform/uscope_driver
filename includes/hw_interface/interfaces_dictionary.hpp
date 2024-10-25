@@ -21,7 +21,9 @@
 
 class interfaces_dictionary {
 public:
-    void set_arch(const std::string &a) {arch = a;};
+    void set_arch(const std::string &a) {
+        arch = a;
+    };
     std::string get_control_bus() const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         return control_bus_if.at(arch);

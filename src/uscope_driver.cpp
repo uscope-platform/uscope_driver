@@ -92,7 +92,7 @@ int main (int argc, char **argv) {
     auto hw_bridge = std::make_shared<fpga_bridge>();
     auto scope_conn = std::make_shared<scope_manager>(hw_bridge);
 
-    std::array<server_connector, 4> workers_pool;
+    //std::array<server_connector, 4> workers_pool;
 
     server_connector connector;
 

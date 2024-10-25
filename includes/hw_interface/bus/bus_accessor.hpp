@@ -32,9 +32,16 @@
 class bus_accessor {
 public:
     bus_accessor();
-    void write_register(uint64_t address, uint64_t data);
-    uint32_t read_register(uint64_t address);
+    void load_program(uint64_t address, const std::vector<uint32_t> program);
+    void write_register(const std::vector<uint64_t>& addresses, uint64_t data);
+    uint32_t read_register(const std::vector<uint64_t>& address);
+
+    uint64_t register_address_to_index(uint64_t address) const;
+    uint64_t fcore_address_to_index(uint64_t address) const;
+
 private:
+
+    uint64_t control_addr, core_addr;
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
