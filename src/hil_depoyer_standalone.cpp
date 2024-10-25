@@ -93,7 +93,8 @@ int main (int argc, char **argv) {
         c.set_layout_map(addr_map);
         c.deploy(specs, programs);
     } else {
-        hil_deployer d(hw_bridge);
+        hil_deployer<fpga_bridge> d;
+        d.set_hw_bridge(hw_bridge);
         d.set_layout_map(addr_map);
         d.deploy(specs, programs);
     }

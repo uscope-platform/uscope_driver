@@ -21,9 +21,8 @@ std::atomic_bool server_stop_req;
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc)
-: core_processor(hw, sc) , sock(ctx, zmq::socket_type::rep){
-
+server_connector::server_connector()
+:  sock(ctx, zmq::socket_type::rep){
     spdlog::info("Server connector initialization started");
     address = "tcp://*:" + std::to_string(runtime_config.server_port);
     sock.bind(address);
@@ -31,6 +30,9 @@ server_connector::server_connector(std::shared_ptr<fpga_bridge> &hw, std::shared
 
 }
 
+void server_connector::set_interfaces(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc) {
+    core_processor.setup_interfaces(hw, sc);
+}
 
 void server_connector::start_server() {
 

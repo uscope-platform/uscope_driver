@@ -26,7 +26,8 @@
 
 class platform_endpoints {
 public:
-    explicit platform_endpoints(std::shared_ptr<fpga_bridge> &hw);
+    platform_endpoints() = default;
+    void set_hw_bridge(std::shared_ptr<fpga_bridge> &h);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_set_clock(nlohmann::json &arguments);

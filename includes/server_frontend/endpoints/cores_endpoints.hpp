@@ -30,7 +30,8 @@
 
 class cores_endpoints {
 public:
-    explicit cores_endpoints(std::shared_ptr<fpga_bridge> &h);
+    cores_endpoints() = default;
+    void set_hw_bridge(std::shared_ptr<fpga_bridge> &h);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);

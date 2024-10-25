@@ -34,6 +34,7 @@ struct clock_definition{
 
 class timing_manager {
 public:
+    timing_manager() = default;
     explicit timing_manager(std::shared_ptr<fpga_bridge> &hw);
     void set_base_clock(uint8_t clk_n, uint64_t clk_f);
     uint64_t get_base_clock(uint8_t clk_n);

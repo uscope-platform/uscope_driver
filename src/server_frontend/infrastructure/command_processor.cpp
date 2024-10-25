@@ -14,9 +14,7 @@
 // limitations under the License.
 #include "server_frontend/infrastructure/command_processor.hpp"
 
-command_processor::command_processor(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &sc) :
-cores_ep(h), scope_ep(sc), control_ep(h), platform_ep(h){
-    hw = h;
+command_processor::command_processor() {
 }
 
 /// This function, core of the driver operation, is called upon message reception and parsing, acts as a dispatcher,
@@ -58,6 +56,16 @@ nlohmann::json command_processor::process_null() {
     resp["response_code"] = responses::ok;
     return resp;
 }
+
+void command_processor::setup_interfaces(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &s) {
+
+    scope_ep.set_scope_manager(s);
+    control_ep.set_hw_bridge(h);
+    cores_ep.set_hw_bridge(h);
+    platform_ep.set_hw_bridge(h);
+    hw = h;
+}
+
 
 
 

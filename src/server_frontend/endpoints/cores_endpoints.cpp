@@ -17,9 +17,6 @@
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 
 
-cores_endpoints::cores_endpoints(std::shared_ptr<fpga_bridge> &h) : hil(h), custom(h){
-    hw = h;
-}
 
 nlohmann::json cores_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
     if(command_string == "apply_program") {
@@ -201,5 +198,10 @@ nlohmann::json cores_endpoints::process_get_hil_address_map(nlohmann::json &argu
     resp["data"] = hil.get_layout_map();
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
+}
+
+void cores_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
+    hil.set_hw_bridge(h);
+    custom.set_hw_bridge(h);
 }
 

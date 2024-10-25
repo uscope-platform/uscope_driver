@@ -17,9 +17,9 @@
 #include "deployment/hil_deployer.hpp"
 #include "../testing/deployment/fpga_bridge_mock.hpp"
 
-template <class hw_bridge>
-hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_base<hw_bridge>(h) {
 
+template<class hw_bridge>
+hil_deployer<hw_bridge>::hil_deployer() {
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
@@ -28,6 +28,11 @@ hil_deployer<hw_bridge>::hil_deployer(std::shared_ptr<hw_bridge> &h) : deployer_
         hil_clock_frequency = std::stof(clock_f);
     }
     spdlog::info("HIL CLOCK FREQUENCY: {0}", hil_clock_frequency);
+}
+
+template<class hw_bridge>
+void hil_deployer<hw_bridge>::set_hw_bridge(std::shared_ptr<hw_bridge> &h) {
+    deployer_base<hw_bridge>::set_hw_bridge(h);
 }
 
 template <class hw_bridge>
@@ -249,6 +254,7 @@ std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_shift(const st
 
     return shifts;
 }
+
 
 template class hil_deployer<fpga_bridge>;
 #ifdef ENABLE_MOCKS

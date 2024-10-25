@@ -17,9 +17,6 @@
 #include "server_frontend/endpoints/control_endpoints.hpp"
 
 
-control_endpoints::control_endpoints(std::shared_ptr<fpga_bridge> &h) {
-    hw = h;
-}
 
 nlohmann::json control_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
     if(command_string == "load_bitstream"){
@@ -97,4 +94,8 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
     std::vector<uint32_t> taps = arguments["taps"];
     resp["response_code"] = hw->apply_filter(address, taps);
     return resp;
+}
+
+void control_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
+    hw = h;
 }

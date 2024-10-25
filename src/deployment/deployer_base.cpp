@@ -18,11 +18,6 @@
 #include "../testing/deployment/fpga_bridge_mock.hpp"
 
 template <class hw_bridge>
-deployer_base<hw_bridge>::deployer_base(std::shared_ptr<hw_bridge> &h) {
-    hw = h;
-}
-
-template <class hw_bridge>
 void deployer_base<hw_bridge>::write_register(uint64_t addr, uint32_t val) {
     spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
     nlohmann::json write;
@@ -204,6 +199,12 @@ void deployer_base<hw_bridge>::setup_base(const fcore::emulator::emulator_specs 
 
     bus_map.check_conflicts();
 }
+
+template<class hw_bridge>
+void deployer_base<hw_bridge>::set_hw_bridge(std::shared_ptr<hw_bridge> &h) {
+    hw = h;
+}
+
 
 template class deployer_base<fpga_bridge>;
 #ifdef ENABLE_MOCKS

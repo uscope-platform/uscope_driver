@@ -447,7 +447,8 @@ TEST(custom_deployer, deployment) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    custom_deployer<fpga_bridge_mock> d(mock_hw);
+    custom_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = custom_deployer_get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);

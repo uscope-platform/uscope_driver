@@ -16,7 +16,7 @@
 
 #include "server_frontend/endpoints/platform_endpoints.hpp"
 
-platform_endpoints::platform_endpoints(std::shared_ptr <fpga_bridge> &h) : tm(h) {
+void platform_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
     hw = h;
 }
 
@@ -150,3 +150,4 @@ nlohmann::json platform_endpoints::process_get_debug_level(nlohmann::json &argum
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
+

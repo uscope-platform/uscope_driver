@@ -16,10 +16,6 @@
 
 #include "server_frontend/endpoints/scope_endpoints.hpp"
 
-scope_endpoints::scope_endpoints(std::shared_ptr<scope_manager> &sc) {
- scope = sc;
-}
-
 nlohmann::json scope_endpoints::process_command(std::string command_string, nlohmann::json &arguments) {
     if( command_string == "read_data"){
         return process_read_data();
@@ -163,4 +159,8 @@ nlohmann::json scope_endpoints::process_disable_dma(nlohmann::json &arguments) {
     resp["response_code"] = responses::ok;
     scope->disable_dma(status);
     return resp;
+}
+
+void scope_endpoints::set_scope_manager(std::shared_ptr<scope_manager> &sc) {
+    scope = sc;
 }

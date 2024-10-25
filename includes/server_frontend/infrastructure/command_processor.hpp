@@ -15,6 +15,7 @@
 #define USCOPE_DRIVER_COMMAND_PROCESSOR_HPP
 
 #include <sstream>
+#include <thread>
 
 #include "hw_interface/fpga_bridge.hpp"
 #include "response.hpp"
@@ -28,7 +29,8 @@
 
 class command_processor {
 public:
-    explicit command_processor(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc);
+    command_processor();
+    void setup_interfaces(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &s);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:

@@ -164,7 +164,8 @@ TEST(deployer, simple_single_core_deployment) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -338,7 +339,8 @@ TEST(deployer, simple_single_core_integer_input) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -497,7 +499,8 @@ TEST(deployer, simple_single_core_memory_init) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -692,7 +695,8 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -970,7 +974,8 @@ TEST(deployer, simple_multi_core_deployment) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1247,7 +1252,8 @@ TEST(deployer, scalar_interconnect_test) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1467,7 +1473,8 @@ TEST(deployer, scatter_interconnect_test) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1711,7 +1718,8 @@ TEST(deployer, gather_interconnect_test) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1948,7 +1956,8 @@ TEST(deployer, vector_interconnect_test) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2168,7 +2177,8 @@ TEST(deployer, 2d_vector_interconnect_test) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2407,7 +2417,8 @@ TEST(deployer, simple_single_core_output_select) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2596,7 +2607,8 @@ TEST(deployer, simple_single_core_input_set) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2776,7 +2788,8 @@ TEST(deployer, simple_single_core_start_stop) {
 
 
     auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d(mock_hw);
+    hil_deployer<fpga_bridge_mock> d;
+    d.set_hw_bridge(mock_hw);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);

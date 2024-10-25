@@ -121,7 +121,9 @@ struct input_metadata_t{
 template <class hw_bridge>
 class deployer_base {
 public:
-    deployer_base(std::shared_ptr<hw_bridge>  &h);
+    deployer_base() = default;
+
+    virtual void set_hw_bridge(std::shared_ptr<hw_bridge>  &h);
 
     void set_layout_map(nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
@@ -151,13 +153,11 @@ protected:
 
     void update_input_value(uint32_t address, uint32_t value, std::string core);
 
+    std::shared_ptr<hw_bridge> hw;
     logic_layout addresses;
 private:
     hil_bus_map bus_map;
-
-
     std::vector<input_metadata_t> inputs;
-    std::shared_ptr<hw_bridge> hw;
 };
 
 
