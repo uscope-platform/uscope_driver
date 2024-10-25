@@ -75,7 +75,8 @@ TEST(deployer, simple_single_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":16,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -93,7 +94,8 @@ TEST(deployer, simple_single_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":16,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -176,6 +178,7 @@ TEST(deployer, simple_single_core_deployment) {
             0x20003,
             0x10004,
             0x30005,
+            0xc,
             0xc,
             0x60841,
             0xc,
@@ -246,7 +249,8 @@ TEST(deployer, simple_single_core_integer_input) {
                     "metadata":{
                         "type": "float",
                         "width":16,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -264,7 +268,8 @@ TEST(deployer, simple_single_core_integer_input) {
                     "metadata":{
                         "type": "integer",
                         "width":16,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -347,6 +352,7 @@ TEST(deployer, simple_single_core_integer_input) {
             0x20003,
             0x10004,
             0x30005,
+            0xc,
             0xc,
             0x60841,
             0xc,
@@ -506,6 +512,7 @@ TEST(deployer, simple_single_core_memory_init) {
             0x3f0004,
             0x10005,
             0xc,
+            0xc,
             0x3f7e1,
             0xc
 
@@ -584,7 +591,8 @@ TEST(deployer, multichannel_single_core_deployment) {
                 "metadata":{
                     "type": "float",
                     "width":16,
-                    "signed":true
+                    "signed":true,
+                    "common_io":false
                 },
                 "source": {
                     "type": "constant",
@@ -608,7 +616,8 @@ TEST(deployer, multichannel_single_core_deployment) {
                 "metadata":{
                     "type": "float",
                     "width":16,
-                    "signed":true
+                    "signed":true,
+                    "common_io":false
                 },
                 "source": {
                     "type": "constant",
@@ -698,6 +707,7 @@ TEST(deployer, multichannel_single_core_deployment) {
             0x10004,
             0x30005,
             0xc,
+            0xc,
             0x60841,
             0xc,
     };
@@ -785,7 +795,8 @@ TEST(deployer, simple_multi_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -803,7 +814,8 @@ TEST(deployer, simple_multi_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -869,7 +881,8 @@ TEST(deployer, simple_multi_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -887,7 +900,8 @@ TEST(deployer, simple_multi_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -970,6 +984,7 @@ TEST(deployer, simple_multi_core_deployment) {
             0x20003,
             0x10004,
             0x30005,
+            0xc,
             0xc,
             0x60841,
             0xc,
@@ -1076,7 +1091,8 @@ TEST(deployer, scalar_interconnect_test) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     },
                     "reg_n": 1,
                     "source": {
@@ -1092,7 +1108,8 @@ TEST(deployer, scalar_interconnect_test) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -1246,6 +1263,7 @@ TEST(deployer, scalar_interconnect_test) {
             0x10004,
             0x20006,
             0xc,
+            0xc,
             0x60841,
             0x865,
             0x4002e,
@@ -1262,6 +1280,7 @@ TEST(deployer, scalar_interconnect_test) {
             0xc,
             0x10001,
             0x10005,
+            0xc,
             0xc,
             0x1024,
             0x26,
@@ -1462,6 +1481,7 @@ TEST(deployer, scatter_interconnect_test) {
             0x10005,
             0x20006,
             0xc,
+            0xc,
             0x26,
             0x4179999a,
             0x46,
@@ -1478,6 +1498,7 @@ TEST(deployer, scatter_interconnect_test) {
             0xc,
             0x10001,
             0x30005,
+            0xc,
             0xc,
             0x46,
             0x40600000,
@@ -1578,7 +1599,8 @@ TEST(deployer, gather_interconnect_test) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "reg_n": 3,
                     "channel":[0,1],
@@ -1589,7 +1611,8 @@ TEST(deployer, gather_interconnect_test) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "reg_n": 4,
                     "channel":[0,1],
@@ -1703,6 +1726,7 @@ TEST(deployer, gather_interconnect_test) {
             0x10004,
             0x30005,
             0xc,
+            0xc,
             0x60841,
             0xc
     };
@@ -1717,6 +1741,7 @@ TEST(deployer, gather_interconnect_test) {
             0x20001,
             0x10002,
             0x30005,
+            0xc,
             0xc,
             0x60841,
             0xc
@@ -1821,7 +1846,8 @@ TEST(deployer, vector_interconnect_test) {
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": true
+                            "signed": true,
+                            "common_io":true
                         },
                         "reg_n": 3,
                         "channel":[0,1],
@@ -1832,7 +1858,8 @@ TEST(deployer, vector_interconnect_test) {
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": true
+                            "signed": true,
+                            "common_io":true
                         },
                         "reg_n": 4,
                         "channel":[0,1],
@@ -1936,6 +1963,7 @@ TEST(deployer, vector_interconnect_test) {
             0x10004,
             0x30005,
             0xc,
+            0xc,
             0x60841,
             0xc
 
@@ -1950,6 +1978,7 @@ TEST(deployer, vector_interconnect_test) {
             0xc,
             0x10001,
             0x30007,
+            0xc,
             0xc,
             0x46,
             0x40600000,
@@ -2153,6 +2182,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
             0x10005,
             0x20006,
             0xc,
+            0xc,
             0x26,
             0x4179999a,
             0x46,
@@ -2171,6 +2201,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
             0x10002,
             0x40007,
             0x20008,
+            0xc,
             0xc,
             0x66,
             0x40600000,
@@ -2287,7 +2318,8 @@ TEST(deployer, simple_single_core_output_select) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2305,7 +2337,8 @@ TEST(deployer, simple_single_core_output_select) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2395,6 +2428,7 @@ TEST(deployer, simple_single_core_output_select) {
             0x10004,
             0x30005,
             0xc,
+            0xc,
             0x60841,
             0xc,
     };
@@ -2473,7 +2507,8 @@ TEST(deployer, simple_single_core_input_set) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2491,7 +2526,8 @@ TEST(deployer, simple_single_core_input_set) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2576,6 +2612,7 @@ TEST(deployer, simple_single_core_input_set) {
             0x10004,
             0x30005,
             0xc,
+            0xc,
             0x60841,
             0xc,
     };
@@ -2650,7 +2687,8 @@ TEST(deployer, simple_single_core_start_stop) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2668,7 +2706,8 @@ TEST(deployer, simple_single_core_start_stop) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2753,6 +2792,7 @@ TEST(deployer, simple_single_core_start_stop) {
             0x20003,
             0x10004,
             0x30005,
+            0xc,
             0xc,
             0x60841,
             0xc,

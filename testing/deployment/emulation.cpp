@@ -97,6 +97,21 @@ TEST(emulator, simple_emulation) {
     hil_emulator emu;
     nlohmann::json results = emu.emulate(spec_json);
 
-    std::string expected_result = "{\"test_producer\":{\"error_code\":\"\",\"outputs\":{\"mem\":{\"0\":[[1.0,2.0]]},\"out\":{\"0\":[[101.0,102.0],[1001.0,1002.0]]}}},\"timebase\":[0.0]}";
+
+    nlohmann::json  expected_result;
+    expected_result["code"] = 1;
+    expected_result["duplicates"] = "";
+    expected_result["results_valid"] = true;
+    nlohmann::json prod_res;
+    prod_res["timebase"] = {0.0};
+    prod_res["test_producer"]["error_code"] = "";
+    prod_res["test_producer"]["outputs"] =  nlohmann::json();
+    prod_res["test_producer"]["outputs"]["mem"] =  nlohmann::json();
+    prod_res["test_producer"]["outputs"]["mem"]["0"] = {{1.0,2.0}};
+    prod_res["test_producer"]["outputs"]["out"] =  nlohmann::json();
+    prod_res["test_producer"]["outputs"]["out"]["0"] = {{101.0,102.0}, {1001.0, 1002.0}};
+    expected_result["results"] = prod_res.dump();
+
     EXPECT_EQ(results, expected_result);
 }
+
