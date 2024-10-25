@@ -62,6 +62,8 @@ set(DRIVER_SOURCES /
         src/deployment/hil_bus_map.cpp
         src/deployment/deployer_base.cpp
         src/deployment/custom_deployer.cpp
+        src/hw_interface/bus_accessor.cpp
+        includes/hw_interface/bus_accessor.hpp
 )
 
 

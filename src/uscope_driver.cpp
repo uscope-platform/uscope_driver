@@ -93,7 +93,9 @@ int main (int argc, char **argv) {
     auto scope_conn = std::make_shared<scope_manager>(hw_bridge);
 
     std::array<server_connector, 4> workers_pool;
+
     server_connector connector;
+
     connector.set_interfaces(hw_bridge, scope_conn);
     connector.start_server();
 
