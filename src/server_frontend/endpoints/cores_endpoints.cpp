@@ -70,7 +70,6 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
-
         auto specs = fcore::emulator::emulator_specs(arguments);
         fcore::emulator_manager em(arguments, runtime_config.debug_hil);
         auto programs = em.get_programs();
@@ -203,5 +202,6 @@ nlohmann::json cores_endpoints::process_get_hil_address_map(nlohmann::json &argu
 void cores_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
     hil.set_hw_bridge(h);
     custom.set_hw_bridge(h);
+    hw = h;
 }
 

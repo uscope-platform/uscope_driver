@@ -85,9 +85,10 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
         write_direct(write_obj["address"], write_obj["value"]);
     } else if(write_obj["type"] == "proxied") {
          if(write_obj["proxy_type"] == "axis_constant"){
-
              write_proxied(write_obj["proxy_address"], write_obj["address"], write_obj["value"]);
-        }
+        } else {
+             throw std::runtime_error("ERROR: Unrecognised write proxy type");
+         }
     } else {
         throw std::runtime_error("ERROR: Unrecognised register write type");
     }
@@ -123,7 +124,6 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
 }
 
 responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
-
     set_pl_clock(freq[0], freq[1]);
     return responses::ok;
 }

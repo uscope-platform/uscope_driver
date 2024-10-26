@@ -23,7 +23,7 @@
 
 struct bus_op{
      std::vector<uint64_t> address;
-     uint64_t data;
+    std::vector<uint64_t> data;
      std::string type;
 };
 
@@ -31,7 +31,7 @@ class bus_sink {
 public:
     void load_program(uint64_t address, const std::vector<uint32_t> program);
     void write_register(const std::vector<uint64_t>& addresses, uint64_t data);
-    uint32_t read_register(const std::vector<uint64_t> address);
+    uint32_t read_register(const std::vector<uint64_t>& address);
 
     std::vector<bus_op> get_operations() {return operations;};
 private:

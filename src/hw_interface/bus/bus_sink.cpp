@@ -17,14 +17,19 @@
 #include "hw_interface/bus/bus_sink.hpp"
 
 void bus_sink::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
-    operations.push_back({addresses, data, "w"});
+    operations.push_back({addresses, {data}, "w"});
 }
 
-uint32_t bus_sink::read_register(const std::vector<uint64_t> address) {
-    operations.push_back({address, 0, "w"});
-    return 0;
+uint32_t bus_sink::read_register(const std::vector<uint64_t>& address) {
+    operations.push_back({address, {0}, "r"});
+    return rand()%100;
 }
 
 void bus_sink::load_program(uint64_t address, const std::vector<uint32_t> program) {
-
+    std::vector<uint64_t> a = {address};
+    std::vector<uint64_t> pn;
+    for (auto &p:program) {
+        pn.push_back(p);
+    }
+    operations.push_back({a, pn, "p"});
 }
