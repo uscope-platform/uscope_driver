@@ -80,14 +80,14 @@ nlohmann::json platform_endpoints::process_set_clock(nlohmann::json &arguments) 
         return resp;
     }
     bool is_primary = arguments["is_primary"];
-
+    responses::response_code resp_code = responses::ok;
     if(is_primary){
         uint32_t freq = arguments["value"];
-        tm.set_base_clock(arguments["id"], freq);
+        resp_code = tm.set_base_clock(arguments["id"], freq);
     } else {
-        tm.set_generated_clock(arguments["id"], arguments["value"]["m"], arguments["value"]["d"], arguments["value"]["p"]);
+        resp_code = tm.set_generated_clock(arguments["id"], arguments["value"]["m"], arguments["value"]["d"], arguments["value"]["p"]);
     }
-    resp["response_code"] = responses::as_integer(responses::ok);
+    resp["response_code"] = responses::as_integer(resp_code);
     return resp;
 }
 

@@ -36,9 +36,9 @@ class timing_manager {
 public:
     timing_manager() = default;
     explicit timing_manager(std::shared_ptr<fpga_bridge> &hw);
-    void set_base_clock(uint8_t clk_n, uint64_t clk_f);
+    responses::response_code  set_base_clock(uint8_t clk_n, uint64_t clk_f);
     uint64_t get_base_clock(uint8_t clk_n);
-    void set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p);
+    responses::response_code  set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p);
     void add_generated_clock(std::string clock_name, const struct  clock_definition &c);
     uint64_t get_generated_clock(const std::string& clock_name);
 

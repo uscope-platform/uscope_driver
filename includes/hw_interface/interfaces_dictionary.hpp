@@ -50,27 +50,32 @@ private:
     std::unordered_map<std::string, std::string> control_bus_if = {
             {"zynq", "/dev/uscope_BUS_0"},
             {"zynqmp", "/dev/uscope_BUS_0"},
-            {"emulate", "/dev/zero"}
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/control_bus_if"}
     };
     std::unordered_map<std::string, std::string> cores_bus_if = {
             {"zynq", "/dev/uscope_BUS_1"},
             {"zynqmp", "/dev/uscope_BUS_1"},
-            {"emulate", "/dev/zero"}
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/cores_bus_if"}
     };
     std::unordered_map<std::string, std::string> data_bus_if = {
             {"zynq", "/dev/uscope_data"},
             {"zynqmp", "/dev/uscope_data"},
-            {"emulate", "/dev/uscope_data"}
+            {"emulate", "/dev/uscope_data"},
+            {"testing", "/tmp/data_bus_if"}
     };
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
             {"zynqmp", "/sys/devices/platform/fclk_"},
-            {"emulate", "/dev/zero"}
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/clock_if_"}
     };
     std::unordered_map<std::string, std::string> buffer_addres_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/dma_addr"},
             {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/dma_addr"},
-            {"emulate", "/dev/urandom"}
+            {"emulate", "/dev/urandom"},
+            {"testing", "/tmp/buffer_addres_if"}
     };
     std::string arch = "trap";
 

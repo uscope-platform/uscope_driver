@@ -123,10 +123,6 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
     return responses::ok;
 }
 
-responses::response_code fpga_bridge::set_clock_frequency(std::vector<uint32_t> freq) {
-    set_pl_clock(freq[0], freq[1]);
-    return responses::ok;
-}
 
 
 responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
@@ -185,15 +181,27 @@ uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
     return 99'999'999;
 }
 
-void fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
+responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
     std::string command;
 
     spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", clk_n, freq);
 
-    auto fd = open(if_dict.get_clock_if(clk_n).c_str(), O_RDWR | O_DIRECT);
+    std::string file = if_dict.get_clock_if(clk_n).c_str();
+    auto fd = open(file.c_str(), O_RDWR | O_SYNC);
+    if(fd<0){
+        spdlog::critical("Clock setting operation unsuccessful: {0}", std::strerror(errno));
+        return responses::driver_file_not_found;
+    }
 
     std::string f_str = std::to_string(freq);
-    write(fd, f_str.c_str(), f_str.size());
+    auto f_cstr = f_str.c_str();
+    ssize_t write_size = f_str.size();
+    auto res = write(fd,f_cstr, write_size);
+    if(res<0){
+        spdlog::critical("Clock setting operation unsuccessful: {0}", std::strerror(errno));
+        return responses::driver_write_failed;
+    }
+    return responses::ok;
 }
 
 std::vector<bus_op> fpga_bridge::get_bus_operations() {

@@ -52,7 +52,6 @@ public:
     nlohmann::json single_read_register(uint64_t address);
     responses::response_code apply_program(uint64_t address, std::vector<uint32_t> program);
     responses::response_code apply_filter(uint64_t address, std::vector<uint32_t> taps);
-    responses::response_code set_clock_frequency(std::vector<uint32_t> freq);
     responses::response_code set_scope_data(uint64_t address);
     std::string get_module_version();
     std::string get_hardware_version();
@@ -62,7 +61,7 @@ public:
     uint32_t read_direct(uint64_t address);
 
     uint32_t get_pl_clock( uint8_t clk_n);
-    void set_pl_clock(uint8_t clk_n, uint32_t freq);
+    responses::response_code  set_pl_clock(uint8_t clk_n, uint32_t freq);
 
     std::vector<bus_op> get_bus_operations();
 

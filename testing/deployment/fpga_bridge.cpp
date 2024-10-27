@@ -30,7 +30,7 @@ TEST(fpga_bridge, single_write_register_direct) {
     }
     )");
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -58,7 +58,7 @@ TEST(fpga_bridge, single_write_register_axis_proxied) {
     }
     )");
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -86,7 +86,7 @@ TEST(fpga_bridge, single_write_type_error) {
     }
     )");
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -114,7 +114,7 @@ TEST(fpga_bridge, single_write_proxy_error) {
     }
     )");
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -131,7 +131,7 @@ TEST(fpga_bridge, single_write_proxy_error) {
 
 TEST(fpga_bridge, single_write_register_read) {
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -150,7 +150,7 @@ TEST(fpga_bridge, single_write_register_read) {
 
 TEST(fpga_bridge, load_program) {
 
-    if_dict.set_arch("zynq");
+    if_dict.set_arch("testing");
     runtime_config.emulate_hw = true;
 
     fpga_bridge bridge;
@@ -169,3 +169,61 @@ TEST(fpga_bridge, load_program) {
     EXPECT_EQ(ops.type, "p");
     EXPECT_EQ(prog_res, prog_ref);
 }
+
+TEST(fpga_bridge, set_clock) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+    std::ofstream o(if_dict.get_clock_if(2));
+    auto resp = bridge.set_pl_clock(2, 1200000);
+    EXPECT_EQ(resp, responses::ok);
+    std::ifstream result_file(if_dict.get_clock_if(2));
+    std::string res;
+    result_file>>res;
+    EXPECT_EQ(res, "1200000");
+    std::filesystem::remove(if_dict.get_clock_if(2));
+}
+
+TEST(fpga_bridge, set_clock_file_errorr) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+    std::ofstream o(if_dict.get_clock_if(1));
+    auto resp = bridge.set_pl_clock(2, 1200000);
+    EXPECT_EQ(resp, responses::driver_file_not_found);
+}
+
+
+TEST(fpga_bridge, set_scope_data) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+    std::ofstream o(if_dict.get_buffer_address_if());
+    o<< "124786"<<std::endl;
+    o.close();
+
+
+    runtime_config.emulate_hw = false;
+
+    auto resp = bridge.set_scope_data(1200);
+    auto ops = bridge.get_bus_operations()[0];
+
+    std::vector<uint64_t> ref_addr = {1200};
+
+    EXPECT_EQ(ops.address, ref_addr);
+    EXPECT_EQ(ops.type, "w");
+    EXPECT_EQ(ops.data[0], 124786);
+    EXPECT_EQ(resp, responses::ok);
+
+    std::filesystem::remove(if_dict.get_buffer_address_if());
+}
+

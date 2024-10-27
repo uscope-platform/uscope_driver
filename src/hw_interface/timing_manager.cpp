@@ -24,9 +24,12 @@ timing_manager::timing_manager(std::shared_ptr<fpga_bridge> &h) {
     ps_pl_clk_f[3] = hw->get_pl_clock(3);
 }
 
-void timing_manager::set_base_clock(uint8_t clk_n, uint64_t clk_f) {
-    hw->set_pl_clock(clk_n, clk_f);
-    ps_pl_clk_f[clk_n] = clk_f;
+responses::response_code timing_manager::set_base_clock(uint8_t clk_n, uint64_t clk_f) {
+    auto resp =  hw->set_pl_clock(clk_n, clk_f);
+    if(resp == responses::ok){
+        ps_pl_clk_f[clk_n] = clk_f;
+    }
+    return resp;
 }
 
 uint64_t timing_manager::get_base_clock(uint8_t clk_n) {
@@ -37,7 +40,7 @@ void timing_manager::add_generated_clock(std::string clock_name, const clock_def
     generated_clocks[clock_name] = c;
 }
 
-void timing_manager::set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p) {
+responses::response_code  timing_manager::set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p) {
     if (generated_clocks.contains(clock_name)) {
         auto clk_def = generated_clocks[clock_name];
         clk_def.divider = d;
@@ -49,7 +52,7 @@ void timing_manager::set_generated_clock(std::string clock_name, uint16_t m, uin
             setup_clock_divider(clk_def.generator_base_address, clk_def.divider, clk_def.phase);
         }
     }
-
+    return responses::ok;
 }
 
 uint64_t timing_manager::get_generated_clock(const std::string& clock_name) {
