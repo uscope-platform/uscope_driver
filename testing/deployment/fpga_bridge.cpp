@@ -227,3 +227,87 @@ TEST(fpga_bridge, set_scope_data) {
     std::filesystem::remove(if_dict.get_buffer_address_if());
 }
 
+
+TEST(fpga_bridge, fpga_loading) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+
+
+    runtime_config.emulate_hw = false;
+    std::ofstream o("/tmp/test.bit");
+    o = std::ofstream(if_dict.get_fpga_state_if());
+    o << "operating"<<std::endl;
+    o.close();
+    auto resp = bridge.load_bitstream("/tmp/test.bit");
+
+    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::string res;
+    result_file>>res;
+    EXPECT_EQ(res, "0");
+
+    result_file = std::ifstream(if_dict.get_fpga_bitstream_if());
+    result_file>>res;
+    EXPECT_EQ(res, "test.bit");
+
+    EXPECT_EQ(resp, responses::ok);
+    std::filesystem::remove("/tmp/test.bit");
+    std::filesystem::remove(if_dict.get_fpga_state_if());
+    std::filesystem::remove(if_dict.get_fpga_flags_if());
+    std::filesystem::remove(if_dict.get_fpga_bitstream_if());
+}
+
+
+
+TEST(fpga_bridge, fpga_failed_loading) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+
+
+    runtime_config.emulate_hw = false;
+    std::ofstream o("/tmp/test.bit");
+    auto resp = bridge.load_bitstream("/tmp/test.bit");
+
+    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::string res;
+    result_file>>res;
+    EXPECT_EQ(res, "0");
+
+    result_file = std::ifstream(if_dict.get_fpga_bitstream_if());
+    result_file>>res;
+    EXPECT_EQ(res, "test.bit");
+
+    EXPECT_EQ(resp, responses::bitstream_load_failed);
+    std::filesystem::remove("/tmp/test.bit");
+    std::filesystem::remove(if_dict.get_fpga_flags_if());
+    std::filesystem::remove(if_dict.get_fpga_bitstream_if());
+}
+
+
+TEST(fpga_bridge, fpga_bitstream_not_found) {
+
+    if_dict.set_arch("testing");
+    runtime_config.emulate_hw = true;
+
+    fpga_bridge bridge;
+
+
+
+    runtime_config.emulate_hw = false;
+    auto resp = bridge.load_bitstream("/tmp/sfgftest.bit");
+
+    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::string res;
+    result_file>>res;
+    EXPECT_EQ(res, "0");
+
+    EXPECT_EQ(resp, responses::bitstream_not_found);
+    std::filesystem::remove(if_dict.get_fpga_state_if());
+}

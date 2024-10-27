@@ -40,19 +40,19 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 
     spdlog::info("LOAD BITSTREAM: {0}", bitstream);
     if(!runtime_config.emulate_hw){
-        std::ofstream ofs("/sys/class/fpga_manager/fpga0/flags");
+        std::ofstream ofs(if_dict.get_fpga_flags_if());
         ofs << "0";
         ofs.flush();
-        std::string prefix = "/lib/firmware";
+        std::string prefix = if_dict.get_firmware_store();
         std::string file = bitstream.substr(prefix.length());
 
         if(std::filesystem::exists(bitstream)){
-            ofs = std::ofstream("/sys/class/fpga_manager/fpga0/firmware");
+            ofs = std::ofstream(if_dict.get_fpga_bitstream_if());
             ofs << file;
             ofs.flush();
 
             std::string state;
-            std::ifstream ifs("/sys/class/fpga_manager/fpga0/state");
+            std::ifstream ifs(if_dict.get_fpga_state_if());
             int timeout_counter = 500;
             do {
                 std::this_thread::sleep_for(5ms);

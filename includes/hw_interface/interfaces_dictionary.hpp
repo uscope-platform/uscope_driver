@@ -41,11 +41,57 @@ public:
         if(clock_number >3) throw std::invalid_argument("The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
         return clock_if.at(arch) + std::to_string(clock_number);
     };
+
     std::string get_buffer_address_if() const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         return buffer_addres_if.at(arch);
     };
+
+    std::string get_fpga_flags_if() const {
+        return fpga_manager_flags_if.at(arch);
+    };
+
+    std::string get_fpga_bitstream_if() const {
+        return fpga_manager_bitstream_if.at(arch);
+    };
+
+    std::string get_fpga_state_if() const {
+        return fpga_manager_state_if.at(arch);
+    };
+
+    std::string get_firmware_store() const {
+        return fpga_firmware_store.at(arch);
+    }
+
 private:
+
+    std::unordered_map<std::string, std::string> fpga_firmware_store = {
+            {"zynq", "/lib/firmware/"},
+            {"zynqmp", "/lib/firmware/"},
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/"}
+    };
+
+    std::unordered_map<std::string, std::string> fpga_manager_state_if = {
+            {"zynq", "/sys/class/fpga_manager/fpga0/state"},
+            {"zynqmp", "/sys/class/fpga_manager/fpga0/state"},
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/fpga_manager_state"}
+    };
+
+    std::unordered_map<std::string, std::string> fpga_manager_bitstream_if = {
+            {"zynq", "/sys/class/fpga_manager/fpga0/firmware"},
+            {"zynqmp", "/sys/class/fpga_manager/fpga0/firmware"},
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/fpga_bitstream_if"}
+    };
+
+    std::unordered_map<std::string, std::string> fpga_manager_flags_if = {
+            {"zynq", "/sys/class/fpga_manager/fpga0/flags"},
+            {"zynqmp", "/sys/class/fpga_manager/fpga0/flags"},
+            {"emulate", "/dev/zero"},
+            {"testing", "/tmp/fpga_flags_if"}
+    };
 
     std::unordered_map<std::string, std::string> control_bus_if = {
             {"zynq", "/dev/uscope_BUS_0"},
