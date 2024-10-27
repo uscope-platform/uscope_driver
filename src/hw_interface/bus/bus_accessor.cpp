@@ -15,6 +15,10 @@
 
 #include "hw_interface/bus/bus_accessor.hpp"
 
+std::mutex m;
+
+
+
 void sigsegv_handler(int dummy) {
     spdlog::error("Segmentation fault encounteded while communicating with FPGA");
     exit(-1);
@@ -91,21 +95,26 @@ bus_accessor::bus_accessor() {
 }
 
 void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
+    m.lock();
     if(addresses.size() ==1){
         registers[register_address_to_index(addresses[0])] = data;
     } else {
         registers[register_address_to_index(addresses[1]+4)] = addresses[0];
         registers[register_address_to_index(addresses[1])] = data;
     }
+    m.unlock();
 }
 
 uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
+    uint32_t ret_val;
+    m.lock();
     if(address.size()==1){
-        return registers[register_address_to_index(address[0])];
+        ret_val = registers[register_address_to_index(address[0])];
     } else{
-        return 0;
+        ret_val = 0;
     }
-
+    m.unlock();
+    return ret_val;
 }
 
 uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
@@ -125,7 +134,9 @@ uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
 }
 
 void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
+    m.lock();
     for(int i = 0; i< program.size(); i++)
         fCore[i+fcore_address_to_index(address)] = program[i];
+    m.unlock();
 }
 
