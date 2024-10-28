@@ -40,6 +40,7 @@ public:
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         if(clock_number >3) throw std::invalid_argument("The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
         if(arch=="emulate") return clock_if.at(arch);
+        if(arch=="zynqmp")  return clock_if.at(arch) + std::to_string(clock_number)+ "/set_rate";
         return clock_if.at(arch) + std::to_string(clock_number);
     };
 
