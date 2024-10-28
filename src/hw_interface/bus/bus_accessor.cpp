@@ -137,8 +137,11 @@ uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
 
 void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
     m.lock();
-    for(int i = 0; i< program.size(); i++)
+    for(int i = 0; i< program.size(); i++){
         fCore[i+fcore_address_to_index(address)] = program[i];
+        usleep(1);
+    }
+
     m.unlock();
 }
 
