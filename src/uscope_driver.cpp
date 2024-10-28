@@ -71,6 +71,7 @@ int main (int argc, char **argv) {
 
     if(emulate_hw){
         if_dict.set_arch("emulate");
+
     } else{
         auto arch = std::getenv("ARCH");
         if_dict.set_arch(arch);

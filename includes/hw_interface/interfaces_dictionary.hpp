@@ -39,6 +39,7 @@ public:
     std::string get_clock_if(uint8_t clock_number) const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         if(clock_number >3) throw std::invalid_argument("The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
+        if(arch=="emulate") return clock_if.at(arch);
         return clock_if.at(arch) + std::to_string(clock_number);
     };
 
