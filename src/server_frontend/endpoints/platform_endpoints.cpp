@@ -121,7 +121,7 @@ nlohmann::json platform_endpoints::process_set_debug_level(nlohmann::json &argum
         return resp;
     }
     std::string level = arguments;
-
+    spdlog::critical("SETTING LOG LEVEL TO: {0}", level);
     if(level == "minimal"){
         spdlog::set_level(spdlog::level::warn);
     } else if (level == "debug"){
