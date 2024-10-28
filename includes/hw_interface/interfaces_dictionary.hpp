@@ -114,7 +114,7 @@ private:
     };
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
-            {"zynqmp", "/sys/devices/platform/fclk_"},
+            {"zynqmp", "/sys/devices/platform/fclk"},
             {"emulate", "/dev/zero"},
             {"testing", "/tmp/clock_if_"}
     };
