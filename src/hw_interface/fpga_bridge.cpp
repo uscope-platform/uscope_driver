@@ -189,6 +189,7 @@ responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq)
     std::string file = if_dict.get_clock_if(clk_n).c_str();
     auto fd = open(file.c_str(), O_RDWR | O_SYNC);
     if(fd<0){
+        spdlog::critical("Failed to open the clock setting file: {0}", file);
         spdlog::critical("Clock setting operation unsuccessful: {0}", std::strerror(errno));
         return responses::driver_file_not_found;
     }
@@ -198,7 +199,7 @@ responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq)
     ssize_t write_size = f_str.size();
     auto res = write(fd,f_cstr, write_size);
     if(res<0){
-        spdlog::critical("Clock setting operation unsuccessful: {0}", std::strerror(errno));
+        spdlog::critical("WRITE FAILURE: Clock setting operation unsuccessful: {0}", std::strerror(errno));
         return responses::driver_write_failed;
     }
     return responses::ok;
