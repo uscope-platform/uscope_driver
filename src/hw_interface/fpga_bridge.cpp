@@ -174,7 +174,8 @@ void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint3
 }
 
 uint32_t fpga_bridge::read_direct(uint64_t address) {
-    return std::visit( [&address](auto& x) {return x.read_register({address});},busses );
+    std::vector<uint64_t> a= {address};
+    return std::visit( [&a](auto& x) {return x.read_register(a);},busses );
 }
 
 uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {

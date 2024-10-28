@@ -109,7 +109,9 @@ uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
     uint32_t ret_val;
     m.lock();
     if(address.size()==1){
-        ret_val = registers[register_address_to_index(address[0])];
+        auto reg_n = register_address_to_index(address[0]);
+        spdlog::trace("READ from Register #{0} at address {1}", reg_n, address[0]);
+        ret_val = registers[reg_n];
     } else{
         ret_val = 0;
     }
