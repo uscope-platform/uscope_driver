@@ -126,6 +126,8 @@ add_executable(test_hil_deployer
         src/deployment/custom_deployer.cpp
         src/deployment/hil_bus_map.cpp
         src/hw_interface/fpga_bridge.cpp
+        src/hw_interface/bus/bus_accessor.cpp
+        src/hw_interface/bus/bus_sink.cpp
 )
 
 target_link_libraries(test_hil_deployer PRIVATE

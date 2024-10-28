@@ -89,7 +89,8 @@ int main (int argc, char **argv) {
 
 
     if(specs.custom_deploy_mode){
-        custom_deployer c(hw_bridge);
+        custom_deployer<fpga_bridge> c;
+        c.set_hw_bridge(hw_bridge);
         c.set_layout_map(addr_map);
         c.deploy(specs, programs);
     } else {
