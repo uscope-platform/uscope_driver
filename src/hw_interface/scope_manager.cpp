@@ -21,7 +21,7 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(scope_accessor::buffer_size){
+scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h, std::shared_ptr<scope_accessor> sa) : data_gen(scope_accessor::buffer_size){
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
@@ -40,9 +40,10 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(scope_ac
             {3,true},
             {4,true},
             {5,true},
+
     };
 
-
+    scope_if = std::move(sa);
 
     spdlog::info("Scope handler initialization done");
 }
@@ -53,7 +54,7 @@ responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &d
     std::array<uint64_t, configuration::n_channels*configuration::buffer_size> raw_data{};
     spdlog::trace("READ_DATA: STARTING");
     try{
-        raw_data = scope_if.get_scope_data();
+        raw_data = scope_if->get_scope_data();
     } catch (std::runtime_error &err) {
         return responses::ok;
     }

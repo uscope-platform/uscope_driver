@@ -90,8 +90,10 @@ int main (int argc, char **argv) {
     spdlog::info("Debug mode: {0}", emulate_hw);
     spdlog::info("Logging mode: {0}", log_command);
 
+
+    auto scope_if = std::make_shared<scope_accessor>();
     auto hw_bridge = std::make_shared<fpga_bridge>();
-    auto scope_conn = std::make_shared<scope_manager>(hw_bridge);
+    auto scope_conn = std::make_shared<scope_manager>(hw_bridge, scope_if);
 
     //std::array<server_connector, 4> workers_pool;
 
