@@ -38,11 +38,13 @@ fpga_bridge::fpga_bridge() {
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
 
-    spdlog::info("LOAD BITSTREAM: {0}", bitstream);
+    spdlog::info("LOAD BITSTREAM: loading file {0}", bitstream);
     if(!runtime_config.emulate_hw){
         std::ofstream ofs(if_dict.get_fpga_flags_if());
         ofs << "0";
         ofs.flush();
+
+        spdlog::info("LOAD BITSTREAM: flags setup done", bitstream);
         std::string prefix = if_dict.get_firmware_store();
         std::string file = bitstream.substr(prefix.length());
 
@@ -50,15 +52,18 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
             ofs = std::ofstream(if_dict.get_fpga_bitstream_if());
             ofs << file;
             ofs.flush();
+            spdlog::info("LOAD BITSTREAM: bitstream loading_started", bitstream);
 
             std::string state;
             std::ifstream ifs(if_dict.get_fpga_state_if());
-            int timeout_counter = 500;
+            int timeout_counter = 700;
             do {
                 std::this_thread::sleep_for(5ms);
                 ifs >> state;
                 timeout_counter--;
             } while (state != "operating" && timeout_counter>=0);
+
+            spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
 
             if(timeout_counter <0){
                 spdlog::error("Bitstream load failed to complete in time");
