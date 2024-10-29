@@ -1,7 +1,6 @@
 set(TEST_SOURCES
         testing_main.cpp
         deployment/hil_deployer_tests.cpp
-        deployment/fpga_bridge_mock.cpp
         deployment/custom_deployer_test.cpp
         deployment/emulation.cpp
         deployment/fpga_bridge.cpp
@@ -26,7 +25,6 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         )
 
 target_include_directories(test_target PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
-target_compile_definitions(test_target PRIVATE ENABLE_MOCKS)
 
 include(GoogleTest)
 gtest_discover_tests(test_target)

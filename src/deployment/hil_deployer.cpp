@@ -18,8 +18,7 @@
 #include "../testing/deployment/fpga_bridge_mock.hpp"
 
 
-template<class hw_bridge>
-hil_deployer<hw_bridge>::hil_deployer() {
+hil_deployer::hil_deployer() {
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
@@ -30,13 +29,11 @@ hil_deployer<hw_bridge>::hil_deployer() {
     spdlog::info("HIL CLOCK FREQUENCY: {0}", hil_clock_frequency);
 }
 
-template<class hw_bridge>
-void hil_deployer<hw_bridge>::set_hw_bridge(std::shared_ptr<hw_bridge> &h) {
-    deployer_base<hw_bridge>::set_hw_bridge(h);
+void hil_deployer::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
+    deployer_base::set_hw_bridge(h);
 }
 
-template <class hw_bridge>
-responses::response_code hil_deployer<hw_bridge>::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
+responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
 
 
     this->setup_base(specs);
@@ -102,8 +99,7 @@ responses::response_code hil_deployer<hw_bridge>::deploy(fcore::emulator::emulat
     return responses::ok;
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
+void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
 
@@ -125,8 +121,7 @@ void hil_deployer<hw_bridge>::setup_sequencer(uint16_t n_cores, std::vector<uint
     spdlog::info("------------------------------------------------------------------");
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::setup_cores(uint16_t n_cores) {
+void hil_deployer::setup_cores(uint16_t n_cores) {
     spdlog::info("SETUP CORES");
     spdlog::info("------------------------------------------------------------------");
     for(int i = 0; i<n_cores; i++){
@@ -135,8 +130,7 @@ void hil_deployer<hw_bridge>::setup_cores(uint16_t n_cores) {
 }
 
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::check_reciprocal(const std::vector<uint32_t> &program) {
+void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     bool rec_present = false;
     int section=0;
     bool skip_next = false;
@@ -162,8 +156,7 @@ void hil_deployer<hw_bridge>::check_reciprocal(const std::vector<uint32_t> &prog
     }
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::select_output(uint32_t channel, const output_specs_t& output) {
+void hil_deployer::select_output(uint32_t channel, const output_specs_t& output) {
     spdlog::info("HIL SELECT OUTPUT: selected output {0}({1},{2}) from core {3} for scope channel {4}",
                  output.source_output,
                  output.address,
@@ -176,25 +169,21 @@ void hil_deployer<hw_bridge>::select_output(uint32_t channel, const output_specs
     this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::set_input(uint32_t address, uint32_t value, std::string core) {
+void hil_deployer::set_input(uint32_t address, uint32_t value, std::string core) {
     this->update_input_value(address, value, core);
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::start() {
+void hil_deployer::start() {
     spdlog::info("START HIL");
     this->write_register(this->addresses.bases.hil_control, 1);
 }
 
-template <class hw_bridge>
-void hil_deployer<hw_bridge>::stop() {
+void hil_deployer::stop() {
     spdlog::info("STOP HIL");
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
-template <class hw_bridge>
-std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
     std::vector<uint32_t>core_dividers;
 
     for(int i = 0; i<programs.size(); i++){
@@ -215,8 +204,7 @@ std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_divider(const 
 
 }
 
-template <class hw_bridge>
-std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
 
     struct shift_calc_data {
         std::string name;
@@ -256,8 +244,4 @@ std::vector<uint32_t> hil_deployer<hw_bridge>::calculate_timebase_shift(const st
 }
 
 
-template class hil_deployer<fpga_bridge>;
-#ifdef ENABLE_MOCKS
-template class hil_deployer<fpga_bridge_mock>;
-#endif
 

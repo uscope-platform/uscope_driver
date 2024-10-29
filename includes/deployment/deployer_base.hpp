@@ -118,12 +118,11 @@ struct input_metadata_t{
     bool is_float;
 };
 
-template <class hw_bridge>
 class deployer_base {
 public:
     deployer_base() = default;
 
-    virtual void set_hw_bridge(std::shared_ptr<hw_bridge>  &h);
+    virtual void set_hw_bridge(std::shared_ptr<fpga_bridge>  &h);
 
     void set_layout_map(nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
@@ -153,7 +152,7 @@ protected:
 
     void update_input_value(uint32_t address, uint32_t value, std::string core);
 
-    std::shared_ptr<hw_bridge> hw;
+    std::shared_ptr<fpga_bridge> hw;
     logic_layout addresses;
 private:
     hil_bus_map bus_map;

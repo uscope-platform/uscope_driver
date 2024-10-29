@@ -448,7 +448,7 @@ TEST(custom_deployer, deployment) {
 
     auto ba = std::make_shared<bus_accessor>(true);
     auto bridge = std::make_shared<fpga_bridge>(ba);
-    custom_deployer<fpga_bridge> d;
+    custom_deployer d;
     d.set_hw_bridge(bridge);
     auto addr_map = custom_deployer_get_addr_map();
     d.set_layout_map(addr_map);

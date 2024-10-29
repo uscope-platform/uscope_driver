@@ -87,8 +87,6 @@ target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/i
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
 else()
     enable_testing()
-    target_sources(uscope_driver PRIVATE testing/deployment/fpga_bridge_mock.cpp)
-    target_compile_definitions(uscope_driver PRIVATE ENABLE_MOCKS)
     add_subdirectory(testing)
 endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 

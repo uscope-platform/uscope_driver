@@ -48,8 +48,8 @@ private:
 
     std::shared_ptr<fpga_bridge> hw;
 
-    hil_deployer<fpga_bridge> hil;
-    custom_deployer<fpga_bridge> custom;
+    hil_deployer hil;
+    custom_deployer custom;
 
     toolchain_manager toolchain;
     hil_emulator emulator;

@@ -26,12 +26,10 @@
 
 #include "deployment/deployer_base.hpp"
 
-
-template <class hw_bridge>
-class hil_deployer : public deployer_base<hw_bridge>{
+class hil_deployer : public deployer_base{
 public:
     hil_deployer();
-    void set_hw_bridge(std::shared_ptr<hw_bridge>  &h);
+    void set_hw_bridge(std::shared_ptr<fpga_bridge>  &h);
 
     responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
 
