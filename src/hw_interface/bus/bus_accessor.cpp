@@ -29,94 +29,107 @@ void sigbus_handler(int dummy) {
     exit(-1);
 }
 
-bus_accessor::bus_accessor() {
+bus_accessor::bus_accessor(bool sm) {
+
+    sink_mode = sm;
 
     spdlog::info("fpga_bridge initialization started");
-
-    std::string arch = std::getenv("ARCH");
-    if(arch == "zynqmp"){
-        control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
-        core_addr = ZYNQMP_FCORE_BASE_ADDR;
-    } else {
-        control_addr = ZYNQ_REGISTERS_BASE_ADDR;
-        core_addr = ZYNQ_FCORE_BASE_ADDR;
-    }
-
 
     signal(SIGSEGV,sigsegv_handler);
     signal(SIGBUS,sigbus_handler);
 
+    if(!sink_mode){
 
-    int n_pages_ctrl, n_pages_fcore;
+        std::string arch = std::getenv("ARCH");
+        if(arch == "zynqmp"){
+            control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
+            core_addr = ZYNQMP_FCORE_BASE_ADDR;
+        } else {
+            control_addr = ZYNQ_REGISTERS_BASE_ADDR;
+            core_addr = ZYNQ_FCORE_BASE_ADDR;
+        }
 
-    char const* t = getenv("MMAP_N_PAGES_CTRL");
-    if(t == nullptr){
-        n_pages_ctrl = 344000;
-    } else {
-        n_pages_ctrl = std::stoi(std::string(t));
+
+
+        int n_pages_ctrl, n_pages_fcore;
+
+        char const* t = getenv("MMAP_N_PAGES_CTRL");
+        if(t == nullptr){
+            n_pages_ctrl = 344000;
+        } else {
+            n_pages_ctrl = std::stoi(std::string(t));
+        }
+
+        t = getenv("MMAP_N_PAGES_FCORE");
+        if(t == nullptr){
+            n_pages_fcore = 344000;
+        } else {
+            n_pages_fcore = std::stoi(std::string(t));
+        }
+
+        auto registers_fd = open(if_dict.get_control_bus().c_str(), O_RDWR | O_SYNC);
+        if(registers_fd == -1){
+            spdlog::error( "Error while mapping the axi control bus");
+            exit(1);
+        }
+
+        auto fcore_fd = open(if_dict.get_cores_bus().c_str(), O_RDWR | O_SYNC);
+        if(fcore_fd == -1){
+            spdlog::error("Error while mapping the fcore rom bus");
+            exit(1);
+        }
+
+        spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl, control_addr);
+        registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
+        if(registers == MAP_FAILED) {
+            spdlog::error("Cannot mmap control bus: {0}", strerror(errno));
+            exit(1);
+        }
+
+        spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
+        fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
+        if(fCore == MAP_FAILED) {
+            spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
+            exit(1);
+        }
+
     }
-
-    t = getenv("MMAP_N_PAGES_FCORE");
-    if(t == nullptr){
-        n_pages_fcore = 344000;
-    } else {
-        n_pages_fcore = std::stoi(std::string(t));
-    }
-
-    auto registers_fd = open(if_dict.get_control_bus().c_str(), O_RDWR | O_SYNC);
-    if(registers_fd == -1){
-        spdlog::error( "Error while mapping the axi control bus");
-        exit(1);
-    }
-
-    auto fcore_fd = open(if_dict.get_cores_bus().c_str(), O_RDWR | O_SYNC);
-    if(fcore_fd == -1){
-        spdlog::error("Error while mapping the fcore rom bus");
-        exit(1);
-    }
-
-    spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl, control_addr);
-    registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
-    if(registers == MAP_FAILED) {
-        spdlog::error("Cannot mmap control bus: {0}", strerror(errno));
-        exit(1);
-    }
-
-    spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
-    fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
-    if(fCore == MAP_FAILED) {
-        spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
-        exit(1);
-    }
-
-
 
     spdlog::info("fpga_bridge initialization done");
 }
 
 void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
-    m.lock();
-    if(addresses.size() ==1){
-        registers[register_address_to_index(addresses[0])] = data;
+    if(sink_mode){
+        operations.push_back({addresses, {data}, "w"});
     } else {
-        registers[register_address_to_index(addresses[1]+4)] = addresses[0];
-        registers[register_address_to_index(addresses[1])] = data;
+        m.lock();
+        if(addresses.size() ==1){
+            registers[register_address_to_index(addresses[0])] = data;
+        } else {
+            registers[register_address_to_index(addresses[1]+4)] = addresses[0];
+            registers[register_address_to_index(addresses[1])] = data;
+        }
+        m.unlock();
     }
-    m.unlock();
 }
 
 uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
-    uint32_t ret_val;
-    m.lock();
-    if(address.size()==1){
-        auto reg_n = register_address_to_index(address[0]);
-        spdlog::trace("READ from Register #{0} at address {1}", reg_n, address[0]);
-        ret_val = registers[reg_n];
-    } else{
-        ret_val = 0;
+    if(sink_mode){
+        operations.push_back({address, {0}, "r"});
+        return rand()%100;
+    } else {
+        uint32_t ret_val;
+        m.lock();
+        if(address.size()==1){
+            auto reg_n = register_address_to_index(address[0]);
+            spdlog::trace("READ from Register #{0} at address {1}", reg_n, address[0]);
+            ret_val = registers[reg_n];
+        } else{
+            ret_val = 0;
+        }
+        m.unlock();
+        return ret_val;
     }
-    m.unlock();
-    return ret_val;
 }
 
 uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
@@ -136,12 +149,21 @@ uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
 }
 
 void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
-    m.lock();
-    for(int i = 0; i< program.size(); i++){
-        fCore[i+fcore_address_to_index(address)] = program[i];
-        usleep(1);
-    }
+    if(sink_mode){
+        std::vector<uint64_t> a = {address};
+        std::vector<uint64_t> pn;
+        for (auto &p:program) {
+            pn.push_back(p);
+        }
+        operations.push_back({a, pn, "p"});
+    } else {
+        m.lock();
+        for(int i = 0; i< program.size(); i++){
+            fCore[i+fcore_address_to_index(address)] = program[i];
+            usleep(1);
+        }
 
-    m.unlock();
+        m.unlock();
+    }
 }
 

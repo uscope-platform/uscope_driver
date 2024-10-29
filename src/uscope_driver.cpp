@@ -91,8 +91,12 @@ int main (int argc, char **argv) {
     spdlog::info("Logging mode: {0}", log_command);
 
 
+    auto ba = std::make_shared<bus_accessor>(runtime_config.emulate_hw);
+
+
+
     auto scope_if = std::make_shared<scope_accessor>();
-    auto hw_bridge = std::make_shared<fpga_bridge>();
+    auto hw_bridge = std::make_shared<fpga_bridge>(ba);
     auto scope_conn = std::make_shared<scope_manager>(hw_bridge, scope_if);
 
     //std::array<server_connector, 4> workers_pool;

@@ -29,7 +29,6 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h, std::shared_ptr<sco
 
     hw = std::move(h);
     internal_buffer_size = scope_accessor::n_channels*scope_accessor::buffer_size;
-    sc_scope_data_buffer.reserve(internal_buffer_size);
     data_holding_buffer.reserve(scope_accessor::n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
     scope_base_address = 0;

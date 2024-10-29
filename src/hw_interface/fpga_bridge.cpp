@@ -18,17 +18,13 @@
 
 using namespace std::chrono_literals;
 
-fpga_bridge::fpga_bridge() {
+fpga_bridge::fpga_bridge(const std::shared_ptr<bus_accessor>& bus_acc) {
 
     spdlog::info("fpga_bridge initialization started");
 
     arch = std::getenv("ARCH");
 
-    if(!runtime_config.emulate_hw){
-        busses = bus_accessor();
-    } else {
-        busses = bus_sink();
-    }
+    busses = bus_acc;
 
     spdlog::info("fpga_bridge initialization done");
 }
@@ -123,8 +119,7 @@ nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
 /// \return #RESP_OK
 responses::response_code fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
     spdlog::info("APPLY PROGRAM: address:  0x{0:x} program_size: {1}", address, program.size());
-
-    std::visit( [&address, &program](auto& x) { x.load_program(address,program); },busses );
+    busses->load_program(address, program);
     return responses::ok;
 }
 
@@ -168,19 +163,17 @@ responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
 
 void fpga_bridge::write_direct(uint64_t addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", addr, val);
-
-    std::visit( [&addr, &val](auto& x) { x.write_register({addr}, val); },busses );
+    busses->write_register({addr}, val);
 }
 
 void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, target_addr, val);
-
-    std::visit( [&proxy_addr, &target_addr, &val](auto& x) { x.write_register({target_addr, proxy_addr}, val); },busses );
+    busses->write_register({target_addr, proxy_addr}, val);
 }
 
 uint32_t fpga_bridge::read_direct(uint64_t address) {
     std::vector<uint64_t> a= {address};
-    return std::visit( [&a](auto& x) {return x.read_register(a);},busses );
+    return busses->read_register(a);
 }
 
 uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
@@ -212,5 +205,5 @@ responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq)
 }
 
 std::vector<bus_op> fpga_bridge::get_bus_operations() {
-    return std::get<bus_sink>(busses).get_operations();
+    return busses->get_operations();
 }

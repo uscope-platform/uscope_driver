@@ -29,9 +29,16 @@
 #define ZYNQMP_REGISTERS_BASE_ADDR 0x400000000
 #define ZYNQMP_FCORE_BASE_ADDR 0x500000000
 
+
+struct bus_op{
+    std::vector<uint64_t> address;
+    std::vector<uint64_t> data;
+    std::string type;
+};
+
 class bus_accessor {
 public:
-    bus_accessor();
+    bus_accessor(bool sm);
     void load_program(uint64_t address, const std::vector<uint32_t> program);
     void write_register(const std::vector<uint64_t>& addresses, uint64_t data);
     uint32_t read_register(const std::vector<uint64_t>& address);
@@ -39,12 +46,15 @@ public:
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;
 
+    std::vector<bus_op> get_operations() {return operations;};
 private:
 
     uint64_t control_addr, core_addr;
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
+    bool sink_mode;
+    std::vector<bus_op> operations;
 };
 
 

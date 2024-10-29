@@ -64,8 +64,6 @@ set(DRIVER_SOURCES /
         src/deployment/custom_deployer.cpp
         src/hw_interface/bus/bus_accessor.cpp
         includes/hw_interface/bus/bus_accessor.hpp
-        src/hw_interface/bus/bus_sink.cpp
-        includes/hw_interface/bus/bus_sink.hpp
         src/hw_interface/bus/scope_accessor.cpp
         includes/hw_interface/bus/scope_accessor.hpp
 )
@@ -129,7 +127,6 @@ add_executable(test_hil_deployer
         src/deployment/hil_bus_map.cpp
         src/hw_interface/fpga_bridge.cpp
         src/hw_interface/bus/bus_accessor.cpp
-        src/hw_interface/bus/bus_sink.cpp
 )
 
 target_link_libraries(test_hil_deployer PRIVATE

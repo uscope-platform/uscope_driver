@@ -38,15 +38,13 @@
 
 
 #include "bus/bus_accessor.hpp"
-#include "bus/bus_sink.hpp"
-
 
 void sigsegv_handler(int dummy);
 void sigbus_handler(int dummy);
 
 class fpga_bridge {
 public:
-    fpga_bridge();
+    explicit fpga_bridge(const std::shared_ptr<bus_accessor>& bus_acc);
     responses::response_code load_bitstream(const std::string& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint64_t address);
@@ -67,9 +65,7 @@ public:
 
 private:
 
-    std::variant<bus_sink, bus_accessor> busses;
-    uint64_t control_addr;
-    uint64_t core_addr;
+    std::shared_ptr<bus_accessor> busses;
 
 
     std::string arch;
