@@ -1,5 +1,3 @@
-
-
 //   Copyright 2024 Filippo Savi <filssavi@gmail.com>
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +12,24 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef USCOPE_DRIVER_CONFIGURATION_HPP
-#define USCOPE_DRIVER_CONFIGURATION_HPP
+#ifndef USCOPE_DRIVER_SCOPE_ACCESSOR_HPP
+#define USCOPE_DRIVER_SCOPE_ACCESSOR_HPP
 
-class configuration {
+#include <spdlog/spdlog.h>
+#include <fcntl.h>
+#include "hw_interface/interfaces_dictionary.hpp"
+
+class scope_accessor {
 public:
-    bool emulate_hw;
-    bool debug_hil;
-    unsigned int server_port;
+    scope_accessor();
+    ~scope_accessor();
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
+    std::array<uint64_t, n_channels*buffer_size> get_scope_data();
+private:
+    static constexpr  int internal_buffer_size = n_channels*buffer_size;
+    volatile int fd_data;
 };
 
-extern configuration runtime_config;
 
-#endif //USCOPE_DRIVER_CONFIGURATION_HPP
+#endif //USCOPE_DRIVER_SCOPE_ACCESSOR_HPP

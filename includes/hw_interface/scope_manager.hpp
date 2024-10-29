@@ -48,6 +48,8 @@
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/hw_address_maps.hpp"
 
+#include "bus/scope_accessor.hpp"
+
 #include "emulator/backend/emulator_backend.hpp"
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
@@ -94,17 +96,14 @@ private:
 
     uint64_t scope_base_address;
     bool first_load;
-    static constexpr int n_channels = 6;
-    static constexpr int buffer_size = 1024;
-
-    std::vector<std::vector<float>> shunt_data(const volatile uint64_t * buffer_in);
+    std::vector<std::vector<float>> shunt_data(
+            const std::array<uint64_t, configuration::n_channels*configuration::buffer_size>  &buffer_in
+            );
     float scale_data(uint32_t raw_sample, unsigned int size, float scaling_factor, bool is_signed, bool is_float);
 
     std::vector<float> scaling_factors;
     int internal_buffer_size;
-    unsigned int n_buffers_left;
     std::vector<uint32_t> sc_scope_data_buffer;
-    volatile uint64_t * dma_buffer;  ///mmapped buffer
     //MULTICHANNEL SUPPORT
     std::vector<uint32_t> data_holding_buffer;
     std::unordered_map<int, bool> channel_status;
@@ -112,6 +111,7 @@ private:
     emulated_data_generator data_gen;
     std::shared_ptr<fpga_bridge> hw;
 
+    scope_accessor scope_if;
     scope_address_map am;
 };
 

@@ -17,23 +17,20 @@
 
 #include <utility>
 
-thread_local volatile int fd_data; /// Scope driver file descriptor
-
 /// Initializes the scope_handler infrastructure, opening the UIO driver file and writing to it to clear any outstanding
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_size){
+scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(scope_accessor::buffer_size){
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
     first_load = true;
 
     hw = std::move(h);
-    n_buffers_left = 0;
-    internal_buffer_size = n_channels*buffer_size;
+    internal_buffer_size = scope_accessor::n_channels*scope_accessor::buffer_size;
     sc_scope_data_buffer.reserve(internal_buffer_size);
-    data_holding_buffer.reserve(n_channels*internal_buffer_size);
+    data_holding_buffer.reserve(scope_accessor::n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
     scope_base_address = 0;
     channel_status = {
@@ -45,12 +42,7 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
             {5,true},
     };
 
-    //mmap buffer
-    fd_data = open(if_dict.get_data_bus().c_str(), O_RDWR| O_SYNC);
-    if(fd_data == -1){
-        std::cerr << std::strerror(errno);
-    }
-    dma_buffer = (uint64_t * ) malloc(internal_buffer_size*sizeof(uint64_t));
+
 
     spdlog::info("Scope handler initialization done");
 }
@@ -58,18 +50,18 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h) : data_gen(buffer_s
 responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &data_vector) {
 
     std::vector<std::vector<float>> data;
-
+    std::array<uint64_t, configuration::n_channels*configuration::buffer_size> raw_data{};
     spdlog::trace("READ_DATA: STARTING");
-    ssize_t read_data = read(fd_data, (void *) dma_buffer, internal_buffer_size * sizeof(uint64_t));
-    if(read_data==0) return responses::ok;
-    if(read_data<0) {
-        spdlog::critical(std::strerror(errno));
+    try{
+        raw_data = scope_if.get_scope_data();
+    } catch (std::runtime_error &err) {
+        return responses::ok;
     }
-    spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL ({0} words transferred)", read_data/sizeof(uint64_t));
-    data = shunt_data(dma_buffer);
+
+    data = shunt_data(raw_data);
     spdlog::trace("READ_DATA: SHUNTING DONE");
 
-    for(int i = 0; i<n_channels; i++){
+    for(int i = 0; i<scope_accessor::n_channels; i++){
         nlohmann::json ch_obj;
         if(channel_status[i]){
             ch_obj["channel"] = i;
@@ -82,9 +74,11 @@ responses::response_code scope_manager::read_data(std::vector<nlohmann::json> &d
 
 
 
-std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_t * buffer_in) {
+std::vector<std::vector<float>> scope_manager::shunt_data(
+    const std::array<uint64_t, configuration::n_channels*configuration::buffer_size>  &buffer_in
+) {
     std::vector<std::vector<float>> ret_data;
-    for(int i = 0; i<n_channels; i++){
+    for(int i = 0; i<scope_accessor::n_channels; i++){
         ret_data.emplace_back();
     }
     spdlog::trace("SETUP RESULTS BUFFERS");
@@ -97,7 +91,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(const volatile uint64_
         auto metadata = channel_metadata(GET_METADATA(raw_sample));
         float data_sample;
         spdlog::trace("PROCESSING SAMPLE NUMBER {0}", i);
-        if(channel_base<0|| channel_base>n_channels){
+        if(channel_base<0|| channel_base>scope_accessor::n_channels){
             continue;
         }
 
