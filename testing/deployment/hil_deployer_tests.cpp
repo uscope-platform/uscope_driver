@@ -162,18 +162,17 @@ TEST(deployer, simple_single_core_deployment) {
     fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
-
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -185,55 +184,55 @@ TEST(deployer, simple_single_core_deployment) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 12);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[2].second, 1);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
+
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[3].second, 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[4].data[0], 3);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[4].second, 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[5].second, 4);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[6].data[0], 4);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[6].second, 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[7].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[7].second, 0);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[8].second, 2);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[9].data[0], 2);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[9].second, 100'000'000);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[10].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[10].second, 1);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[11].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[11].first, 0x443c20000);
-    ASSERT_EQ(control_writes[11].second,11);
+    ASSERT_EQ(ops[12].address[0], 0x443c20000);
+    ASSERT_EQ(ops[12].data[0],11);
 
 }
-
 
 TEST(deployer, simple_single_core_integer_input) {
 
@@ -338,17 +337,19 @@ TEST(deployer, simple_single_core_integer_input) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -360,52 +361,52 @@ TEST(deployer, simple_single_core_integer_input) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 12);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[2].second, 1);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[3].second, 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[4].data[0], 3);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[4].second, 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[5].second, 4);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[6].data[0], 4);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[6].second, 4);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[7].data[0], 4);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[7].second, 0);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[8].second, 2);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[9].data[0], 2);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[9].second, 100'000'000);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[10].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[10].second, 1);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[11].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[11].first, 0x443c20000);
-    ASSERT_EQ(control_writes[11].second,11);
+    ASSERT_EQ(ops[12].address[0], 0x443c20000);
+    ASSERT_EQ(ops[12].data[0],11);
 
 }
 
@@ -498,17 +499,18 @@ TEST(deployer, simple_single_core_memory_init) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x3e0003,
@@ -521,61 +523,61 @@ TEST(deployer, simple_single_core_memory_init) {
 
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 14);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x40004);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[3].data[0], 0x40004);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'100c);
-    ASSERT_EQ(control_writes[4].second, 0x30003);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'100c);
+    ASSERT_EQ(ops[5].data[0], 0x30003);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
-    ASSERT_EQ(control_writes[5].second, 0x18);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'104c);
+    ASSERT_EQ(ops[6].data[0], 0x18);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[6].second, 3);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[7].data[0], 3);
 
     // MEMORIES INITIALIZATION
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c2'0010);
-    ASSERT_EQ(control_writes[7].second, 0x41600000);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'0010);
+    ASSERT_EQ(ops[8].data[0], 0x41600000);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'000c);
-    ASSERT_EQ(control_writes[8].second, 12);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'000c);
+    ASSERT_EQ(ops[9].data[0], 12);
 
     // INPUTS
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[9].second, 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[10].second, 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[11].second, 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[12].second, 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[13].first, 0x443c20000);
-    ASSERT_EQ(control_writes[13].second,11);
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 
 }
 
@@ -694,17 +696,18 @@ TEST(deployer, multichannel_single_core_deployment) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -716,70 +719,70 @@ TEST(deployer, multichannel_single_core_deployment) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 18);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x3ed1005);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[3].data[0], 0x3ed1005);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'100c);
-    ASSERT_EQ(control_writes[4].second, 0x7d52005);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'100c);
+    ASSERT_EQ(ops[5].data[0], 0x7d52005);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
-    ASSERT_EQ(control_writes[5].second, 0x38);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'104c);
+    ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'1010);
-    ASSERT_EQ(control_writes[6].second, 0xbbd3005);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'1010);
+    ASSERT_EQ(ops[7].data[0], 0xbbd3005);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c2'1050);
-    ASSERT_EQ(control_writes[7].second, 0x38);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'1050);
+    ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[8].second, 4);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[9].data[0], 4);
 
     // INPUTS
-    ASSERT_EQ(control_writes[9].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[9].second, 3);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[10].data[0], 3);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[10].second, 0x41f9999a);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[11].second, 4);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[12].data[0], 4);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[12].second, 0x40800000);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[13].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[13].second, 0);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[14].second, 2);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[15].data[0], 2);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[15].second, 100'000'000);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[16].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[16].second, 1);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[17].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[17].first, 0x443c20000);
-    ASSERT_EQ(control_writes[17].second,11);
+    ASSERT_EQ(ops[18].address[0], 0x443c20000);
+    ASSERT_EQ(ops[18].data[0],11);
 
 }
 
@@ -973,17 +976,18 @@ TEST(deployer, simple_multi_core_deployment) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -995,89 +999,90 @@ TEST(deployer, simple_multi_core_deployment) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 22);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[2].second, 1);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[4].data[0], 1);
 
     // DMA 2
-    ASSERT_EQ(control_writes[3].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[3].second, 0x10005);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[5].data[0], 0x10005);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[4].second, 0x38);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[5].second, 1);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[7].data[0], 1);
 
     // INPUTS 1
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[6].second, 3);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[8].data[0], 3);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[7].second, 0x41f9999a);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[9].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[8].second, 4);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[10].data[0], 4);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[9].second, 0x40800000);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[11].data[0], 0x40800000);
 
 
     // INPUTS 2
-    ASSERT_EQ(control_writes[10].first, 0x4'43c3'2008);
-    ASSERT_EQ(control_writes[10].second, 3);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c3'2008);
+    ASSERT_EQ(ops[12].data[0], 3);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c3'2000);
-    ASSERT_EQ(control_writes[11].second, 0x41f9999a);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c3'2000);
+    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c3'3008);
-    ASSERT_EQ(control_writes[12].second, 4);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c3'3008);
+    ASSERT_EQ(ops[14].data[0], 4);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c3'3000);
-    ASSERT_EQ(control_writes[13].second, 0x40800000);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c3'3000);
+    ASSERT_EQ(ops[15].data[0], 0x40800000);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[14].second, 0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[15].second, 2);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[16].second, 0);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[17].second, 0x4e);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[19].data[0], 0x4e);
 
-    ASSERT_EQ(control_writes[18].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[18].second, 100'000'000);
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[19].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[19].second, 3);
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[20].first, 0x443c20000);
-    ASSERT_EQ(control_writes[20].second,11);
+    ASSERT_EQ(ops[22].address[0], 0x443c20000);
+    ASSERT_EQ(ops[22].data[0],11);
 
-    ASSERT_EQ(control_writes[21].first, 0x443c30000);
-    ASSERT_EQ(control_writes[21].second,11);
+    ASSERT_EQ(ops[23].address[0], 0x443c30000);
+    ASSERT_EQ(ops[23].data[0],11);
 
 }
 
@@ -1251,17 +1256,18 @@ TEST(deployer, scalar_interconnect_test) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x40005,
             0xc,
             0x20001,
@@ -1277,9 +1283,10 @@ TEST(deployer, scalar_interconnect_test) {
 
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
             0x60003,
@@ -1296,81 +1303,81 @@ TEST(deployer, scalar_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 20);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x10006);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10006);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x40004);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[4].data[0], 0x40004);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[4].second, 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[5].second, 0x50005);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[7].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[6].second, 0x38);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[8].data[0], 0x38);
 
 
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[7].second, 1);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[9].data[0], 1);
 
     // INPUTS
 
 
-    ASSERT_EQ(control_writes[8].first, 0x443c22008);
-    ASSERT_EQ(control_writes[8].second, 1);
+    ASSERT_EQ(ops[10].address[0], 0x443c22008);
+    ASSERT_EQ(ops[10].data[0], 1);
 
-    ASSERT_EQ(control_writes[9].first, 0x443c22000);
-    ASSERT_EQ(control_writes[9].second, 0x41f9999a);
+    ASSERT_EQ(ops[11].address[0], 0x443c22000);
+    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
 
 
-    ASSERT_EQ(control_writes[10].first, 0x443c23008);
-    ASSERT_EQ(control_writes[10].second, 2);
+    ASSERT_EQ(ops[12].address[0], 0x443c23008);
+    ASSERT_EQ(ops[12].data[0], 2);
 
-    ASSERT_EQ(control_writes[11].first, 0x443c23000);
-    ASSERT_EQ(control_writes[11].second, 0x4202cccd);
+    ASSERT_EQ(ops[13].address[0], 0x443c23000);
+    ASSERT_EQ(ops[13].data[0], 0x4202cccd);
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[12].second, 0);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[13].second, 2);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[15].data[0], 2);
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[14].second, 0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[15].second, 0x64);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[17].data[0], 0x64);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[16].second, 100'000'000);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[18].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[17].second, 3);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[19].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[18].first, 0x443c20000);
-    ASSERT_EQ(control_writes[18].second,11);
+    ASSERT_EQ(ops[20].address[0], 0x443c20000);
+    ASSERT_EQ(ops[20].data[0],11);
 
-    ASSERT_EQ(control_writes[19].first, 0x443c30000);
-    ASSERT_EQ(control_writes[19].second,11);
+    ASSERT_EQ(ops[21].address[0], 0x443c30000);
+    ASSERT_EQ(ops[21].data[0],11);
 
 }
 
@@ -1472,17 +1479,18 @@ TEST(deployer, scatter_interconnect_test) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x50003,
             0xc,
             0x10005,
@@ -1496,9 +1504,9 @@ TEST(deployer, scatter_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
             0x40003,
@@ -1513,73 +1521,75 @@ TEST(deployer, scatter_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
+
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 18);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x10005);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
-
-
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x10010006);
-
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[4].second, 2);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[4].data[0], 0x10010006);
+
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
+
+
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[5].second, 0x50005);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[7].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[6].second, 0x38);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[7].second, 0x3ed1005);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c3'1008);
+    ASSERT_EQ(ops[9].data[0], 0x3ed1005);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c3'1048);
-    ASSERT_EQ(control_writes[8].second, 0x38);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c3'1048);
+    ASSERT_EQ(ops[10].data[0], 0x38);
 
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[9].second, 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[11].data[0], 2);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[10].second, 0);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[11].second, 2);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[12].second, 0);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[13].second, 0x5d);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[15].data[0], 0x5d);
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[14].second, 100'000'000);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[16].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[15].second, 3);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[17].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[16].first, 0x443c20000);
-    ASSERT_EQ(control_writes[16].second,11);
+    ASSERT_EQ(ops[18].address[0], 0x443c20000);
+    ASSERT_EQ(ops[18].data[0],11);
 
-    ASSERT_EQ(control_writes[17].first, 0x443c30000);
-    ASSERT_EQ(control_writes[17].second,11);
+    ASSERT_EQ(ops[19].address[0], 0x443c30000);
+    ASSERT_EQ(ops[19].data[0],11);
 
 }
 
@@ -1717,17 +1727,18 @@ TEST(deployer, gather_interconnect_test) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -1739,9 +1750,9 @@ TEST(deployer, gather_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
             0x20004,
@@ -1756,78 +1767,79 @@ TEST(deployer, gather_interconnect_test) {
 
     };
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 20);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x10005);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x21005);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[4].data[0], 0x21005);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[4].second, 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[5].second, 0x50005);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[7].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[6].second, 0x38);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[7].second, 1);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[9].data[0], 1);
 
     // MEMORY INITIALIZATIONS
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[8].second, 0x3);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[10].data[0], 0x3);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[9].second, 0x41f9999a);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[10].second, 0x4);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[12].data[0], 0x4);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[11].second, 0x41f9999a);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[12].second, 0);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[13].second, 2);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[15].data[0], 2);
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[14].second, 0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[15].second, 78);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[17].data[0], 78);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[16].second, 100'000'000);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[18].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[17].second, 3);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[19].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[18].first, 0x443c20000);
-    ASSERT_EQ(control_writes[18].second,11);
+    ASSERT_EQ(ops[20].address[0], 0x443c20000);
+    ASSERT_EQ(ops[20].data[0],11);
 
-    ASSERT_EQ(control_writes[19].first, 0x443c30000);
-    ASSERT_EQ(control_writes[19].second,11);
+    ASSERT_EQ(ops[21].address[0], 0x443c30000);
+    ASSERT_EQ(ops[21].data[0],11);
 
 }
 
@@ -1955,17 +1967,18 @@ TEST(deployer, vector_interconnect_test) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -1978,9 +1991,9 @@ TEST(deployer, vector_interconnect_test) {
 
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
             0x40003,
@@ -1995,84 +2008,85 @@ TEST(deployer, vector_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 22);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x10005);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x10011005);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[4].data[0], 0x10011005);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[4].second, 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(control_writes[5].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[5].second, 0x70007);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[7].data[0], 0x70007);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[6].second, 0x38);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[7].second, 0x3ef1007);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c3'1008);
+    ASSERT_EQ(ops[9].data[0], 0x3ef1007);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c3'1048);
-    ASSERT_EQ(control_writes[8].second, 0x38);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c3'1048);
+    ASSERT_EQ(ops[10].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[9].second, 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[11].data[0], 2);
 
     // MEMORY INITIALIZATIONS
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[10].second, 0x3);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[12].data[0], 0x3);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[11].second, 0x41f9999a);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[12].second, 0x4);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[14].data[0], 0x4);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[13].second, 0x41f9999a);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[15].data[0], 0x41f9999a);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[14].second, 0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[15].second, 2);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[16].second, 0);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[17].second, 78);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[19].data[0], 78);
 
-    ASSERT_EQ(control_writes[18].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[18].second, 100'000'000);
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[19].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[19].second, 3);
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[20].first, 0x443c20000);
-    ASSERT_EQ(control_writes[20].second,11);
+    ASSERT_EQ(ops[22].address[0], 0x443c20000);
+    ASSERT_EQ(ops[22].data[0],11);
 
-    ASSERT_EQ(control_writes[21].first, 0x443c30000);
-    ASSERT_EQ(control_writes[21].second,11);
+    ASSERT_EQ(ops[23].address[0], 0x443c30000);
+    ASSERT_EQ(ops[23].data[0],11);
 
 }
 
@@ -2176,17 +2190,18 @@ TEST(deployer, 2d_vector_interconnect_test) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x50003,
             0xc,
             0x10005,
@@ -2200,9 +2215,9 @@ TEST(deployer, 2d_vector_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(rom_writes.size(), 2);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
             0x50005,
@@ -2221,95 +2236,96 @@ TEST(deployer, 2d_vector_interconnect_test) {
 
     };
 
-    ASSERT_EQ(rom_writes[1].first, 0x5'1000'0000);
-    ASSERT_EQ(rom_writes[1].second, reference_program);
+    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(control_writes.size(), 26);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x10005);
+    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x10011005);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[4].data[0], 0x10011005);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'100c);
-    ASSERT_EQ(control_writes[4].second, 0x20006);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'100c);
+    ASSERT_EQ(ops[6].data[0], 0x20006);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'104c);
-    ASSERT_EQ(control_writes[5].second, 0x38);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'104c);
+    ASSERT_EQ(ops[7].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'1010);
-    ASSERT_EQ(control_writes[6].second, 0x10021006);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'1010);
+    ASSERT_EQ(ops[8].data[0], 0x10021006);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c2'1050);
-    ASSERT_EQ(control_writes[7].second, 0x38);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'1050);
+    ASSERT_EQ(ops[9].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[8].second, 4);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[10].data[0], 4);
 
     // DMA 2
-    ASSERT_EQ(control_writes[9].first, 0x4'43c3'1004);
-    ASSERT_EQ(control_writes[9].second, 0x70007);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c3'1004);
+    ASSERT_EQ(ops[11].data[0], 0x70007);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c3'1044);
-    ASSERT_EQ(control_writes[10].second, 0x38);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c3'1044);
+    ASSERT_EQ(ops[12].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c3'1008);
-    ASSERT_EQ(control_writes[11].second, 0x3ef1007);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c3'1008);
+    ASSERT_EQ(ops[13].data[0], 0x3ef1007);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c3'1048);
-    ASSERT_EQ(control_writes[12].second, 0x38);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c3'1048);
+    ASSERT_EQ(ops[14].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c3'100c);
-    ASSERT_EQ(control_writes[13].second, 0x80008);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c3'100c);
+    ASSERT_EQ(ops[15].data[0], 0x80008);
 
-    ASSERT_EQ(control_writes[14].first, 0x4'43c3'104c);
-    ASSERT_EQ(control_writes[14].second, 0x38);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c3'104c);
+    ASSERT_EQ(ops[16].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[15].first, 0x4'43c3'1010);
-    ASSERT_EQ(control_writes[15].second, 0x3f01008);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c3'1010);
+    ASSERT_EQ(ops[17].data[0], 0x3f01008);
 
-    ASSERT_EQ(control_writes[16].first, 0x4'43c3'1050);
-    ASSERT_EQ(control_writes[16].second, 0x38);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c3'1050);
+    ASSERT_EQ(ops[18].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[17].first, 0x4'43c3'1000);
-    ASSERT_EQ(control_writes[17].second, 4);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c3'1000);
+    ASSERT_EQ(ops[19].data[0], 4);
 
     // MEMORY INITIALIZATIONS
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[18].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[18].second, 0);
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[20].data[0], 0);
 
-    ASSERT_EQ(control_writes[19].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[19].second, 2);
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[21].data[0], 2);
 
-    ASSERT_EQ(control_writes[20].first, 0x4'43c1'1008);
-    ASSERT_EQ(control_writes[20].second, 0);
+    ASSERT_EQ(ops[22].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[22].data[0], 0);
 
-    ASSERT_EQ(control_writes[21].first, 0x4'43c1'000C);
-    ASSERT_EQ(control_writes[21].second, 93);
+    ASSERT_EQ(ops[23].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[23].data[0], 93);
 
-    ASSERT_EQ(control_writes[22].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[22].second, 100'000'000);
+    ASSERT_EQ(ops[24].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[24].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[23].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[23].second, 3);
+    ASSERT_EQ(ops[25].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[25].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(control_writes[24].first, 0x443c20000);
-    ASSERT_EQ(control_writes[24].second,11);
+    ASSERT_EQ(ops[26].address[0], 0x443c20000);
+    ASSERT_EQ(ops[26].data[0],11);
 
-    ASSERT_EQ(control_writes[25].first, 0x443c30000);
-    ASSERT_EQ(control_writes[25].second,11);
+    ASSERT_EQ(ops[27].address[0], 0x443c30000);
+    ASSERT_EQ(ops[27].data[0],11);
 
 }
 
@@ -2410,15 +2426,15 @@ TEST(deployer, simple_single_core_output_select) {
     "deployment_mode": false
 })");
 
-    
+
     auto specs = fcore::emulator::emulator_specs(spec_json);
     fcore::emulator_manager em(spec_json, false);
     auto programs = em.get_programs();
 
-
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2429,10 +2445,10 @@ TEST(deployer, simple_single_core_output_select) {
     out.source_output = "out";
     d.select_output(0, out);
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
 
-    std::vector<uint32_t> reference_program = {
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -2444,62 +2460,62 @@ TEST(deployer, simple_single_core_output_select) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 15);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1008);
-    ASSERT_EQ(control_writes[2].second, 0x3ed1005);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[3].data[0], 0x3ed1005);
 
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'1048);
-    ASSERT_EQ(control_writes[3].second, 0x38);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[4].second, 2);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[5].data[0], 2);
 
     // INPUTS
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[5].second, 3);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[6].data[0], 3);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[6].second, 0x41f9999a);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[7].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[7].second, 4);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[8].data[0], 4);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[8].second, 0x40800000);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[9].second, 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[10].second, 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(control_writes[11].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[11].second, 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[12].second, 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[13].first, 0x443c20000);
-    ASSERT_EQ(control_writes[13].second,11);
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 
     // select_output
-    ASSERT_EQ(control_writes[14].first, 0x443c50004);
-    ASSERT_EQ(control_writes[14].second,0x3ed);
+    ASSERT_EQ(ops[15].address[0], 0x443c50004);
+    ASSERT_EQ(ops[15].data[0],0x3ed);
 
 }
 
@@ -2606,18 +2622,19 @@ TEST(deployer, simple_single_core_input_set) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
     d.set_input(4,90,"test");
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -2629,58 +2646,58 @@ TEST(deployer, simple_single_core_input_set) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 14);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[2].second, 1);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[3].second, 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[4].data[0], 3);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[4].second, 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[5].second, 4);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[6].data[0], 4);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[6].second, 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[7].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[7].second, 0);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[8].second, 2);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[9].data[0], 2);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[9].second, 100'000'000);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[10].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[10].second, 1);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[11].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[11].first, 0x443c20000);
-    ASSERT_EQ(control_writes[11].second,11);
+    ASSERT_EQ(ops[12].address[0], 0x443c20000);
+    ASSERT_EQ(ops[12].data[0],11);
 
-    ASSERT_EQ(control_writes[12].first, 0x443c23008);
-    ASSERT_EQ(control_writes[12].second,4);
+    ASSERT_EQ(ops[13].address[0], 0x443c23008);
+    ASSERT_EQ(ops[13].data[0],4);
 
-    ASSERT_EQ(control_writes[13].first, 0x443c23000);
-    ASSERT_EQ(control_writes[13].second,90);
+    ASSERT_EQ(ops[14].address[0], 0x443c23000);
+    ASSERT_EQ(ops[14].data[0],90);
 
 }
 
@@ -2787,19 +2804,20 @@ TEST(deployer, simple_single_core_start_stop) {
     auto programs = em.get_programs();
 
 
-    auto mock_hw = std::make_shared<fpga_bridge_mock>();
-    hil_deployer<fpga_bridge_mock> d;
-    d.set_hw_bridge(mock_hw);
+    auto ba = std::make_shared<bus_accessor>(true);
+    auto bridge = std::make_shared<fpga_bridge>(ba);
+    hil_deployer<fpga_bridge> d;
+    d.set_hw_bridge(bridge);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
     d.start();
     d.stop();
 
-    auto rom_writes = mock_hw->rom_writes;
-    auto control_writes = mock_hw->control_writes;
+    
+    auto ops = ba->get_operations();
 
-    std::vector<uint32_t> reference_program = {
+    std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
             0x20003,
@@ -2811,57 +2829,57 @@ TEST(deployer, simple_single_core_start_stop) {
             0xc,
     };
 
-    ASSERT_EQ(rom_writes.size(), 1);
-    ASSERT_EQ(rom_writes[0].first, 0x5'0000'0000);
-    ASSERT_EQ(rom_writes[0].second, reference_program);
+    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(control_writes.size(), 14);
-    ASSERT_EQ(control_writes[0].first, 0x4'43c2'1004);
-    ASSERT_EQ(control_writes[0].second, 0x50005);
+    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50005);
 
-    ASSERT_EQ(control_writes[1].first, 0x4'43c2'1044);
-    ASSERT_EQ(control_writes[1].second, 0x38);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(control_writes[2].first, 0x4'43c2'1000);
-    ASSERT_EQ(control_writes[2].second, 1);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(control_writes[3].first, 0x4'43c2'2008);
-    ASSERT_EQ(control_writes[3].second, 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[4].data[0], 3);
 
-    ASSERT_EQ(control_writes[4].first, 0x4'43c2'2000);
-    ASSERT_EQ(control_writes[4].second, 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
-    ASSERT_EQ(control_writes[5].first, 0x4'43c2'3008);
-    ASSERT_EQ(control_writes[5].second, 4);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
+    ASSERT_EQ(ops[6].data[0], 4);
 
-    ASSERT_EQ(control_writes[6].first, 0x4'43c2'3000);
-    ASSERT_EQ(control_writes[6].second, 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
+    ASSERT_EQ(ops[7].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(control_writes[7].first, 0x4'43c1'1004);
-    ASSERT_EQ(control_writes[7].second, 0);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(control_writes[8].first, 0x4'43c1'0008);
-    ASSERT_EQ(control_writes[8].second, 2);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[9].data[0], 2);
 
-    ASSERT_EQ(control_writes[9].first, 0x4'43c1'0004);
-    ASSERT_EQ(control_writes[9].second, 100'000'000);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[10].data[0], 100'000'000);
 
-    ASSERT_EQ(control_writes[10].first, 0x4'43c1'1000);
-    ASSERT_EQ(control_writes[10].second, 1);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[11].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(control_writes[11].first, 0x443c20000);
-    ASSERT_EQ(control_writes[11].second,11);
+    ASSERT_EQ(ops[12].address[0], 0x443c20000);
+    ASSERT_EQ(ops[12].data[0],11);
 
-    ASSERT_EQ(control_writes[12].first, 0x4'43c0'0000);
-    ASSERT_EQ(control_writes[12].second,1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[13].data[0],1);
 
-    ASSERT_EQ(control_writes[13].first, 0x4'43c0'0000);
-    ASSERT_EQ(control_writes[13].second,0);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[14].data[0],0);
 
 }
