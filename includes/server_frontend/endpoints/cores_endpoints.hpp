@@ -31,7 +31,7 @@
 class cores_endpoints {
 public:
     cores_endpoints() = default;
-    void set_hw_bridge(std::shared_ptr<fpga_bridge> &h);
+    void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
@@ -46,7 +46,7 @@ private:
     nlohmann::json process_set_hil_address_map(nlohmann::json &arguments);
     nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
 
-    std::shared_ptr<fpga_bridge> hw;
+    fpga_bridge hw;
 
     hil_deployer hil;
     custom_deployer custom;

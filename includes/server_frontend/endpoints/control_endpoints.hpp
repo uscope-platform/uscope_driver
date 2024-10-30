@@ -25,7 +25,7 @@
 class control_endpoints {
 public:
     control_endpoints() = default;
-    void set_hw_bridge(std::shared_ptr<fpga_bridge> &hw);
+    void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_single_write_register(nlohmann::json &arguments);
@@ -33,7 +33,7 @@ private:
     nlohmann::json process_load_bitstream(nlohmann::json &arguments);
     nlohmann::json process_apply_filter(nlohmann::json &arguments);
 
-    std::shared_ptr<fpga_bridge> hw;
+    fpga_bridge hw;
 };
 
 

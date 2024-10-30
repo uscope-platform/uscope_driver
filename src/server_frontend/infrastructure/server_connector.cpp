@@ -30,8 +30,8 @@ server_connector::server_connector()
 
 }
 
-void server_connector::set_interfaces(std::shared_ptr<fpga_bridge> &hw, std::shared_ptr<scope_manager> &sc) {
-    core_processor.setup_interfaces(hw, sc);
+void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_manager> &sc) {
+    core_processor.setup_interfaces(ba, sc);
 }
 
 void server_connector::start_server() {

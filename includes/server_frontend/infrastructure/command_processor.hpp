@@ -30,13 +30,13 @@
 class command_processor {
 public:
     command_processor();
-    void setup_interfaces(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &s);
+    void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_manager> &s);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:
     nlohmann::json process_null();
 
-    std::shared_ptr<fpga_bridge> hw;
+    fpga_bridge hw;
     control_endpoints control_ep;
     cores_endpoints cores_ep;
     scope_endpoints scope_ep;

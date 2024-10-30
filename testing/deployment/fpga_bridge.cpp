@@ -34,7 +34,8 @@ TEST(fpga_bridge, single_write_register_direct) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     auto res = bridge.single_write_register(spec_json);
     auto ops = bridge.get_bus_operations()[0];
@@ -63,7 +64,8 @@ TEST(fpga_bridge, single_write_register_axis_proxied) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     auto res = bridge.single_write_register(spec_json);
     auto ops = bridge.get_bus_operations()[0];
@@ -92,7 +94,8 @@ TEST(fpga_bridge, single_write_type_error) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     try{
         auto res = bridge.single_write_register(spec_json);
@@ -121,7 +124,8 @@ TEST(fpga_bridge, single_write_proxy_error) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     try{
         auto res = bridge.single_write_register(spec_json);
@@ -139,7 +143,8 @@ TEST(fpga_bridge, single_write_register_read) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     auto res = bridge.single_read_register(5432);
     auto ops = bridge.get_bus_operations()[0];
@@ -159,7 +164,8 @@ TEST(fpga_bridge, load_program) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     std::vector<uint32_t> prog = {34313124,4231,11,23141,12};
 
@@ -182,7 +188,8 @@ TEST(fpga_bridge, set_clock) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     std::ofstream o(if_dict.get_clock_if(2));
     auto resp = bridge.set_pl_clock(2, 1200000);
@@ -200,7 +207,8 @@ TEST(fpga_bridge, set_clock_file_errorr) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     std::ofstream o(if_dict.get_clock_if(1));
     auto resp = bridge.set_pl_clock(2, 1200000);
@@ -214,7 +222,8 @@ TEST(fpga_bridge, set_scope_data) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
     std::ofstream o(if_dict.get_buffer_address_if());
     o<< "124786"<<std::endl;
@@ -243,7 +252,8 @@ TEST(fpga_bridge, fpga_loading) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
 
 
@@ -278,7 +288,8 @@ TEST(fpga_bridge, fpga_failed_loading) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
 
 
@@ -308,7 +319,8 @@ TEST(fpga_bridge, fpga_bitstream_not_found) {
     runtime_config.emulate_hw = true;
 
     auto ba = std::make_shared<bus_accessor>(true);
-    fpga_bridge bridge(ba);
+    fpga_bridge bridge;
+    bridge.set_accessor(ba);
 
 
 

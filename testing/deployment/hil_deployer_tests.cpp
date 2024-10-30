@@ -163,9 +163,8 @@ TEST(deployer, simple_single_core_deployment) {
     auto programs = em.get_programs();
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -338,9 +337,8 @@ TEST(deployer, simple_single_core_integer_input) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -500,9 +498,8 @@ TEST(deployer, simple_single_core_memory_init) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -697,9 +694,8 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -977,9 +973,8 @@ TEST(deployer, simple_multi_core_deployment) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1257,9 +1252,8 @@ TEST(deployer, scalar_interconnect_test) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1480,9 +1474,8 @@ TEST(deployer, scatter_interconnect_test) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1728,9 +1721,8 @@ TEST(deployer, gather_interconnect_test) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -1968,9 +1960,8 @@ TEST(deployer, vector_interconnect_test) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2191,9 +2182,8 @@ TEST(deployer, 2d_vector_interconnect_test) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2432,9 +2422,8 @@ TEST(deployer, simple_single_core_output_select) {
     auto programs = em.get_programs();
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2623,9 +2612,8 @@ TEST(deployer, simple_single_core_input_set) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);
@@ -2805,9 +2793,8 @@ TEST(deployer, simple_single_core_start_stop) {
 
 
     auto ba = std::make_shared<bus_accessor>(true);
-    auto bridge = std::make_shared<fpga_bridge>(ba);
     hil_deployer d;
-    d.set_hw_bridge(bridge);
+    d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
     d.deploy(specs, programs);

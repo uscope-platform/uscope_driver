@@ -122,7 +122,7 @@ class deployer_base {
 public:
     deployer_base() = default;
 
-    virtual void set_hw_bridge(std::shared_ptr<fpga_bridge>  &h);
+    virtual void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
     void set_layout_map(nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
@@ -152,7 +152,7 @@ protected:
 
     void update_input_value(uint32_t address, uint32_t value, std::string core);
 
-    std::shared_ptr<fpga_bridge> hw;
+    fpga_bridge hw;
     logic_layout addresses;
 private:
     hil_bus_map bus_map;

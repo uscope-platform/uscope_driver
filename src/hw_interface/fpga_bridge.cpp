@@ -18,13 +18,17 @@
 
 using namespace std::chrono_literals;
 
-fpga_bridge::fpga_bridge(const std::shared_ptr<bus_accessor>& bus_acc) {
+fpga_bridge::fpga_bridge() {
 
     spdlog::info("fpga_bridge initialization started");
 
-    arch = std::getenv("ARCH");
 
-    busses = bus_acc;
+    auto raw_arch =  std::getenv("ARCH");
+    if(raw_arch== nullptr){
+        spdlog::error("Architecture selection (through the ARCH environment variable) is mandatory");
+        exit(-2);
+    }
+    arch = raw_arch;
 
     spdlog::info("fpga_bridge initialization done");
 }

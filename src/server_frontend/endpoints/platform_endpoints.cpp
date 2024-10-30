@@ -16,8 +16,8 @@
 
 #include "server_frontend/endpoints/platform_endpoints.hpp"
 
-void platform_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    hw = h;
+void platform_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    hw.set_accessor(ba);
 }
 
 nlohmann::json platform_endpoints::process_command(const std::string &command_string, nlohmann::json &arguments) {
@@ -102,9 +102,9 @@ nlohmann::json platform_endpoints::process_get_version(nlohmann::json &arguments
     if(component == "driver"){
         resp["data"] = uscope_driver_versions;
     } else if(component == "module"){
-        resp["data"] = hw->get_module_version();
+        resp["data"] = hw.get_module_version();
     } else if(component == "hardware"){
-        resp["data"] = hw->get_hardware_version();
+        resp["data"] = hw.get_hardware_version();
     } else {
         resp["data"] = "DRIVER ERROR: Unknown component\n";
     }

@@ -86,8 +86,8 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
     return responses::ok;
 }
 
-void custom_deployer::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    deployer_base::set_hw_bridge(h);
+void custom_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    deployer_base::set_accessor(ba);
 }
 
 

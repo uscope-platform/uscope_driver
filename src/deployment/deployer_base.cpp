@@ -24,11 +24,11 @@ void deployer_base::write_register(uint64_t addr, uint32_t val) {
     write["address"] = addr;
     write["value"] = val;
 
-    hw->single_write_register(write);
+    hw.single_write_register(write);
 }
 
 void deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &program) {
-    hw->apply_program(address, program);
+    hw.apply_program(address, program);
 }
 
 uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &core_name) {
@@ -190,8 +190,8 @@ void deployer_base::setup_base(const fcore::emulator::emulator_specs &specs) {
     bus_map.check_conflicts();
 }
 
-void deployer_base::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    hw = h;
+void deployer_base::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    hw.set_accessor(ba);
 }
 
 

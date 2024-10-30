@@ -63,7 +63,7 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
     }
     uint64_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
-    resp["response_code"] = hw->apply_program(address, program);
+    resp["response_code"] = hw.apply_program(address, program);
     return resp;
 }
 
@@ -199,9 +199,9 @@ nlohmann::json cores_endpoints::process_get_hil_address_map(nlohmann::json &argu
     return resp;
 }
 
-void cores_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    hil.set_hw_bridge(h);
-    custom.set_hw_bridge(h);
-    hw = h;
+void cores_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    hil.set_accessor(ba);
+    custom.set_accessor(ba);
+    hw.set_accessor(ba);
 }
 

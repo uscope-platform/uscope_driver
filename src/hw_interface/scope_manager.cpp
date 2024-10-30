@@ -21,13 +21,12 @@
 /// interrupts
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
-scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h, std::shared_ptr<scope_accessor> sa) : data_gen(scope_accessor::buffer_size){
+scope_manager::scope_manager() : data_gen(scope_accessor::buffer_size){
     spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
     first_load = true;
 
-    hw = std::move(h);
     internal_buffer_size = scope_accessor::n_channels*scope_accessor::buffer_size;
     data_holding_buffer.reserve(scope_accessor::n_channels*internal_buffer_size);
     scaling_factors = {1,1,1,1,1,1};
@@ -42,7 +41,6 @@ scope_manager::scope_manager(std::shared_ptr<fpga_bridge> h, std::shared_ptr<sco
 
     };
 
-    scope_if = std::move(sa);
 
     spdlog::info("Scope handler initialization done");
 }
@@ -144,7 +142,7 @@ responses::response_code scope_manager::set_channel_status(std::unordered_map<in
 std::string scope_manager::get_acquisition_status() {
     if(scope_base_address == 0) return "not present";
     spdlog::trace("GET_ACQUISITION_STATUS");
-    auto res = hw->read_direct(scope_base_address + am.internal_base + am.scope_int.trg_rearm_status);
+    auto res = hw.read_direct(scope_base_address + am.internal_base + am.scope_int.trg_rearm_status);
     switch (res) {
         case 0:
             return "wait";
@@ -179,8 +177,8 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
         trg_mode = 2;
     }
 
-    hw->write_direct(scope_internal_addr + am.scope_int.trg_mode, trg_mode);
-    hw->write_direct(scope_internal_addr + am.scope_int.trg_src, data.trigger_source-1);
+    hw.write_direct(scope_internal_addr + am.scope_int.trg_mode, trg_mode);
+    hw.write_direct(scope_internal_addr + am.scope_int.trg_src, data.trigger_source-1);
 
     uint32_t trg_lvl;
     if(data.level_type =="float"){
@@ -188,7 +186,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
     } else {
         trg_lvl = data.trigger_level;
     }
-    hw->write_direct(scope_internal_addr + am.scope_int.trg_lvl, trg_lvl);
+    hw.write_direct(scope_internal_addr + am.scope_int.trg_lvl, trg_lvl);
 
 
     uint32_t acq_mode = 0;
@@ -199,12 +197,12 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
     } else if(data.mode == "free_running") {
         acq_mode = 2;
     }
-    hw->write_direct(scope_internal_addr + am.scope_int.acq_mode, acq_mode);
-    hw->write_direct(scope_internal_addr + am.scope_int.trg_point, data.trigger_point);
+    hw.write_direct(scope_internal_addr + am.scope_int.acq_mode, acq_mode);
+    hw.write_direct(scope_internal_addr + am.scope_int.trg_point, data.trigger_point);
     if(data.prescaler >2){
-        hw->write_direct(scope_base_address + am.tb_base + am.tb.ctrl, 1);
-        hw->write_direct(scope_base_address + am.tb_base + am.tb.period, data.prescaler);
-        hw->write_direct(scope_base_address + am.tb_base + am.tb.threshold, 1);
+        hw.write_direct(scope_base_address + am.tb_base + am.tb.ctrl, 1);
+        hw.write_direct(scope_base_address + am.tb_base + am.tb.period, data.prescaler);
+        hw.write_direct(scope_base_address + am.tb_base + am.tb.threshold, 1);
     }
 
 
@@ -213,7 +211,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
 
 void scope_manager::set_scope_address(uint64_t addr, uint64_t buffer_offset) {
     spdlog::info("SET SCOPE ADDRESS: {0:x}", addr);
-    hw->set_scope_data(addr + buffer_offset);
+    hw.set_scope_data(addr + buffer_offset);
     scope_base_address = addr;
 }
 
@@ -229,8 +227,13 @@ void scope_manager::disable_dma(bool status) {
 
     auto write_addr = scope_base_address + am.mux_base + am.mux.ctrl;
     if(write_addr != 0){
-        hw->write_direct(write_addr, status);
+        hw.write_direct(write_addr, status);
         usleep(50'000);
     }
+}
+
+void scope_manager::set_accessors(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_accessor> sa) {
+    hw.set_accessor(ba);
+    scope_if = sa;
 }
 

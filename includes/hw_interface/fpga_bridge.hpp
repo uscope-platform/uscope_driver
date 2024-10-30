@@ -44,7 +44,8 @@ void sigbus_handler(int dummy);
 
 class fpga_bridge {
 public:
-    explicit fpga_bridge(const std::shared_ptr<bus_accessor>& bus_acc);
+    fpga_bridge();
+    void set_accessor(const std::shared_ptr<bus_accessor>& bus_acc) {busses = bus_acc;};
     responses::response_code load_bitstream(const std::string& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint64_t address);

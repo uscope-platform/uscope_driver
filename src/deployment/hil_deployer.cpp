@@ -29,8 +29,8 @@ hil_deployer::hil_deployer() {
     spdlog::info("HIL CLOCK FREQUENCY: {0}", hil_clock_frequency);
 }
 
-void hil_deployer::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    deployer_base::set_hw_bridge(h);
+void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    deployer_base::set_accessor(ba);
 }
 
 responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {

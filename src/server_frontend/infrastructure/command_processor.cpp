@@ -57,13 +57,13 @@ nlohmann::json command_processor::process_null() {
     return resp;
 }
 
-void command_processor::setup_interfaces(std::shared_ptr<fpga_bridge> &h, std::shared_ptr<scope_manager> &s) {
+void command_processor::setup_interfaces(const std::shared_ptr<bus_accessor> &ba,  std::shared_ptr<scope_manager> &s) {
 
     scope_ep.set_scope_manager(s);
-    control_ep.set_hw_bridge(h);
-    cores_ep.set_hw_bridge(h);
-    platform_ep.set_hw_bridge(h);
-    hw = h;
+    control_ep.set_accessor(ba);
+    cores_ep.set_accessor(ba);
+    platform_ep.set_accessor(ba);
+    hw.set_accessor(ba);
 }
 
 

@@ -84,7 +84,8 @@ struct acquisition_metadata{
 class scope_manager {
 
 public:
-    scope_manager(std::shared_ptr<fpga_bridge> h, std::shared_ptr<scope_accessor> sa);
+    scope_manager();
+    void set_accessors(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_accessor> sa);
     responses::response_code read_data(std::vector<nlohmann::json> &data_vector);
     responses::response_code set_scaling_factors(std::vector<float> &sf);
     responses::response_code set_channel_status(std::unordered_map<int, bool>status);
@@ -111,7 +112,7 @@ private:
     scope_address_map am;
 
     std::shared_ptr<scope_accessor> scope_if;
-    std::shared_ptr<fpga_bridge> hw;
+    fpga_bridge hw;
 };
 
 

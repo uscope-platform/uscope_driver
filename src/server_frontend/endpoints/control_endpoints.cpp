@@ -47,7 +47,7 @@ nlohmann::json control_endpoints::process_single_write_register(nlohmann::json &
         resp["data"] = "DRIVER ERROR: Invalid arguments for the write register command\n"+ error_message;
         return resp;
     }
-    resp["response_code"] = hw->single_write_register(arguments);
+    resp["response_code"] = hw.single_write_register(arguments);
     return resp;
 }
 
@@ -63,7 +63,7 @@ nlohmann::json control_endpoints::process_single_read_register(nlohmann::json &a
         return resp;
     }
     uint64_t address = arguments;
-    return hw->single_read_register(address);
+    return hw.single_read_register(address);
 }
 
 
@@ -78,7 +78,7 @@ nlohmann::json control_endpoints::process_load_bitstream(nlohmann::json &argumen
         return resp;
     }
     std::string bitstram_name = arguments;
-    resp["response_code"] = hw->load_bitstream(bitstram_name);
+    resp["response_code"] = hw.load_bitstream(bitstram_name);
     return resp;
 }
 
@@ -92,10 +92,10 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
     }
     uint64_t address = arguments["address"];
     std::vector<uint32_t> taps = arguments["taps"];
-    resp["response_code"] = hw->apply_filter(address, taps);
+    resp["response_code"] = hw.apply_filter(address, taps);
     return resp;
 }
 
-void control_endpoints::set_hw_bridge(std::shared_ptr<fpga_bridge> &h) {
-    hw = h;
+void control_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
+    hw.set_accessor(ba);
 }

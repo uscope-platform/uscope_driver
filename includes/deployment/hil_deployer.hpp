@@ -29,7 +29,7 @@
 class hil_deployer : public deployer_base{
 public:
     hil_deployer();
-    void set_hw_bridge(std::shared_ptr<fpga_bridge>  &h);
+    void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
     responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
 
