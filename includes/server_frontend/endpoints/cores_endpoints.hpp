@@ -46,6 +46,16 @@ private:
     nlohmann::json process_set_hil_address_map(nlohmann::json &arguments);
     nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
 
+
+    bool check_float_intness(double d){
+        uint64_t rounded_addr = round(d);
+        if(ceil(d) == rounded_addr && floor(d) == rounded_addr){
+            return true;
+        } else {
+            return false;
+        }
+    };
+
     fpga_bridge hw;
 
     hil_deployer hil;

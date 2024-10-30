@@ -45,7 +45,6 @@ void server_connector::start_server() {
             nlohmann::json command_obj;
             try {
                 command_obj = receive_command(s);
-
             } catch(std::system_error &e){
                 break;
             }
@@ -101,11 +100,11 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
     while(cur_size <message_size);
 
     std::string message(raw_msg, message_size);
-    return nlohmann::json::parse(message);
+    return nlohmann::json::from_msgpack(message);
 }
 
 void server_connector::send_response(asio::ip::tcp::socket &s, const nlohmann::json &j) {
-    std::string raw_response = j.dump();
+    auto raw_response = nlohmann::json::to_msgpack(j);
     uint32_t resp_size = raw_response.size();
     auto *raw_resp_size =reinterpret_cast<uint8_t*>(&resp_size);
     s.send(asio::buffer(raw_resp_size, 4));

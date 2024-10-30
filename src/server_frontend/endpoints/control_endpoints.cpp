@@ -47,7 +47,17 @@ nlohmann::json control_endpoints::process_single_write_register(nlohmann::json &
         resp["data"] = "DRIVER ERROR: Invalid arguments for the write register command\n"+ error_message;
         return resp;
     }
-    resp["response_code"] = hw.single_write_register(arguments);
+    if(
+            check_float_intness(arguments["address"]) &&
+            check_float_intness(arguments["proxy_address"]) &&
+            check_float_intness(arguments["value"])
+    ){
+        resp["response_code"] = hw.single_write_register(arguments);
+    } else {
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: addresses and values for register writes must be integers\n"+ error_message;
+    }
+
     return resp;
 }
 
@@ -88,6 +98,11 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
     if(!commands::validate_schema(arguments, commands::apply_filter_schema, error_message)){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply filter command\n"+ error_message;
+        return resp;
+    }
+    if(!check_float_intness(arguments["address"])){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The filter address must be an integer or integer like float number";
         return resp;
     }
     uint64_t address = arguments["address"];

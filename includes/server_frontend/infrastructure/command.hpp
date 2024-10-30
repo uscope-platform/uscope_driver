@@ -89,7 +89,7 @@ namespace commands {
         "title": "Load program schema",
         "properties": {
             "address": {
-                "type": "integer",
+                "type": "number",
                 "title": "Address of the core to load"
             },
             "program": {
@@ -180,7 +180,7 @@ namespace commands {
         "title": "Apply filter schema",
         "properties": {
             "address": {
-                "type": "integer",
+                "type": "number",
                 "title": "Address of the peripheral to load"
             },
             "taps": {
@@ -221,11 +221,11 @@ namespace commands {
                     "title": "Address of the write proxy"
                 },
                 "address": {
-                    "type": "integer",
+                    "type": "number",
                     "title": "Address of the register to write to"
                 },
                 "value": {
-                    "type": "integer",
+                    "type": "number",
                     "title": "Value to write to the desired register"
                 }
             },

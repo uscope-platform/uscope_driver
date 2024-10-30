@@ -61,6 +61,13 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
         resp["data"] = "DRIVER ERROR: Invalid arguments for the apply program command\n"+ error_message;
         return resp;
     }
+
+    if(!check_float_intness(arguments["address"])){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: core address must be an integer like number\n"+ error_message;
+        return resp;
+    }
+
     uint64_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
     resp["response_code"] = hw.apply_program(address, program);
@@ -70,6 +77,7 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
+        auto dump = arguments.dump();
         auto specs = fcore::emulator::emulator_specs(arguments);
         fcore::emulator_manager em(arguments, runtime_config.debug_hil);
         auto programs = em.get_programs();

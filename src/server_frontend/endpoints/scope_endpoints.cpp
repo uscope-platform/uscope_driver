@@ -134,7 +134,17 @@ nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &argume
         invalid = true;
     }
 
-    if(arguments["address"].type() != nlohmann::detail::value_t::number_unsigned){
+    if(arguments["address"].type() == nlohmann::detail::value_t::number_unsigned){
+        invalid = false;
+    } else if(arguments["address"].type() == nlohmann::detail::value_t::number_float){
+        double raw_addr = arguments["address"];
+        uint64_t rounded_addr = round(raw_addr);
+        if(ceil(raw_addr) == rounded_addr && floor(raw_addr) == raw_addr){
+            invalid = false;
+        } else {
+            invalid = true;
+        }
+    } else {
         invalid = true;
     }
 

@@ -33,6 +33,17 @@ private:
     nlohmann::json process_load_bitstream(nlohmann::json &arguments);
     nlohmann::json process_apply_filter(nlohmann::json &arguments);
 
+    bool check_float_intness(double d){
+        uint64_t rounded_addr = round(d);
+        uint64_t c_factor =ceil(d);
+        uint64_t f_factor =floor(d);
+        if(c_factor == rounded_addr && f_factor == rounded_addr){
+            return true;
+        } else {
+            return false;
+        }
+    };
+
     fpga_bridge hw;
 };
 
