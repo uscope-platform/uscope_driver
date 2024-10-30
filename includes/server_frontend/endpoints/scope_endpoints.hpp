@@ -26,7 +26,7 @@
 class scope_endpoints {
 public:
     scope_endpoints() = default;
-    void set_scope_manager(std::shared_ptr<scope_manager> &sc);
+    void set_accessor(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
     nlohmann::json process_read_data();
@@ -36,8 +36,7 @@ private:
     nlohmann::json process_get_acquisition_status();
     nlohmann::json process_set_scope_address(nlohmann::json &arguments);
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);
-
-    std::shared_ptr<scope_manager> scope;
+    scope_manager scope;
 };
 
 

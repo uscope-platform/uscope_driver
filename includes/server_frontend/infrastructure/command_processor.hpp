@@ -30,7 +30,7 @@
 class command_processor {
 public:
     command_processor();
-    void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_manager> &s);
+    void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:

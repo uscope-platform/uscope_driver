@@ -94,14 +94,12 @@ int main (int argc, char **argv) {
     auto ba = std::make_shared<bus_accessor>(runtime_config.emulate_hw);
     auto sa = std::make_shared<scope_accessor>();
 
-    auto scope_conn = std::make_shared<scope_manager>();
-    scope_conn->set_accessors(ba, sa);
 
     //std::array<server_connector, 4> workers_pool;
 
     server_connector connector;
 
-    connector.set_interfaces(ba, scope_conn);
+    connector.set_interfaces(ba, sa);
     connector.start_server();
 
 

@@ -48,7 +48,7 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
 nlohmann::json scope_endpoints::process_read_data() {
     nlohmann::json resp;
     std::vector<nlohmann::json> resp_data;
-    resp["response_code"] = scope->read_data(resp_data);
+    resp["response_code"] = scope.read_data(resp_data);
     resp["data"] = resp_data;
     return resp;
 }
@@ -72,7 +72,7 @@ nlohmann::json  scope_endpoints::process_set_scaling_factors(nlohmann::json &arg
         return resp;
     }
     std::vector<float> sfs = arguments;
-    resp["response_code"] = scope->set_scaling_factors(sfs);
+    resp["response_code"] = scope.set_scaling_factors(sfs);
     return resp;
 }
 
@@ -87,7 +87,7 @@ nlohmann::json scope_endpoints::process_set_channel_status(nlohmann::json &argum
     for(auto &item:arguments.items()){
         status[std::stoi(item.key())] = item.value();
     }
-    resp["response_code"] = scope->set_channel_status(status);
+    resp["response_code"] = scope.set_channel_status(status);
     return resp;
 }
 
@@ -95,7 +95,7 @@ nlohmann::json scope_endpoints::process_set_channel_status(nlohmann::json &argum
 nlohmann::json scope_endpoints::process_get_acquisition_status() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    resp["data"] = scope->get_acquisition_status();
+    resp["data"] = scope.get_acquisition_status();
     return resp;
 }
 
@@ -123,7 +123,7 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
     data.trigger_point = arguments["trigger_point"];
     data.prescaler = arguments["prescaler"];
 
-    resp["response_code"] = scope->set_acquisition(data);
+    resp["response_code"] = scope.set_acquisition(data);
     return resp;
 }
 
@@ -149,7 +149,7 @@ nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &argume
     }
 
     resp["response_code"] = responses::ok;
-    scope->set_scope_address(arguments["address"],arguments["dma_buffer_offset"]);
+    scope.set_scope_address(arguments["address"],arguments["dma_buffer_offset"]);
     return resp;
 }
 
@@ -157,10 +157,10 @@ nlohmann::json scope_endpoints::process_disable_dma(nlohmann::json &arguments) {
     nlohmann::json resp;
     bool status = arguments["status"];
     resp["response_code"] = responses::ok;
-    scope->disable_dma(status);
+    scope.disable_dma(status);
     return resp;
 }
 
-void scope_endpoints::set_scope_manager(std::shared_ptr<scope_manager> &sc) {
-    scope = sc;
+void scope_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
+    scope.set_accessors(ba, sa);
 }

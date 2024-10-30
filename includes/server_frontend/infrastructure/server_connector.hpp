@@ -38,7 +38,7 @@
 class server_connector {
 public:
     server_connector();
-    void set_interfaces(const std::shared_ptr<bus_accessor> &ba, std::shared_ptr<scope_manager> &sc);
+    void set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     void start_server();
     ~server_connector();
 private:

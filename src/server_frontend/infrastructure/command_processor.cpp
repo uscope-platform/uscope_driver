@@ -57,9 +57,9 @@ nlohmann::json command_processor::process_null() {
     return resp;
 }
 
-void command_processor::setup_interfaces(const std::shared_ptr<bus_accessor> &ba,  std::shared_ptr<scope_manager> &s) {
+void command_processor::setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
 
-    scope_ep.set_scope_manager(s);
+    scope_ep.set_accessor(ba,sa);
     control_ep.set_accessor(ba);
     cores_ep.set_accessor(ba);
     platform_ep.set_accessor(ba);
