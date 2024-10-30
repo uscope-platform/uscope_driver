@@ -60,7 +60,6 @@ int main (int argc, char **argv) {
     uint64_t scope_mux_base = 0x4'43c5'0000;
 
     uint64_t hil_control_base = 0x4'43c0'0000;
-    auto hw_bridge = std::make_shared<fpga_bridge>();
 
 
     nlohmann::json addr_map, offsets, bases;
@@ -87,15 +86,15 @@ int main (int argc, char **argv) {
     fcore::emulator_manager em(spec, runtime_config.debug_hil);
     auto programs = em.get_programs();
 
-
+    auto ba = std::make_shared<bus_accessor>(true);
     if(specs.custom_deploy_mode){
-        custom_deployer<fpga_bridge> c;
-        c.set_hw_bridge(hw_bridge);
+        custom_deployer c;
+        c.set_accessor(ba);
         c.set_layout_map(addr_map);
         c.deploy(specs, programs);
     } else {
-        hil_deployer<fpga_bridge> d;
-        d.set_hw_bridge(hw_bridge);
+        hil_deployer d;
+        d.set_accessor(ba);
         d.set_layout_map(addr_map);
         d.deploy(specs, programs);
     }
