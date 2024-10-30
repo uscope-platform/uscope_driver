@@ -21,11 +21,9 @@ std::atomic_bool server_stop_req;
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector()
-:  sock(ctx, zmq::socket_type::rep){
+server_connector::server_connector(){
     spdlog::info("Server connector initialization started");
     address = "tcp://*:" + std::to_string(runtime_config.server_port);
-    sock.bind(address);
     spdlog::info("listening at address: " + address);
 
 }
@@ -36,43 +34,82 @@ void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, c
 
 void server_connector::start_server() {
 
+
+    asio::io_context io_context;
+    asio::ip::tcp::acceptor a(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::tcp::v4(), runtime_config.server_port));
+
     while (!server_stop_req){
-        zmq::message_t request;
-        //  Wait for next request from client
-        const size_t size = 1024;
-        zmq::message_t msg(size);
-        auto ret = sock.recv(msg);
-        auto rec_str = msg.to_string();
-        nlohmann::json command_obj = nlohmann::json::parse(msg.to_string());
-        std::string error_message;
-        if(!commands::validate_schema(command_obj, commands::command, error_message)){
-            nlohmann::json resp;
-            resp["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
-            resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
-            send_response(resp);
-            return;
+        asio::ip::tcp::socket s(io_context);
+        a.accept(s);
+        while(true){
+            nlohmann::json command_obj;
+            try {
+                command_obj = receive_command(s);
+
+            } catch(std::system_error &e){
+                break;
+            }
+
+            std::string error_message;
+
+            if(!commands::validate_schema(command_obj, commands::command, error_message)){
+                nlohmann::json resp;
+                resp["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
+                resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
+                send_response(s, resp);
+                continue;
+            }
+
+
+            std::string command = command_obj["cmd"];
+            auto arguments = command_obj["args"];
+            nlohmann::json resp = core_processor.process_command(command, arguments);
+
+            send_response(s,resp);
         }
 
-        std::string command = command_obj["cmd"];
-        auto arguments = command_obj["args"];
-        nlohmann::json resp = core_processor.process_command(command, arguments);
-        send_response(resp);
     }
 }
 
 
+nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
+    constexpr uint32_t max_msg_size = 1 << 16;
 
-void server_connector::send_response(nlohmann::json &resp) {
+    std::array<uint8_t, 4> raw_command_size{};
+    uint32_t cur_size = 0;
+    do{
+        std::error_code error;
+        cur_size += s.read_some(asio::buffer(raw_command_size, 4), error);
+        if(error) {
+            if(error == asio::stream_errc::eof) throw std::system_error();
+            throw std::runtime_error(error.message());
+        }
+    }
+    while(cur_size <4);
 
-    std::vector<std::uint8_t> binary_response = nlohmann::json::to_msgpack(resp);
-    auto raw_data = reinterpret_cast<const char*>(binary_response.data());
+    uint32_t message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
 
-    zmq::message_t msg(raw_data, binary_response.size());
-    sock.send(msg, zmq::send_flags::none);
+    char raw_msg[max_msg_size];
+    cur_size = 0;
+    do{
+        std::error_code error;
+        cur_size += s.read_some(asio::buffer(raw_msg), error);
+        if(error)  {
+            throw std::runtime_error(error.message());
+        }
+    }
+    while(cur_size <message_size);
+
+    std::string message(raw_msg, message_size);
+    return nlohmann::json::parse(message);
 }
 
-server_connector::~server_connector() {
-    sock.unbind(address);
+void server_connector::send_response(asio::ip::tcp::socket &s, const nlohmann::json &j) {
+    std::string raw_response = j.dump();
+    uint32_t resp_size = raw_response.size();
+    auto *raw_resp_size =reinterpret_cast<uint8_t*>(&resp_size);
+    s.send(asio::buffer(raw_resp_size, 4));
+    s.send(asio::buffer(raw_response));
 }
 
 

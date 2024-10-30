@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sstream>
-#include <zmq.hpp>
+#include <asio.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -35,18 +35,18 @@
 #include "configuration.hpp"
 
 
+constexpr uint32_t max_msg_size = 1 << 16;
+
 class server_connector {
 public:
     server_connector();
     void set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     void start_server();
-    ~server_connector();
+    nlohmann::json receive_command(asio::ip::tcp::socket &s);
+    void send_response(asio::ip::tcp::socket &s, const nlohmann::json &j);
 private:
-    void send_response(nlohmann::json &resp);
     std::string address;
     command_processor core_processor;
-    zmq::context_t ctx;
-    zmq::socket_t sock;
 };
 
 

@@ -31,6 +31,7 @@ include_directories(/usr/local/include/pthread)
 include_directories(/usr/local/include/event2)
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 
+find_package(asio REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -79,6 +80,7 @@ target_link_libraries(uscope_driver PRIVATE
         fcore_cc_lib
         fcore_emu_lib
         cppzmq
+        asio::asio
 )
 
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
