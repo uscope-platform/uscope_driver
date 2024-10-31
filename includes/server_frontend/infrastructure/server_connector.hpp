@@ -44,6 +44,8 @@ public:
     void start_server();
     nlohmann::json receive_command(asio::ip::tcp::socket &s);
     void send_response(asio::ip::tcp::socket &s, const nlohmann::json &j);
+    void ack_message(asio::ip::tcp::socket &s);
+    void wait_ack(asio::ip::tcp::socket &s);
 private:
     command_processor core_processor;
 };

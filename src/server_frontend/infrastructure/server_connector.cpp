@@ -82,7 +82,7 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
         }
     }
     while(cur_size <4);
-
+    ack_message(s);
     uint32_t message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
 
     spdlog::info("waiting reception of {0} bytes", message_size);
@@ -108,7 +108,26 @@ void server_connector::send_response(asio::ip::tcp::socket &s, const nlohmann::j
     uint32_t resp_size = raw_response.size();
     auto *raw_resp_size =reinterpret_cast<uint8_t*>(&resp_size);
     s.send(asio::buffer(raw_resp_size, 4));
+    wait_ack(s);
     s.send(asio::buffer(raw_response));
+}
+
+void server_connector::ack_message(asio::ip::tcp::socket &s) {
+    s.send(asio::buffer("k",1));
+}
+
+void server_connector::wait_ack(asio::ip::tcp::socket &s) {
+    std::array<uint8_t, 1> raw_command_size{};
+    uint32_t cur_size = 0;
+    do{
+        std::error_code error;
+        cur_size += s.read_some(asio::buffer(raw_command_size, 1), error);
+        if(error) {
+            if(error == asio::stream_errc::eof) throw std::system_error();
+            throw std::runtime_error(error.message());
+        }
+    }
+    while(cur_size <1);
 }
 
 

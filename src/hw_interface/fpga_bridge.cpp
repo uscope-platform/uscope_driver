@@ -20,7 +20,6 @@ using namespace std::chrono_literals;
 
 fpga_bridge::fpga_bridge() {
 
-    spdlog::info("fpga_bridge initialization started");
 
 
     auto raw_arch =  std::getenv("ARCH");
@@ -30,7 +29,6 @@ fpga_bridge::fpga_bridge() {
     }
     arch = raw_arch;
 
-    spdlog::info("fpga_bridge initialization done");
 }
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
