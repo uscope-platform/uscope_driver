@@ -41,39 +41,36 @@ void server_connector::start_server() {
 
         auto  remote_ep = s.remote_endpoint();
         auto remote_ad = remote_ep.address();
-        spdlog::info("Connected to {0}:{1}", remote_ad.to_string(), toascii(remote_ep.port()));
+        spdlog::trace("Connected to {0}:{1}", remote_ad.to_string(), toascii(remote_ep.port()));
 
         while(true){
-            nlohmann::json command_obj;
-            try {
-                command_obj = receive_command(s);
-            } catch(std::system_error &e){
+            if(auto command_obj = receive_command(s)){
+
+                std::string error_message;
+
+                if(!commands::validate_schema(command_obj.value(), commands::command, error_message)){
+                    nlohmann::json resp;
+                    resp["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
+                    resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
+                    send_response(s, resp);
+                    continue;
+                }
+
+
+                std::string command = command_obj.value().at("cmd");
+                auto arguments = command_obj.value().at("args");
+                nlohmann::json resp = core_processor.process_command(command, arguments);
+
+                send_response(s,resp);
+            } else {
                 break;
             }
-
-            std::string error_message;
-
-            if(!commands::validate_schema(command_obj, commands::command, error_message)){
-                nlohmann::json resp;
-                resp["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
-                resp["data"] = "DRIVER ERROR: Invalid command object received\n"+ error_message;
-                send_response(s, resp);
-                continue;
-            }
-
-
-            std::string command = command_obj["cmd"];
-            auto arguments = command_obj["args"];
-            nlohmann::json resp = core_processor.process_command(command, arguments);
-
-            send_response(s,resp);
         }
-
     }
 }
 
 
-nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
+std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::socket &s) {
     constexpr uint32_t max_msg_size = 1 << 16;
     uint32_t message_size = 0;
     uint32_t cur_size = 0;
@@ -83,7 +80,7 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
             std::error_code error;
             cur_size += s.read_some(asio::buffer(raw_command_size, 4), error);
             if(error) {
-                if(error == asio::stream_errc::eof) throw std::system_error();
+                if(error == asio::stream_errc::eof) return {};
                 throw std::runtime_error(error.message());
             }
         }
@@ -94,7 +91,7 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
 
     } while(message_size== 0);
 
-    spdlog::info("waiting reception of {0} bytes", message_size);
+    spdlog::trace("waiting reception of {0} bytes", message_size);
 
     char raw_msg[max_msg_size];
     cur_size = 0;

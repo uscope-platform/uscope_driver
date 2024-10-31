@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <asio.hpp>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
@@ -42,7 +43,7 @@ public:
     server_connector();
     void set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     void start_server();
-    nlohmann::json receive_command(asio::ip::tcp::socket &s);
+    std::optional<nlohmann::json> receive_command(asio::ip::tcp::socket &s);
     void send_response(asio::ip::tcp::socket &s, const nlohmann::json &j);
     void ack_message(asio::ip::tcp::socket &s);
     void wait_ack(asio::ip::tcp::socket &s);
