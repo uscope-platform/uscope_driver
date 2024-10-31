@@ -37,9 +37,6 @@ void server_connector::start_server() {
     while (!server_stop_req){
         asio::ip::tcp::socket s(io_context);
         a.accept(s);
-
-        std::array<uint8_t, 4> dummy{};
-        s.read_some(asio::buffer(dummy, 4));
         spdlog::info("The server is ready to accept connections");
         while(true){
             nlohmann::json command_obj;
@@ -103,7 +100,6 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
     while(cur_size <message_size);
 
     std::string message(raw_msg, message_size);
-
     return nlohmann::json::from_msgpack(message);
 }
 
