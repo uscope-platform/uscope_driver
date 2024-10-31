@@ -22,10 +22,6 @@ std::atomic_bool server_stop_req;
 /// \param base event loop base
 /// \param port port over which to listen
 server_connector::server_connector(){
-    spdlog::info("Server connector initialization started");
-    address = "tcp://*:" + std::to_string(runtime_config.server_port);
-    spdlog::info("listening at address: " + address);
-
 }
 
 void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
@@ -41,6 +37,7 @@ void server_connector::start_server() {
     while (!server_stop_req){
         asio::ip::tcp::socket s(io_context);
         a.accept(s);
+        spdlog::info("The server is ready to accept connections");
         while(true){
             nlohmann::json command_obj;
             try {
@@ -88,18 +85,22 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
 
     uint32_t message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
 
+    spdlog::info("waiting reception of {0} bytes", message_size);
+
     char raw_msg[max_msg_size];
     cur_size = 0;
     do{
         std::error_code error;
         cur_size += s.read_some(asio::buffer(raw_msg), error);
         if(error)  {
+            if(error == asio::stream_errc::eof) throw std::system_error();
             throw std::runtime_error(error.message());
         }
     }
     while(cur_size <message_size);
 
     std::string message(raw_msg, message_size);
+
     return nlohmann::json::from_msgpack(message);
 }
 

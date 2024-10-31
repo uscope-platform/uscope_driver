@@ -36,7 +36,6 @@ find_package(spdlog REQUIRED)
 find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
-find_package(cppzmq REQUIRED)
 find_package(GTest REQUIRED)
 
 # compiles code files from ./src folder
@@ -79,7 +78,6 @@ target_link_libraries(uscope_driver PRIVATE
         CLI11::CLI11
         fcore_cc_lib
         fcore_emu_lib
-        cppzmq
         asio::asio
 )
 

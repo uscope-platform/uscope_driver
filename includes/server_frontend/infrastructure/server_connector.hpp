@@ -45,7 +45,6 @@ public:
     nlohmann::json receive_command(asio::ip::tcp::socket &s);
     void send_response(asio::ip::tcp::socket &s, const nlohmann::json &j);
 private:
-    std::string address;
     command_processor core_processor;
 };
 
