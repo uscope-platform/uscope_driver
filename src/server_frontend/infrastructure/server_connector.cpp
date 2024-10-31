@@ -87,7 +87,7 @@ nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
         ack_message(s);
         message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
 
-    } while(message_size!= 0);
+    } while(message_size== 0);
 
     spdlog::info("waiting reception of {0} bytes", message_size);
 
