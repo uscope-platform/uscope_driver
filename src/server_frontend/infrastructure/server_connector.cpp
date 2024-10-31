@@ -70,20 +70,24 @@ void server_connector::start_server() {
 
 nlohmann::json server_connector::receive_command(asio::ip::tcp::socket &s) {
     constexpr uint32_t max_msg_size = 1 << 16;
-
-    std::array<uint8_t, 4> raw_command_size{};
+    uint32_t message_size = 0;
     uint32_t cur_size = 0;
     do{
-        std::error_code error;
-        cur_size += s.read_some(asio::buffer(raw_command_size, 4), error);
-        if(error) {
-            if(error == asio::stream_errc::eof) throw std::system_error();
-            throw std::runtime_error(error.message());
+        std::array<uint8_t, 4> raw_command_size{};
+        do{
+            std::error_code error;
+            cur_size += s.read_some(asio::buffer(raw_command_size, 4), error);
+            if(error) {
+                if(error == asio::stream_errc::eof) throw std::system_error();
+                throw std::runtime_error(error.message());
+            }
         }
-    }
-    while(cur_size <4);
-    ack_message(s);
-    uint32_t message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
+        while(cur_size <4);
+
+        ack_message(s);
+        message_size = *reinterpret_cast<uint32_t*>(raw_command_size.data());
+
+    } while(message_size!= 0);
 
     spdlog::info("waiting reception of {0} bytes", message_size);
 
