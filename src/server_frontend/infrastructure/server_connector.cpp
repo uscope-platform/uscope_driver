@@ -37,6 +37,7 @@ void server_connector::start_server() {
     while (!server_stop_req){
         asio::ip::tcp::socket s(io_context);
         a.accept(s);
+        wait_ack(s);
         spdlog::info("The server is ready to accept connections");
         while(true){
             nlohmann::json command_obj;
