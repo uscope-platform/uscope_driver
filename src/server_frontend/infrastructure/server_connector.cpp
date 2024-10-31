@@ -36,8 +36,13 @@ void server_connector::start_server() {
 
     while (!server_stop_req){
         asio::ip::tcp::socket s(io_context);
-        a.accept(s);
         spdlog::info("The server is ready to accept connections");
+        a.accept(s);
+
+        auto  remote_ep = s.remote_endpoint();
+        auto remote_ad = remote_ep.address();
+        spdlog::info("Connected to {0}:{1}", remote_ad.to_string(), toascii(remote_ep.port()));
+
         while(true){
             nlohmann::json command_obj;
             try {
