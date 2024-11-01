@@ -130,26 +130,32 @@ nlohmann::json scope_endpoints::process_set_acquisition(nlohmann::json &argument
 nlohmann::json scope_endpoints::process_set_scope_address(nlohmann::json &arguments) {
     nlohmann::json resp;
     bool invalid = false;
+
     if(!arguments.contains("address")  | !arguments.contains("dma_buffer_offset") ){
-        invalid = true;
+        invalid |= true;
+    }
+
+    if(arguments["address"].is_null()) {
+        resp["response_code"] = responses::ok;
+        return resp;
     }
 
     if(arguments["address"].type() == nlohmann::detail::value_t::number_unsigned){
-        invalid = false;
+        invalid |= false;
     } else if(arguments["address"].type() == nlohmann::detail::value_t::number_float){
         double raw_addr = arguments["address"];
         uint64_t rounded_addr = round(raw_addr);
         if(ceil(raw_addr) == rounded_addr && floor(raw_addr) == raw_addr){
-            invalid = false;
+            invalid |= false;
         } else {
-            invalid = true;
+            invalid |= true;
         }
     } else {
-        invalid = true;
+        invalid |= true;
     }
 
     if(arguments["dma_buffer_offset"].type() != nlohmann::detail::value_t::number_unsigned){
-        invalid = true;
+        invalid |= true;
     }
 
     if(invalid){
