@@ -224,7 +224,7 @@ TEST(emulator, disassembly) {
     auto res = emu.disassemble(spec_json);
 
 
-    EXPECT_EQ(res[0], "add r2, r1, r3\nstop\n");
-    EXPECT_EQ(res[1], "mul r1, r2, r3\nstop\n");
+    EXPECT_EQ(res["test_producer"], "add r2, r1, r3\nstop\n");
+    EXPECT_EQ(res["test_reducer"], "mul r1, r2, r3\nstop\n");
 }
 

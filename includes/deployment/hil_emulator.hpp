@@ -35,7 +35,7 @@ void to_json(nlohmann::json& j, const emulation_results& p);
 class hil_emulator {
 public:
     emulation_results emulate(nlohmann::json &specs);
-    std::vector<std::string> disassemble(nlohmann::json &specs);
+    std::unordered_map<std::string, std::string> disassemble(nlohmann::json &specs);
 private:
 };
 
