@@ -37,6 +37,7 @@ private:
     nlohmann::json process_apply_program(nlohmann::json &arguments);
     nlohmann::json process_emulate_hil(nlohmann::json &arguments);
     nlohmann::json process_compile_program(nlohmann::json &arguments);
+    nlohmann::json process_hil_disassemble(nlohmann::json &arguments);
     nlohmann::json process_deploy_hil(nlohmann::json &arguments);
     nlohmann::json process_hil_set_in(nlohmann::json &arguments);
     nlohmann::json process_hil_select_out(nlohmann::json &arguments);

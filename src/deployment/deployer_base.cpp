@@ -34,7 +34,6 @@ void deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &pro
 uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &core_name) {
     spdlog::info("SETUP DMA FOR CORE: {0} AT ADDRESS 0x{1:x}", core_name, address);
     spdlog::info("------------------------------------------------------------------");
-    bool stop = core_name == "machine";
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.core_name == core_name){

@@ -115,3 +115,116 @@ TEST(emulator, simple_emulation) {
     EXPECT_EQ(results, expected_result);
 }
 
+
+TEST(emulator, disassembly) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+    "cores": [
+        {
+            "order": 0,
+            "id": "test_producer",
+            "channels":2,
+            "options":{
+                "comparators": "full",
+                "efi_implementation":"none"
+            },
+            "sampling_frequency":1,
+            "input_data":[],
+            "inputs":[
+                {
+                    "name": "input_1",
+                    "metadata":{
+                        "type": "float",
+                        "width": 24,
+                        "signed":false,
+                        "common_io": false
+                    },
+                    "reg_n": 3,
+                    "channel":[0,1],
+                    "source":{"type": "constant","value": [31.2, 32.7]}
+                },
+                {
+                    "name": "input_2",
+                    "metadata":{
+                        "type": "float",
+                        "width": 24,
+                        "signed":false,
+                        "common_io": false
+                    },
+                    "reg_n": 4,
+                    "channel":[0,1],
+                    "source":{"type": "constant","value": [31.2, 32.7]}
+                }
+            ],
+            "outputs":[
+                {
+                    "name":"out",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
+                    "reg_n":[5]
+                }
+            ],
+            "memory_init":[],
+            "program": {
+                "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
+                "headers": []
+            },
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        },
+        {
+            "order": 1,
+            "id": "test_reducer",
+            "channels":1,
+            "options":{
+                "comparators": "full",
+                "efi_implementation":"none"
+            },
+            "sampling_frequency":1,
+            "input_data":[],
+            "inputs":[],
+            "outputs":[
+                {
+                    "name":"out",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": false
+                    },
+                    "reg_n":[5]
+                }
+            ],
+            "memory_init":[],
+            "program": {
+                "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] * input_data[1];\n}\n",
+                "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
+                "headers": []
+            },
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [],
+    "emulation_time": 1,
+    "deployment_mode": false
+})");
+
+    hil_emulator emu;
+    auto res = emu.disassemble(spec_json);
+
+
+    EXPECT_EQ(res[0], "add r2, r1, r3\nstop\n");
+    EXPECT_EQ(res[1], "mul r1, r2, r3\nstop\n");
+}
+

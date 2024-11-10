@@ -33,6 +33,8 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_start();
     } else if(command_string=="hil_stop") {
         return process_hil_stop();
+    } else if(command_string=="hil_disassemble"){
+        return process_hil_disassemble(arguments);
     } else if(command_string == "compile_program") {
         return process_compile_program(arguments);
     }else if(command_string  == "set_layout_map") {
@@ -77,7 +79,6 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
-        auto dump = arguments.dump();
         auto specs = fcore::emulator::emulator_specs(arguments);
         fcore::emulator_manager em(arguments, runtime_config.debug_hil);
         auto programs = em.get_programs();
@@ -185,6 +186,16 @@ nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &argument
     return resp;
 }
 
+nlohmann::json cores_endpoints::process_hil_disassemble(nlohmann::json &arguments) {
+    std::vector<std::string> results;
+    nlohmann::json resp;
+
+    resp["data"] = emulator.disassemble(arguments);
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+
 nlohmann::json cores_endpoints::process_set_layout_map(nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
@@ -212,4 +223,3 @@ void cores_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     custom.set_accessor(ba);
     hw.set_accessor(ba);
 }
-

@@ -40,6 +40,11 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     return ret_val;
 }
 
+std::vector<std::string> hil_emulator::disassemble(nlohmann::json &specs) {
+    fcore::emulator_manager emu_manager(specs, false);
+    return emu_manager.disassemble();
+}
+
 void to_json(nlohmann::json& j, const emulation_results& p) {
 j = nlohmann::json{ {"results", p.results}, {"results_valid", p.results_valid}, {"duplicates", p.duplicates}, {"code", p.code} };
 }
