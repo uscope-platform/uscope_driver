@@ -34,7 +34,8 @@ namespace commands {
 
     static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil", "compile_program",
                                                   "hil_select_out", "hil_set_in", "hil_start", "hil_stop","hil_disassemble",
-                                                    "set_layout_map", "set_hil_address_map", "get_hil_address_map"};
+                                                    "set_layout_map", "set_hil_address_map", "get_hil_address_map",
+                                                    "hil_debug"};
 
 
     static std::set<std::string> platform_commands = {"set_pl_clock", "get_clock", "get_version", "set_debug_level",

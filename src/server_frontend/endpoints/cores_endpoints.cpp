@@ -33,6 +33,8 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_start();
     } else if(command_string=="hil_stop") {
         return process_hil_stop();
+    } else if(command_string=="hil_debug"){
+        return process_hil_debug(arguments);
     } else if(command_string=="hil_disassemble"){
         return process_hil_disassemble(arguments);
     } else if(command_string == "compile_program") {
@@ -222,4 +224,17 @@ void cores_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     hil.set_accessor(ba);
     custom.set_accessor(ba);
     hw.set_accessor(ba);
+}
+
+nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(!arguments.contains("command") || !arguments.contains("arguments")){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: Invalid arguments for the debug hil command\n";
+        return resp;
+    }
+    if(arguments["command"] == "test")
+        resp["data"] = "success";
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
 }
