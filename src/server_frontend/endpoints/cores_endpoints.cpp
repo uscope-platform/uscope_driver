@@ -233,8 +233,19 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
         resp["data"] = "DRIVER ERROR: Invalid arguments for the debug hil command\n";
         return resp;
     }
-    if(arguments["command"] == "test")
+    std::string command = arguments["command"];
+
+    if(command== "test")
         resp["data"] = "success";
+    else if(command=="add_breakpoint")
+        resp["data"] = emulator.run_command({add_breakpoint, arguments["arguments"]["line"]});
+    else if(command=="remove_breakpoint")
+        resp["data"] = emulator.run_command({remove_breakpoint, arguments["arguments"]["line"]});
+    else if(command=="step")
+        resp["data"] = emulator.run_command({step_over, 0});
+    else if(command=="continue")
+        resp["data"] = emulator.run_command({continue_emulation, 0});
+
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }

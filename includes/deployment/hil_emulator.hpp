@@ -30,10 +30,26 @@ struct emulation_results{
     int code;
 };
 
+typedef enum {
+    add_breakpoint=1,
+    remove_breakpoint=2,
+    step_over=3,
+    continue_emulation=4
+}command_type;
+
+struct interactive_command{
+    command_type type;
+    uint32_t target_instruction;
+};
+
+
+
 void to_json(nlohmann::json& j, const emulation_results& p);
 
 class hil_emulator {
 public:
+    void start_interactive_session(nlohmann::json &specs);
+    std::string run_command(const interactive_command &c);
     emulation_results emulate(nlohmann::json &specs);
     std::unordered_map<std::string, std::string> disassemble(nlohmann::json &specs);
 private:

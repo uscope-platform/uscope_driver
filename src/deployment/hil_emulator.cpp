@@ -45,6 +45,14 @@ std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann:
     return emu_manager.disassemble();
 }
 
+void hil_emulator::start_interactive_session(nlohmann::json &specs) {
+
+}
+
+std::string hil_emulator::run_command(const interactive_command &c) {
+
+}
+
 void to_json(nlohmann::json& j, const emulation_results& p) {
 j = nlohmann::json{ {"results", p.results}, {"results_valid", p.results_valid}, {"duplicates", p.duplicates}, {"code", p.code} };
 }
