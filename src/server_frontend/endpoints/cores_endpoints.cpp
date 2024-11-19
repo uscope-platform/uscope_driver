@@ -228,6 +228,7 @@ void cores_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 
 nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
     nlohmann::json resp;
+    std::string dbg = arguments.dump();
     if(!arguments.contains("command") || !arguments.contains("arguments")){
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: Invalid arguments for the debug hil command\n";
@@ -238,14 +239,15 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
     if(command== "test")
         resp["data"] = "success";
     else if(command=="add_breakpoint")
-        resp["data"] = emulator.run_command({add_breakpoint, arguments["arguments"]["line"]});
+        resp["data"] = emulator.run_command({add_breakpoint, arguments["arguments"]});
     else if(command=="remove_breakpoint")
-        resp["data"] = emulator.run_command({remove_breakpoint, arguments["arguments"]["line"]});
+        resp["data"] = emulator.run_command({remove_breakpoint, arguments["arguments"]});
     else if(command=="step")
         resp["data"] = emulator.run_command({step_over, 0});
-    else if(command=="continue")
-        resp["data"] = emulator.run_command({continue_emulation, 0});
-
+    else if(command=="resume")
+        resp["data"] = emulator.run_command({resume_emulation, 0});
+    else if(command=="run")
+        emulator.start_interactive_session(arguments["arguments"]);
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }

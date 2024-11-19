@@ -34,7 +34,7 @@ typedef enum {
     add_breakpoint=1,
     remove_breakpoint=2,
     step_over=3,
-    continue_emulation=4
+    resume_emulation=4
 }command_type;
 
 struct interactive_command{

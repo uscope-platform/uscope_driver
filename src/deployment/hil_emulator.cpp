@@ -46,11 +46,12 @@ std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann:
 }
 
 void hil_emulator::start_interactive_session(nlohmann::json &specs) {
-
+    auto spec = specs.dump();
 }
 
 std::string hil_emulator::run_command(const interactive_command &c) {
-
+int i = 0;
+    return "ok";
 }
 
 void to_json(nlohmann::json& j, const emulation_results& p) {
