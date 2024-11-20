@@ -239,13 +239,13 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
     if(command== "test")
         resp["data"] = "success";
     else if(command=="add_breakpoint")
-        resp["data"] = emulator.run_command({add_breakpoint, arguments["arguments"]});
+        resp["data"] = emulator.run_command({command_add_breakpoint, arguments["arguments"]["id"], arguments["arguments"]["line"]});
     else if(command=="remove_breakpoint")
-        resp["data"] = emulator.run_command({remove_breakpoint, arguments["arguments"]});
+        resp["data"] = emulator.run_command({command_remove_breakpoint, arguments["arguments"]["id"], arguments["arguments"]["line"]});
     else if(command=="step")
-        resp["data"] = emulator.run_command({step_over, 0});
+        resp["data"] = emulator.run_command({command_step_over, 0});
     else if(command=="resume")
-        resp["data"] = emulator.run_command({resume_emulation, 0});
+        resp["data"] = emulator.run_command({command_resume_emulation, 0});
     else if(command=="run")
         emulator.start_interactive_session(arguments["arguments"]);
     resp["response_code"] = responses::as_integer(responses::ok);

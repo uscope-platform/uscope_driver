@@ -46,12 +46,35 @@ std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann:
 }
 
 void hil_emulator::start_interactive_session(nlohmann::json &specs) {
-    auto spec = specs.dump();
 }
 
 std::string hil_emulator::run_command(const interactive_command &c) {
-int i = 0;
-    return "ok";
+    switch (c.type) {
+        case command_add_breakpoint:
+            return add_breakpoint(c.id, c.target_instruction);
+        case command_remove_breakpoint:
+            return remove_breakpoint(c.id, c.target_instruction);
+        case command_step_over:
+            return step_over();
+        case command_resume_emulation:
+            return continue_execution();
+    }
+}
+
+std::string hil_emulator::add_breakpoint(std::string core_id, uint32_t line) {
+    return std::string();
+}
+
+std::string hil_emulator::remove_breakpoint(std::string core_id, uint32_t line) {
+    return std::string();
+}
+
+std::string hil_emulator::step_over() {
+    return std::string();
+}
+
+std::string hil_emulator::continue_execution() {
+    return std::string();
 }
 
 void to_json(nlohmann::json& j, const emulation_results& p) {

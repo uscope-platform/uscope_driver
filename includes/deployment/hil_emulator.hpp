@@ -20,6 +20,7 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <cstdint>
 
 #include "emulator/emulator_manager.hpp"
 
@@ -31,14 +32,15 @@ struct emulation_results{
 };
 
 typedef enum {
-    add_breakpoint=1,
-    remove_breakpoint=2,
-    step_over=3,
-    resume_emulation=4
+    command_add_breakpoint=1,
+    command_remove_breakpoint=2,
+    command_step_over=3,
+    command_resume_emulation=4
 }command_type;
 
 struct interactive_command{
     command_type type;
+    std::string id;
     uint32_t target_instruction;
 };
 
@@ -53,6 +55,11 @@ public:
     emulation_results emulate(nlohmann::json &specs);
     std::unordered_map<std::string, std::string> disassemble(nlohmann::json &specs);
 private:
+    std::string add_breakpoint(std::string core_id, uint32_t line);
+    std::string remove_breakpoint(std::string core_id, uint32_t line);
+    std::string step_over();
+    std::string continue_execution();
+
 };
 
 

@@ -224,7 +224,7 @@ TEST(emulator, disassembly) {
     auto res = emu.disassemble(spec_json);
 
 
-    EXPECT_EQ(res["test_producer"], "add r2, r1, r3\nstop\n");
-    EXPECT_EQ(res["test_reducer"], "mul r1, r2, r3\nstop\n");
+    EXPECT_EQ(res["test_producer"], "///////////////////////////////////////////\n//               IO MAPPING              //\n//    io address <---> core address      //\n///////////////////////////////////////////\n//    5  <--->  3      //\n//    4  <--->  1      //\n//    3  <--->  2      //\n///////////////////////////////////////////\nadd r2, r1, r3\nstop\n");
+    EXPECT_EQ(res["test_reducer"], "///////////////////////////////////////////\n//               IO MAPPING              //\n//    io address <---> core address      //\n///////////////////////////////////////////\n//    5  <--->  3      //\n///////////////////////////////////////////\nmul r1, r2, r3\nstop\n");
 }
 
