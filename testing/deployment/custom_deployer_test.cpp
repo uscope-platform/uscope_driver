@@ -447,8 +447,10 @@ TEST(custom_deployer, deployment) {
     "deployment_mode": true
 })");
 
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 

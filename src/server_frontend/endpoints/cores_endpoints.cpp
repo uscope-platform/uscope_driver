@@ -81,8 +81,11 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
-        auto specs = fcore::emulator::emulator_specs(arguments);
-        fcore::emulator_manager em(arguments, runtime_config.debug_hil);
+        auto specs = fcore::emulator::emulator_specs();
+        specs.set_specs(arguments);
+        fcore::emulator_manager em;
+        if(runtime_config.debug_hil) em.enable_debug_mode();
+        em.set_specs(arguments);
         auto programs = em.get_programs();
         if(specs.custom_deploy_mode){
             resp["response_code"] = custom.deploy(specs, programs);

@@ -18,7 +18,8 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     emulation_results ret_val;
     try{
         spdlog::info("EMULATE HIL");
-        fcore::emulator_manager emu_manager(specs, false);
+        fcore::emulator_manager emu_manager;
+        emu_manager.set_specs(specs);
         emu_manager.process();
         spdlog::info("COMPILATION DONE");
         emu_manager.emulate(false);
@@ -41,11 +42,13 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
 }
 
 std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann::json &specs) {
-    fcore::emulator_manager emu_manager(specs, false);
+    fcore::emulator_manager emu_manager;
+    emu_manager.set_specs(specs);
     return emu_manager.disassemble();
 }
 
 void hil_emulator::start_interactive_session(nlohmann::json &specs) {
+
 }
 
 std::string hil_emulator::run_command(const interactive_command &c) {

@@ -159,8 +159,10 @@ TEST(deployer, simple_single_core_deployment) {
 })");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
     auto ba = std::make_shared<bus_accessor>(true);
@@ -333,8 +335,10 @@ TEST(deployer, simple_single_core_integer_input) {
 })");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -495,8 +499,10 @@ TEST(deployer, simple_single_core_memory_init) {
 })");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -692,8 +698,10 @@ TEST(deployer, multichannel_single_core_deployment) {
 })");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -973,8 +981,10 @@ TEST(deployer, simple_multi_core_deployment) {
 })");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -1254,8 +1264,10 @@ TEST(deployer, scalar_interconnect_test) {
 )");
 
     
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -1476,9 +1488,11 @@ TEST(deployer, scatter_interconnect_test) {
     "deployment_mode": false
     })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -1725,9 +1739,11 @@ TEST(deployer, gather_interconnect_test) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -1965,9 +1981,11 @@ TEST(deployer, vector_interconnect_test) {
     "deployment_mode": false
     })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -2188,9 +2206,11 @@ TEST(deployer, 2d_vector_interconnect_test) {
     "deployment_mode": false
     })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -2431,8 +2451,10 @@ TEST(deployer, simple_single_core_output_select) {
 })");
 
 
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
     auto ba = std::make_shared<bus_accessor>(true);
@@ -2620,9 +2642,11 @@ TEST(deployer, simple_single_core_input_set) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
@@ -2802,9 +2826,11 @@ TEST(deployer, simple_single_core_start_stop) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs(spec_json);
-    fcore::emulator_manager em(spec_json, false);
+
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(spec_json);
+    fcore::emulator_manager em;
+    em.set_specs(spec_json);
     auto programs = em.get_programs();
 
 
