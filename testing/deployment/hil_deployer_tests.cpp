@@ -112,6 +112,7 @@ TEST(deployer, simple_single_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -285,6 +286,7 @@ TEST(deployer, simple_single_core_integer_input) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -422,6 +424,7 @@ TEST(deployer, simple_single_core_memory_init) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -642,6 +645,7 @@ TEST(deployer, multichannel_single_core_deployment) {
         "outputs": [
             {
                 "name": "out",
+                "type": "float",
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -835,6 +839,7 @@ TEST(deployer, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -921,6 +926,7 @@ TEST(deployer, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -1136,6 +1142,7 @@ TEST(deployer, scalar_interconnect_test) {
                         "width": 32,
                         "signed": true
                     },
+                    "type": "float",
                     "name": "out"
                 }
             ],
@@ -1176,6 +1183,7 @@ TEST(deployer, scalar_interconnect_test) {
             "input_data": [],
             "outputs": [
                 {
+                    "type": "float",
                     "reg_n": [
                         5
                     ],
@@ -1419,6 +1427,7 @@ TEST(deployer, scatter_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
+                        "type": "float",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -1632,6 +1641,7 @@ TEST(deployer, gather_interconnect_test) {
             "outputs":[
                 {
                     "name":"out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1666,6 +1676,7 @@ TEST(deployer, gather_interconnect_test) {
             "outputs":[
                 {
                     "name":"out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1905,6 +1916,7 @@ TEST(deployer, vector_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
+                        "type": "float",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -2126,6 +2138,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
                 "outputs":[
                     {
                         "name":"consumer_out",
+                        "type": "float",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -2371,6 +2384,7 @@ TEST(deployer, simple_single_core_output_select) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2560,6 +2574,7 @@ TEST(deployer, simple_single_core_input_set) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2741,6 +2756,7 @@ TEST(deployer, simple_single_core_start_stop) {
             "outputs": [
                 {
                     "name": "out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,

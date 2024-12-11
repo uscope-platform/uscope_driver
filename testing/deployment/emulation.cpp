@@ -33,6 +33,7 @@ TEST(emulator, simple_emulation) {
                 "outputs": [
                     {
                         "name": "out",
+                        "type": "float",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -160,6 +161,7 @@ TEST(emulator, disassembly) {
             "outputs":[
                 {
                     "name":"out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -194,6 +196,7 @@ TEST(emulator, disassembly) {
             "outputs":[
                 {
                     "name":"out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,

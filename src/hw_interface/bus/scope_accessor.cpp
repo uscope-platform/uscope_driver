@@ -15,7 +15,8 @@
 #include "hw_interface/bus/scope_accessor.hpp"
 
 scope_accessor::scope_accessor() {
-    fd_data = open(if_dict.get_data_bus().c_str(), O_RDWR| O_SYNC);
+    std::string data_file = if_dict.get_data_bus();
+    fd_data = open(data_file.c_str(), O_RDWR| O_SYNC);
     if(fd_data == -1){
         spdlog::error("Error while mapping the scope data buffer: {0}", std::strerror(errno));
     }

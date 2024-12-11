@@ -181,6 +181,7 @@ TEST(custom_deployer, deployment) {
             "outputs": [
                 {
                     "name": "v_out",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -195,6 +196,7 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "i_in",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -306,6 +308,7 @@ TEST(custom_deployer, deployment) {
             "outputs": [
                 {
                     "name": "currents",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -319,6 +322,7 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "speed",
+                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -330,6 +334,7 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "sin_t",
+                    "type": "integer",
                     "metadata": {
                         "type": "integer",
                         "width": 16,
@@ -341,6 +346,7 @@ TEST(custom_deployer, deployment) {
                 },
                 {
                     "name": "cos_t",
+                    "type": "integer",
                     "metadata": {
                         "type": "integer",
                         "width": 14,

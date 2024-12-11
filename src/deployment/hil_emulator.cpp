@@ -21,7 +21,7 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
         fcore::emulator_manager emu_manager(specs, false);
         emu_manager.process();
         spdlog::info("COMPILATION DONE");
-        emu_manager.emulate();
+        emu_manager.emulate(false);
         auto results = emu_manager.get_results();
         spdlog::info("EMULATION RESULTS AVAILABLE");
         ret_val.results = results.dump();
@@ -58,6 +58,8 @@ std::string hil_emulator::run_command(const interactive_command &c) {
             return step_over();
         case command_resume_emulation:
             return continue_execution();
+        default:
+            throw std::runtime_error("Unknown emulation command");
     }
 }
 
