@@ -238,19 +238,32 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
         return resp;
     }
     std::string command = arguments["command"];
-
-    if(command== "test")
+    interactive_command c;
+    if(command== "test"){
         resp["data"] = "success";
-    else if(command=="add_breakpoint")
-        resp["data"] = emulator.run_command({command_add_breakpoint, arguments["arguments"]["id"], arguments["arguments"]["line"]});
-    else if(command=="remove_breakpoint")
-        resp["data"] = emulator.run_command({command_remove_breakpoint, arguments["arguments"]["id"], arguments["arguments"]["line"]});
-    else if(command=="step")
-        resp["data"] = emulator.run_command({command_step_over, 0});
-    else if(command=="resume")
-        resp["data"] = emulator.run_command({command_resume_emulation, 0});
-    else if(command=="run")
-        emulator.start_interactive_session(arguments["arguments"]);
+        resp["response_code"] = responses::as_integer(responses::ok);
+        return resp;
+    }
+    if(command=="add_breakpoint"){
+        c.id = arguments["arguments"]["id"];
+        c.type = command_add_breakpoint;
+        c.target_instruction = arguments["arguments"]["line"];
+    } else if(command=="remove_breakpoint") {
+        c.type = command_remove_breakpoint;
+        c.id = arguments["arguments"]["id"];
+        c.target_instruction = arguments["arguments"]["line"];
+    } else if(command=="step") {
+        c.type = command_step_over;
+    } else if(command=="resume") {
+        c.type = command_resume_emulation;
+    } else if(command=="initialize") {
+        c.type = command_initialize_emulation;
+        c.spec = arguments["arguments"];
+    } else if(command=="run") {
+        c.type = command_start_emulation;
+    }
+
+    resp["data"] = emulator.run_command(c);
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }

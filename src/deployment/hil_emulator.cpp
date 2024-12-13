@@ -18,12 +18,13 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     emulation_results ret_val;
     try{
         spdlog::info("EMULATE HIL");
-        fcore::emulator_manager emu_manager;
         emu_manager.set_specs(specs);
         emu_manager.process();
         spdlog::info("COMPILATION DONE");
+
         emu_manager.emulate(false);
         auto results = emu_manager.get_results();
+
         spdlog::info("EMULATION RESULTS AVAILABLE");
         ret_val.results = results.dump();
         ret_val.results_valid = true;
@@ -42,17 +43,17 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
 }
 
 std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann::json &specs) {
-    fcore::emulator_manager emu_manager;
     emu_manager.set_specs(specs);
     return emu_manager.disassemble();
 }
 
-void hil_emulator::start_interactive_session(nlohmann::json &specs) {
-
-}
 
 std::string hil_emulator::run_command(const interactive_command &c) {
     switch (c.type) {
+        case command_initialize_emulation:
+            return initialize_emulation(c.spec);
+        case command_start_emulation:
+            return run_emulation();
         case command_add_breakpoint:
             return add_breakpoint(c.id, c.target_instruction);
         case command_remove_breakpoint:
@@ -67,11 +68,13 @@ std::string hil_emulator::run_command(const interactive_command &c) {
 }
 
 std::string hil_emulator::add_breakpoint(std::string core_id, uint32_t line) {
-    return std::string();
+    emu_manager.add_breakpoint(core_id, line);
+    return "ok";
 }
 
 std::string hil_emulator::remove_breakpoint(std::string core_id, uint32_t line) {
-    return std::string();
+    emu_manager.remove_breakpoint(core_id, line);
+    return "ok";
 }
 
 std::string hil_emulator::step_over() {
@@ -79,11 +82,31 @@ std::string hil_emulator::step_over() {
 }
 
 std::string hil_emulator::continue_execution() {
-    return std::string();
+    auto res = emu_manager.emulate(true);
+    if(res.has_value()){
+        nlohmann::json val = res.value();
+        return val.dump();
+    } else{
+        return "{}";
+    }
+}
+
+std::string hil_emulator::initialize_emulation(const nlohmann::json &specs) {
+    emu_manager.set_specs(specs);
+    emu_manager.process();
+    return "{}";
+}
+
+std::string hil_emulator::run_emulation() {
+    auto res = emu_manager.emulate(true);
+    if(res.has_value()){
+        nlohmann::json val = res.value();
+        return val.dump();
+    } else return "{}";
 }
 
 void to_json(nlohmann::json& j, const emulation_results& p) {
-j = nlohmann::json{ {"results", p.results}, {"results_valid", p.results_valid}, {"duplicates", p.duplicates}, {"code", p.code} };
+    j = nlohmann::json{ {"results", p.results}, {"results_valid", p.results_valid}, {"duplicates", p.duplicates}, {"code", p.code} };
 }
 
 
