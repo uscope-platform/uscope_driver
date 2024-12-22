@@ -42,7 +42,7 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     return ret_val;
 }
 
-std::unordered_map<std::string, std::string> hil_emulator::disassemble(nlohmann::json &specs) {
+std::unordered_map<std::string, fcore::disassembled_program> hil_emulator::disassemble(nlohmann::json &specs) {
     emu_manager.set_specs(specs);
     return emu_manager.disassemble();
 }
@@ -62,6 +62,8 @@ std::string hil_emulator::run_command(const interactive_command &c) {
             return step_over();
         case command_resume_emulation:
             return continue_execution();
+        case command_get_breakpoints:
+            return get_breakpoints(c.id);
         default:
             throw std::runtime_error("Unknown emulation command");
     }
@@ -103,6 +105,11 @@ std::string hil_emulator::run_emulation() {
         nlohmann::json val = res.value();
         return val.dump();
     } else return "{}";
+}
+
+std::string hil_emulator::get_breakpoints(const std::string &core_id) {
+    nlohmann::json ret = emu_manager.get_breakpoints(core_id);
+    return ret.dump();
 }
 
 void to_json(nlohmann::json& j, const emulation_results& p) {

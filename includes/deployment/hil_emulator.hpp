@@ -37,7 +37,8 @@ typedef enum {
     command_step_over=3,
     command_resume_emulation=4,
     command_initialize_emulation=5,
-    command_start_emulation=6
+    command_start_emulation=6,
+    command_get_breakpoints=7
 }command_type;
 
 struct interactive_command{
@@ -55,7 +56,7 @@ class hil_emulator {
 public:
     std::string run_command(const interactive_command &c);
     emulation_results emulate(nlohmann::json &specs);
-    std::unordered_map<std::string, std::string> disassemble(nlohmann::json &specs);
+    std::unordered_map<std::string, fcore::disassembled_program> disassemble(nlohmann::json &specs);
 private:
     fcore::emulator_manager emu_manager;
     std::string initialize_emulation(const nlohmann::json &specs);
@@ -63,6 +64,7 @@ private:
     std::string add_breakpoint(std::string core_id, uint32_t line);
     std::string remove_breakpoint(std::string core_id, uint32_t line);
     std::string step_over();
+    std::string get_breakpoints(const std::string &core_id);
     std::string continue_execution();
 
 };

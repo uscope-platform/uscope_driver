@@ -226,8 +226,12 @@ TEST(emulator, disassembly) {
     hil_emulator emu;
     auto res = emu.disassemble(spec_json);
 
+    std::unordered_map<std::string, fcore::disassembled_program> check_map;
 
-    EXPECT_EQ(res["test_producer"], "///////////////////////////////////////////\n//               IO MAPPING              //\n//    io address <---> core address      //\n///////////////////////////////////////////\n//    5  <--->  3      //\n//    4  <--->  1      //\n//    3  <--->  2      //\n///////////////////////////////////////////\nadd r2, r1, r3\nstop\n");
-    EXPECT_EQ(res["test_reducer"], "///////////////////////////////////////////\n//               IO MAPPING              //\n//    io address <---> core address      //\n///////////////////////////////////////////\n//    5  <--->  3      //\n///////////////////////////////////////////\nmul r1, r2, r3\nstop\n");
+    check_map["test_producer"] = {{{5,3},{4,1},{3,2}},"add r2, r1, r3\nstop\n"};
+    check_map["test_reducer"] = {{{5,3}},"mul r1, r2, r3\nstop\n"};
+
+
+    EXPECT_EQ(res, check_map);
 }
 
