@@ -123,7 +123,7 @@ TEST(emulator, disassembly) {
             R"({
     "cores": [
         {
-            "order": 0,
+            "order": 1,
             "id": "test_producer",
             "channels":2,
             "options":{
@@ -183,7 +183,7 @@ TEST(emulator, disassembly) {
             }
         },
         {
-            "order": 1,
+            "order": 2,
             "id": "test_reducer",
             "channels":1,
             "options":{

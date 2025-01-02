@@ -263,7 +263,7 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
         c.type = command_start_emulation;
     } else if(command=="get_breakpoints"){
         c.type = command_get_breakpoints;
-        c.spec = arguments["arguments"];
+        c.id = arguments["arguments"]["id"];
     }
 
     resp["data"] = emulator.run_command(c);

@@ -80,11 +80,13 @@ std::string hil_emulator::remove_breakpoint(std::string core_id, uint32_t line) 
 }
 
 std::string hil_emulator::step_over() {
-    return std::string();
+    nlohmann::json ret;
+    ret =  emu_manager.step_over();
+    return ret.dump();
 }
 
 std::string hil_emulator::continue_execution() {
-    auto res = emu_manager.emulate(true);
+    auto res = emu_manager.continue_emulation();
     if(res.has_value()){
         nlohmann::json val = res.value();
         return val.dump();
@@ -104,7 +106,12 @@ std::string hil_emulator::run_emulation() {
     if(res.has_value()){
         nlohmann::json val = res.value();
         return val.dump();
-    } else return "{}";
+    } else {
+        nlohmann::json ret;
+        ret["status"] = "complete";
+        ret["emulation_result"] = emu_manager.get_results();
+        return ret.dump();
+    };
 }
 
 std::string hil_emulator::get_breakpoints(const std::string &core_id) {
