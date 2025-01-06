@@ -65,6 +65,7 @@ set(DRIVER_SOURCES /
         src/hw_interface/bus/bus_accessor.cpp
         includes/hw_interface/bus/bus_accessor.hpp
         src/hw_interface/bus/scope_accessor.cpp
+        src/options_repository.cpp
         includes/hw_interface/bus/scope_accessor.hpp
 )
 

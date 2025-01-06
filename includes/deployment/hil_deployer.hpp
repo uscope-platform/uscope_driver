@@ -20,6 +20,7 @@
 #include <spdlog/spdlog.h>
 #include <bitset>
 
+#include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "emulator/emulator_manager.hpp"
 #include "fCore_isa.hpp"
@@ -29,6 +30,7 @@
 class hil_deployer : public deployer_base{
 public:
     hil_deployer();
+    void set_options_repository(std::shared_ptr<options_repository> &rep) {options = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
     responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
@@ -60,6 +62,8 @@ private:
 
     double timebase_frequency;
     double timebase_divider = 1;
+
+    std::shared_ptr<options_repository> options;
 
     bool full_cores_override;
 

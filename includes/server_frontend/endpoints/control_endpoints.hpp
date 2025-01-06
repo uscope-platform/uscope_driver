@@ -18,6 +18,7 @@
 #define USCOPE_DRIVER_CONTROL_ENDPOINTS_HPP
 
 #include <nlohmann/json.hpp>
+#include "options_repository.hpp"
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
@@ -25,6 +26,7 @@
 class control_endpoints {
 public:
     control_endpoints() = default;
+    void set_options_repository(std::shared_ptr<options_repository> &rep){options_rep = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
@@ -44,6 +46,7 @@ private:
         }
     };
 
+    std::shared_ptr<options_repository> options_rep;
     fpga_bridge hw;
 };
 

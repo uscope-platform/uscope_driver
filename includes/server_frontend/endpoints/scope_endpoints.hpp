@@ -18,6 +18,8 @@
 #define USCOPE_DRIVER_SCOPE_ENDPOINTS_HPP
 
 #include <nlohmann/json.hpp>
+
+#include "options_repository.hpp"
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
@@ -26,6 +28,7 @@
 class scope_endpoints {
 public:
     scope_endpoints() = default;
+    void set_options_repository(std::shared_ptr<options_repository> &rep){options_rep = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     nlohmann::json process_command(std::string command_string, nlohmann::json &arguments);
 private:
@@ -36,6 +39,8 @@ private:
     nlohmann::json process_get_acquisition_status();
     nlohmann::json process_set_scope_address(nlohmann::json &arguments);
     nlohmann::json process_set_acquisition(nlohmann::json &arguments);
+
+    std::shared_ptr<options_repository> options_rep;
     scope_manager scope;
 };
 

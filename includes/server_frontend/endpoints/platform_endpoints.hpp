@@ -20,6 +20,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/timing_manager.hpp"
 #include "driver_version.h"
@@ -27,6 +28,7 @@
 class platform_endpoints {
 public:
     platform_endpoints() = default;
+    void set_options_repository(std::shared_ptr<options_repository> &rep){options_rep = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
@@ -38,6 +40,7 @@ private:
 
 
     fpga_bridge hw;
+    std::shared_ptr<options_repository> options_rep;
     timing_manager tm;
 
 };

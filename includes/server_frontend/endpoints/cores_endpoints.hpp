@@ -19,6 +19,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "options_repository.hpp"
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
@@ -30,7 +31,8 @@
 
 class cores_endpoints {
 public:
-    cores_endpoints() = default;
+    cores_endpoints();
+    void set_options_repository(std::shared_ptr<options_repository> &rep){options_rep = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:
@@ -45,8 +47,13 @@ private:
     nlohmann::json process_hil_stop();
     nlohmann::json process_hil_start();
     nlohmann::json process_set_layout_map(nlohmann::json &arguments);
+
     nlohmann::json process_set_hil_address_map(nlohmann::json &arguments);
     nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
+
+    nlohmann::json process_set_debugger_option(nlohmann::json &arguments);
+    nlohmann::json process_get_debugger_option(nlohmann::json &arguments);
+
 
 
     bool check_float_intness(double d){
@@ -59,7 +66,7 @@ private:
     };
 
     fpga_bridge hw;
-
+    std::shared_ptr<options_repository> options_rep;
     hil_deployer hil;
     custom_deployer custom;
 

@@ -17,6 +17,7 @@
 #include <sstream>
 #include <thread>
 
+#include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "response.hpp"
 #include "command.hpp"
@@ -35,6 +36,8 @@ public:
 
 private:
     nlohmann::json process_null();
+
+    std::shared_ptr<options_repository> options_rep;
 
     fpga_bridge hw;
     control_endpoints control_ep;

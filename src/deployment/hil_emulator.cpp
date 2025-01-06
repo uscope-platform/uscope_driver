@@ -102,6 +102,7 @@ std::string hil_emulator::initialize_emulation(const nlohmann::json &specs) {
 }
 
 std::string hil_emulator::run_emulation() {
+    emu_manager.set_multichannel_debug(options->get_bool_option("multichannel_debug"));
     auto res = emu_manager.emulate(true);
     if(res.has_value()){
         nlohmann::json val = res.value();
@@ -118,6 +119,7 @@ std::string hil_emulator::get_breakpoints(const std::string &core_id) {
     nlohmann::json ret = emu_manager.get_breakpoints(core_id);
     return ret.dump();
 }
+
 
 void to_json(nlohmann::json& j, const emulation_results& p) {
     j = nlohmann::json{ {"results", p.results}, {"results_valid", p.results_valid}, {"duplicates", p.duplicates}, {"code", p.code} };
