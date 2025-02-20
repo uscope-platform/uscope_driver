@@ -22,7 +22,7 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
         emu_manager.process();
         spdlog::info("COMPILATION DONE");
 
-        emu_manager.emulate(false);
+        emu_manager.emulate();
         auto results = emu_manager.get_results();
 
         spdlog::info("EMULATION RESULTS AVAILABLE");
@@ -103,7 +103,7 @@ std::string hil_emulator::initialize_emulation(const nlohmann::json &specs) {
 
 std::string hil_emulator::run_emulation() {
     emu_manager.set_multichannel_debug(options->get_bool_option("multichannel_debug"));
-    auto res = emu_manager.emulate(true);
+    auto res = emu_manager.emulate();
     if(res.has_value()){
         nlohmann::json val = res.value();
         return val.dump();
