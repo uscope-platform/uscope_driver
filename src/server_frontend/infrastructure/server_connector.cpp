@@ -21,7 +21,7 @@ std::atomic_bool server_stop_req;
 /// Initialize server connector, bining and listening on the reception socket, and setting up the event loop as necessary
 /// \param base event loop base
 /// \param port port over which to listen
-server_connector::server_connector(){
+server_connector::server_connector() : message_buffer(max_msg_size){
 }
 
 void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
@@ -71,7 +71,7 @@ void server_connector::start_server() {
 
 
 std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::socket &s) {
-    constexpr uint32_t max_msg_size = 1 << 16;
+
     uint32_t message_size = 0;
     uint32_t cur_size = 0;
     do{
@@ -93,19 +93,21 @@ std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::s
 
     spdlog::trace("waiting reception of {0} bytes", message_size);
 
-    char raw_msg[max_msg_size];
+    uint32_t transfer_progressive = 0;
     cur_size = 0;
     do{
         std::error_code error;
-        cur_size += s.read_some(asio::buffer(raw_msg), error);
+        cur_size = s.read_some(asio::buffer(chunk_buffer), error);
         if(error)  {
             if(error == asio::stream_errc::eof) throw std::system_error();
             throw std::runtime_error(error.message());
         }
+        std::ranges::copy(chunk_buffer, message_buffer.begin() + transfer_progressive);
+        transfer_progressive += cur_size;
     }
-    while(cur_size <message_size);
+    while(transfer_progressive <message_size);
 
-    std::string message(raw_msg, message_size);
+    std::string message(message_buffer.data(), message_size);
     return nlohmann::json::from_msgpack(message);
 }
 

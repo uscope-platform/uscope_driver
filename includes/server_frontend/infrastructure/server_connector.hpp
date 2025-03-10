@@ -48,7 +48,10 @@ public:
     void ack_message(asio::ip::tcp::socket &s);
     void wait_ack(asio::ip::tcp::socket &s);
 private:
+    uint32_t  max_msg_size = 1 << 30;
     command_processor core_processor;
+    std::array<char, 65536> chunk_buffer;
+    std::vector<char> message_buffer;
 };
 
 
