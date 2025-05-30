@@ -182,7 +182,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
 
     uint32_t trg_lvl;
     if(data.level_type =="float"){
-        trg_lvl = fcore::emulator_backend::float_to_uint32(data.trigger_level);
+        trg_lvl = float_to_uint32(data.trigger_level);
     } else {
         trg_lvl = data.trigger_level;
     }

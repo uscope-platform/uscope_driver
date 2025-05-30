@@ -48,7 +48,7 @@ int main (int argc, char **argv) {
     std::string scope_data_source;
     int log_level = 0;
 
-    app.add_flag("--external_emulator", external_emu, "Use extenral kernel emulator");
+    app.add_flag("--external_emulator", external_emu, "Use external kernel emulator");
     app.add_flag("--debug", emulate_hw, "Enable debug features to allow running off target");
     app.add_flag("--debug_hil", debug_hil, "Write intermediate steps for hil deployment debugging");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");

@@ -29,7 +29,7 @@ public:
     custom_deployer();
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
-    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
+    responses::response_code deploy(nlohmann::json &arguments);
 private:
     float clock_frequency;
     std::map<std::string, uint32_t> cores_idx;

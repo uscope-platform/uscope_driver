@@ -18,8 +18,6 @@
 
 
 cores_endpoints::cores_endpoints() {
-    emulator.set_options_repository(options_rep);
-    hil.set_options_repository(options_rep);
 }
 
 
@@ -90,16 +88,13 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
 nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
-        auto specs = fcore::emulator::emulator_specs();
-        specs.set_specs(arguments);
-        fcore::emulator_manager em;
-        if(runtime_config.debug_hil) em.enable_debug_mode();
-        em.set_specs(arguments);
-        auto programs = em.get_programs();
-        if(specs.custom_deploy_mode){
-            resp["response_code"] = custom.deploy(specs, programs);
+
+        bool custom_deploy = arguments["deployment_mode"];
+
+        if(custom_deploy){
+            resp["response_code"] = custom.deploy(arguments);
         } else {
-            resp["response_code"] = hil.deploy(specs, programs);
+            resp["response_code"] = hil.deploy(arguments);
         }
     } catch (std::domain_error &e) {
 
@@ -254,6 +249,8 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
         return resp;
     }
     if(command=="add_breakpoint"){
+        if(!arguments["arguments"].contains("id") ) throw std::runtime_error("Missing core id argument for add_breakpoint command");
+        if(!arguments["arguments"]["id"].is_string()) throw std::runtime_error("Core id must be a string");
         c.id = arguments["arguments"]["id"];
         c.type = command_add_breakpoint;
         c.target_instruction = arguments["arguments"]["line"];

@@ -104,16 +104,16 @@ void deployer_base::setup_core(uint64_t core_address, uint32_t n_channels) {
     write_register(core_address, n_channels);
 }
 
-void deployer_base::setup_memories(uint64_t address, const std::vector<fcore::emulator::emulator_memory_specs> &init_val) {
+void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::memory_init_value> init_values) {
     spdlog::info("------------------------------------------------------------------");
-    for(auto &i:init_val){
+    for(auto &[address, value]:init_values){
 
-        if(std::holds_alternative<std::vector<float>>(i.value)){
-            auto values = std::get<std::vector<float>>(i.value);
-            write_register(address+i.address[0]*4, fcore::emulator_backend::float_to_uint32(values[0]));
+        if(std::holds_alternative<std::vector<float>>(value)){
+            auto values = std::get<std::vector<float>>(value);
+            write_register(base_address+address[0]*4, float_to_uint32(values[0]));
         } else {
-            auto values = std::get<std::vector<uint32_t>>(i.value);
-            write_register(address+i.address[0]*4, values[0]);
+            auto values = std::get<std::vector<uint32_t>>(value);
+            write_register(base_address+address[0]*4, values[0]);
         }
     }
     spdlog::info("------------------------------------------------------------------");
@@ -141,7 +141,7 @@ void deployer_base::setup_inputs(const fcore::emulator::emulator_core &c, uint64
 
             if(std::holds_alternative<std::vector<float>>(in.data[0])){
                 auto c_val = std::get<std::vector<float>>(in.data[0])[0];
-                input_value = fcore::emulator_backend::float_to_uint32(c_val);
+                input_value = float_to_uint32(c_val);
             } else {
                 input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
             }

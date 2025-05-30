@@ -26,7 +26,7 @@
 #include <algorithm>
 
 
-#include "emulator/emulator_manager.hpp"
+#include "emulator/emulator_dispatcher.hpp"
 
 
 

@@ -22,7 +22,7 @@
 
 #include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
-#include "emulator/emulator_manager.hpp"
+#include "emulator/emulator_dispatcher.hpp"
 #include "fCore_isa.hpp"
 
 #include "deployment/deployer_base.hpp"
@@ -33,7 +33,7 @@ public:
     void set_options_repository(std::shared_ptr<options_repository> &rep) {options = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
-    responses::response_code deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs);
+    responses::response_code deploy(nlohmann::json &arguments);
 
     void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(uint32_t address, uint32_t value, std::string core);
@@ -46,11 +46,9 @@ private:
     void setup_cores(uint16_t n_cores);
 
     void check_reciprocal(const std::vector<uint32_t> &program);
-    std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs,
-                                                                   std::vector<uint32_t> n_c);
+    std::vector<uint32_t> calculate_timebase_divider(std::vector<uint32_t> n_c);
 
-    std::vector<uint32_t> calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs,
-                                                     std::vector<uint32_t> n_c);
+    std::vector<uint32_t> calculate_timebase_shift(std::vector<uint32_t> n_c);
 
 
     std::map<std::string, uint32_t> cores_idx;
@@ -66,7 +64,6 @@ private:
     std::shared_ptr<options_repository> options;
 
     bool full_cores_override;
-
 };
 
 

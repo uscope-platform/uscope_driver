@@ -33,9 +33,14 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     deployer_base::set_accessor(ba);
 }
 
-responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
+responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(arguments);
 
 
+    if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
+    dispatcher.set_specs(arguments);
+    auto programs = dispatcher.get_programs();
     this->setup_base(specs);
 
     if(specs.cores.size()>32){
@@ -55,16 +60,18 @@ responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &s
     });
 
     spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<programs.size(); i++){
-        auto core_address = this->addresses.bases.cores_rom + i * this->addresses.offsets.cores_rom;
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", specs.cores[i].id, core_address);
-        cores_idx[specs.cores[i].id] = i;
-        this->load_core(core_address, programs[i].program.binary);
-        check_reciprocal(programs[i].program.binary);
+    uint32_t idx_progressive = 0;
+    for(auto &[program_name, program_data]: programs){
+        auto core_address = this->addresses.bases.cores_rom + idx_progressive * this->addresses.offsets.cores_rom;
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", program_name, core_address);
+        cores_idx[program_name] = idx_progressive;
+        this->load_core(core_address, program_data.binary);
+        check_reciprocal(program_data.binary);
+        idx_progressive++;
     }
 
-    auto dividers = calculate_timebase_divider(programs, n_channels);
-    auto shifts = calculate_timebase_shift(programs, n_channels);
+    auto dividers = calculate_timebase_divider(n_channels);
+    auto shifts = calculate_timebase_shift(n_channels);
 
     spdlog::info("------------------------------------------------------------------");
 
@@ -76,10 +83,13 @@ responses::response_code hil_deployer::deploy(fcore::emulator::emulator_specs &s
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
-    for(int i = 0; i<programs.size(); i++){
-        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", specs.cores[i].id);
-        auto control_address = this->addresses.bases.cores_control + i * this->addresses.offsets.cores_control;
-        this->setup_memories(control_address, programs[i].memories);
+    auto memories = dispatcher.get_memory_initializations();
+
+    for(auto &[core_name, initializations]: memories){
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", core_name);
+
+        auto control_address = this->addresses.bases.cores_control + cores_idx[core_name] * this->addresses.offsets.cores_control;
+        this->setup_memories(control_address, initializations);
     }
 
 
@@ -183,13 +193,14 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_divider(std::vector<uint32_t> n_c) {
     std::vector<uint32_t>core_dividers;
+    auto programs = dispatcher.get_programs();
+    auto sampling_frequencies  = dispatcher.get_sampling_frequencies();
+    for(auto &[program_name, program_data]: programs){
 
-    for(int i = 0; i<programs.size(); i++){
-        const auto& p = programs[i];
         double clock_period = 1/hil_clock_frequency;
-        double total_length = (p.program.program_length.fixed_portion + n_c[i]*p.program.program_length.per_channel_portion)*clock_period;
+        double total_length = (program_data.program_length.fixed_portion + n_c[i]*program_data.program_length.per_channel_portion)*clock_period;
 
         double max_frequency = 1/total_length;
 
@@ -197,14 +208,14 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector
             timebase_divider += 1.0;
         }
 
-        core_dividers.push_back((uint32_t) timebase_frequency/p.sampling_frequency);
+        core_dividers.push_back((uint32_t) timebase_frequency/sampling_frequencies[program_name]);
     }
 
     return core_dividers;
 
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_shift(const std::vector<fcore::program_bundle> &programs, std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_shift(std::vector<uint32_t> n_c) {
 
     struct shift_calc_data {
         std::string name;

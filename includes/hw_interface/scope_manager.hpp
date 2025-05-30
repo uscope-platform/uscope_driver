@@ -50,7 +50,8 @@
 
 #include "bus/scope_accessor.hpp"
 
-#include "emulator/backend/emulator_backend.hpp"
+#include "emulator/emulator_dispatcher.hpp"
+#include "deployment/deployment_utilities.hpp"
 
 #define GET_DATA(NUMBER) (NUMBER & 0xffffffff)
 #define GET_CHANNEL(NUMBER) ((NUMBER & 0x0000ffff00000000)>>32)

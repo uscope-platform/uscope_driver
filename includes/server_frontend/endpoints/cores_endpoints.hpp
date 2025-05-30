@@ -32,7 +32,11 @@
 class cores_endpoints {
 public:
     cores_endpoints();
-    void set_options_repository(std::shared_ptr<options_repository> &rep){options_rep = rep;};
+    void set_options_repository(std::shared_ptr<options_repository> &rep) {
+        options_rep = rep;
+        emulator.set_options_repository(options_rep);
+        hil.set_options_repository(options_rep);
+    };
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:

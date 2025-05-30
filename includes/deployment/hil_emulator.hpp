@@ -24,7 +24,7 @@
 #include <utility>
 
 #include "options_repository.hpp"
-#include "emulator/emulator_manager.hpp"
+#include "emulator/emulator_dispatcher.hpp"
 
 struct emulation_results{
     std::string results;
@@ -61,7 +61,7 @@ public:
     emulation_results emulate(nlohmann::json &specs);
     std::unordered_map<std::string, fcore::disassembled_program> disassemble(nlohmann::json &specs);
 private:
-    fcore::emulator_manager emu_manager;
+    fcore::emulator_dispatcher emu_manager;
     std::string initialize_emulation(const nlohmann::json &specs);
     std::string run_emulation();
     std::string add_breakpoint(std::string core_id, uint32_t line);

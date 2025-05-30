@@ -28,19 +28,29 @@ custom_deployer::custom_deployer() {
 
 
 
-responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs &specs, const std::vector<fcore::program_bundle> &programs) {
+responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
+    auto specs = fcore::emulator::emulator_specs();
+    specs.set_specs(arguments);
 
-
+    fcore::emulator_dispatcher em;
+    if(runtime_config.debug_hil) em.enable_debug_mode();
+    em.set_specs(arguments);
+    auto programs = em.get_programs();
 
     this->setup_base(specs);
 
 
     spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<programs.size(); i++){
-        auto core_address = specs.cores[i].deployment.rom_address;
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", specs.cores[i].id, core_address);
-        cores_idx[specs.cores[i].id] = i;
-        this->load_core(core_address, programs[i].program.binary);
+    auto index = 0;
+    for(auto &[program_name, program_data]: programs){
+        uint64_t core_address = 0;
+        for(auto &core: specs.cores) {
+            if(core.id == program_name) core_address = core.deployment.rom_address;
+        }
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", program_name, core_address);
+        cores_idx[program_name] = index;
+        index++;
+        this->load_core(core_address, program_data.binary);
     }
 
     spdlog::info("------------------------------------------------------------------");
@@ -55,10 +65,16 @@ responses::response_code custom_deployer::deploy(fcore::emulator::emulator_specs
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
-    for(int i = 0; i<programs.size(); i++){
-        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", specs.cores[i].id);
-        auto control_address = specs.cores[i].deployment.control_address;
-        this->setup_memories(control_address, programs[i].memories);
+
+    auto memories = dispatcher.get_memory_initializations();
+
+    for(auto &[core_name, program]: programs){
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", core_name);
+        uint64_t control_address = 0;
+        for(auto &core: specs.cores) {
+            if(core.id == core_name) control_address = core.deployment.control_address;
+        }
+        this->setup_memories(control_address, memories[core_name]);
     }
 
 
