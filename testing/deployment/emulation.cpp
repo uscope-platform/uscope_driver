@@ -24,6 +24,7 @@ TEST(emulator, simple_emulation) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+        "version":1,
         "cores": [
             {
                 "id": "test_producer",
@@ -193,7 +194,20 @@ TEST(emulator, disassembly) {
             },
             "sampling_frequency":1,
             "input_data":[],
-            "inputs":[],
+            "inputs":[
+                {
+                    "name": "input_data",
+                    "metadata":{
+                        "type": "float",
+                        "width": 24,
+                        "signed":false,
+                        "common_io": false
+                    },
+                    "reg_n": [4,3],
+                    "channel":[0],
+                    "source":{"type": "constant","value": [31.2, 32.7]}
+                }
+            ],
             "outputs":[
                 {
                     "name":"out",
@@ -209,7 +223,7 @@ TEST(emulator, disassembly) {
             "memory_init":[],
             "program": {
                 "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] * input_data[1];\n}\n",
-                "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
+                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
                 "headers": []
             },
             "deployment": {
@@ -229,10 +243,14 @@ TEST(emulator, disassembly) {
 
     std::unordered_map<std::string, fcore::disassembled_program> check_map;
 
-    check_map["test_producer"] = {{{5,3},{4,1},{3,2}},"add r2, r1, r3\nstop\n"};
-    check_map["test_reducer"] = {{{5,3}},"mul r1, r2, r3\nstop\n"};
+    check_map["test_producer"] = {{{3,2},{4,1},{5,3}},"add r2, r1, r3\nstop\n"};
+    check_map["test_reducer"] = {{{3,1}, {4,2}, {5,3}},"mul r2, r1, r3\nstop\n"};
 
 
-    EXPECT_EQ(res, check_map);
+    EXPECT_EQ(check_map["test_producer"].translation_table, res["test_producer"].translation_table);
+    EXPECT_EQ(check_map["test_producer"].program, res["test_producer"].program);
+    EXPECT_EQ(check_map["test_reducer"].translation_table, res["test_reducer"].translation_table);
+    EXPECT_EQ(check_map["test_reducer"].program, res["test_reducer"].program);
+
 }
 
