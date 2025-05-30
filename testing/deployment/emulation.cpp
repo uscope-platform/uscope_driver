@@ -121,6 +121,7 @@ TEST(emulator, disassembly) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "order": 1,

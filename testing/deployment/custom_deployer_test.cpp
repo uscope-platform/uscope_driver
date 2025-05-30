@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 #include "deployment/custom_deployer.hpp"
-#include "emulator/emulator_manager.hpp"
+#include "emulator/emulator_dispatcher.hpp"
 
 #include "../deployment/fpga_bridge_mock.hpp"
 
@@ -65,6 +65,7 @@ TEST(custom_deployer, deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "vsi",
@@ -447,19 +448,13 @@ TEST(custom_deployer, deployment) {
     "deployment_mode": true
 })");
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     custom_deployer d;
     d.set_accessor(ba);
     auto addr_map = custom_deployer_get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     auto ops = ba->get_operations();
 

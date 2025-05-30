@@ -15,6 +15,7 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         ValiJSON::valijson
         fcore_cc_lib
         fcore_emu_lib
+        fcore_emu_lib_gp
         nlohmann_json::nlohmann_json
         GTest::gtest
         GTest::gtest_main

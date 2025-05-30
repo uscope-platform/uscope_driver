@@ -78,6 +78,7 @@ target_link_libraries(uscope_driver PRIVATE
         nlohmann_json::nlohmann_json
         CLI11::CLI11
         fcore_cc_lib
+        fcore_emu_lib_gp
         fcore_emu_lib
         asio::asio
 )
@@ -132,6 +133,7 @@ target_link_libraries(test_hil_deployer PRIVATE
         nlohmann_json::nlohmann_json
         ValiJSON::valijson
         fcore_cc_lib
+        fcore_emu_lib_gp
         fcore_emu_lib
         CLI11::CLI11
 )

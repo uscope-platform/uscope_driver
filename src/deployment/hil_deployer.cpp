@@ -53,6 +53,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
     for(auto & c : specs.cores){
         frequencies.push_back(c.sampling_frequency);
+        execution_order[c.id] =  c.order;
     }
 
     timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
@@ -66,12 +67,12 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", program_name, core_address);
         cores_idx[program_name] = idx_progressive;
         this->load_core(core_address, program_data.binary);
-        check_reciprocal(program_data.binary);
+        n_channels[program_name] = check_reciprocal(program_data.binary);
         idx_progressive++;
     }
 
-    auto dividers = calculate_timebase_divider(n_channels);
-    auto shifts = calculate_timebase_shift(n_channels);
+    auto dividers = calculate_timebase_divider();
+    auto shifts = calculate_timebase_shift();
 
     spdlog::info("------------------------------------------------------------------");
 
@@ -104,7 +105,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
     }
 
     setup_sequencer(programs.size(), dividers, shifts);
-    setup_cores(programs.size());
+    setup_cores(programs);
 
     return responses::ok;
 }
@@ -131,16 +132,16 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     spdlog::info("------------------------------------------------------------------");
 }
 
-void hil_deployer::setup_cores(uint16_t n_cores) {
+void hil_deployer::setup_cores(std::unordered_map<std::string, fcore::fcore_program> &programs) {
     spdlog::info("SETUP CORES");
     spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<n_cores; i++){
-        this->setup_core(this->addresses.bases.cores_control + i * this->addresses.offsets.cores_control,  n_channels[i]);
+    for(auto program_name : programs | std::views::keys){
+        this->setup_core(this->addresses.bases.cores_control + cores_idx[program_name] * this->addresses.offsets.cores_control,  n_channels[program_name]);
     }
 }
 
 
-void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
+uint32_t hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     bool rec_present = false;
     int section=0;
     bool skip_next = false;
@@ -160,9 +161,9 @@ void hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     }
     // SET THE NUMBER OF CHANNELS DEPENDING ON THE PIPELINE LENGTH OF THE PROCESSOR TO AVOID WAIT STATES
     if(rec_present | full_cores_override){
-        n_channels.push_back(11);
+        return 11;
     } else {
-        n_channels.push_back(8);
+        return 8;
     }
 }
 
@@ -193,14 +194,14 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_divider(std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
     std::vector<uint32_t>core_dividers;
     auto programs = dispatcher.get_programs();
     auto sampling_frequencies  = dispatcher.get_sampling_frequencies();
     for(auto &[program_name, program_data]: programs){
 
         double clock_period = 1/hil_clock_frequency;
-        double total_length = (program_data.program_length.fixed_portion + n_c[i]*program_data.program_length.per_channel_portion)*clock_period;
+        double total_length = (program_data.program_length.fixed_portion + n_channels[program_name]*program_data.program_length.per_channel_portion)*clock_period;
 
         double max_frequency = 1/total_length;
 
@@ -215,7 +216,7 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider(std::vector<uint3
 
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_shift(std::vector<uint32_t> n_c) {
+std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
 
     struct shift_calc_data {
         std::string name;
@@ -223,10 +224,13 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift(std::vector<uint32_
         uint32_t program_length;
     };
 
+    auto programs = dispatcher.get_programs();
+
     std::vector<shift_calc_data> calc_data_v;
-    for(int i = 0; i<programs.size(); i++){
-        auto l = programs[i].program.program_length.fixed_portion + n_c[i]*programs[i].program.program_length.per_channel_portion;
-        calc_data_v.emplace_back(programs[i].name, programs[i].execution_order, l);
+    for(auto [program_name, data]:programs ){
+        auto l = data.program_length.fixed_portion + n_channels[program_name]*data.program_length.per_channel_portion;
+
+        calc_data_v.emplace_back(program_name, execution_order[program_name], l);
     }
 
 
@@ -247,8 +251,8 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift(std::vector<uint32_
     }
     std::vector<uint32_t> shifts;
 
-    for(const auto &item:programs){
-        shifts.push_back(ordered_shifts[item.name]);
+    for(const auto &program_name:programs | std::views::keys){
+        shifts.push_back(ordered_shifts[program_name]);
     }
 
     return shifts;

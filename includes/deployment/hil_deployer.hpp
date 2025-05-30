@@ -43,20 +43,19 @@ private:
 
 
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
-    void setup_cores(uint16_t n_cores);
+    void setup_cores(std::unordered_map<std::string, fcore::fcore_program> &programs);
 
-    void check_reciprocal(const std::vector<uint32_t> &program);
-    std::vector<uint32_t> calculate_timebase_divider(std::vector<uint32_t> n_c);
+    uint32_t check_reciprocal(const std::vector<uint32_t> &program);
+    std::vector<uint32_t> calculate_timebase_divider();
 
-    std::vector<uint32_t> calculate_timebase_shift(std::vector<uint32_t> n_c);
+    std::vector<uint32_t> calculate_timebase_shift();
 
 
     std::map<std::string, uint32_t> cores_idx;
     float hil_clock_frequency = 100e6;
 
-
-
-    std::vector<uint32_t> n_channels;
+    std::unordered_map<std::string, uint32_t> n_channels;
+    std::unordered_map<std::string, uint32_t> execution_order;
 
     double timebase_frequency;
     double timebase_divider = 1;

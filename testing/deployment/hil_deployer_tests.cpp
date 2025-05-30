@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "deployment/hil_deployer.hpp"
-#include "emulator/emulator_manager.hpp"
+#include "emulator/emulator_dispatcher.hpp"
 
 #include "../deployment/fpga_bridge_mock.hpp"
 
@@ -64,6 +64,7 @@ TEST(deployer, simple_single_core_deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -158,19 +159,14 @@ TEST(deployer, simple_single_core_deployment) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
+
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     auto ops = ba->get_operations();
 
@@ -240,6 +236,7 @@ TEST(deployer, simple_single_core_integer_input) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -334,20 +331,13 @@ TEST(deployer, simple_single_core_integer_input) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -418,6 +408,7 @@ TEST(deployer, simple_single_core_memory_init) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -498,12 +489,6 @@ TEST(deployer, simple_single_core_memory_init) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
 
 
     auto ba = std::make_shared<bus_accessor>(true);
@@ -511,7 +496,7 @@ TEST(deployer, simple_single_core_memory_init) {
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -591,6 +576,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
     {
         "id": "test",
@@ -697,12 +683,7 @@ TEST(deployer, multichannel_single_core_deployment) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
+
 
 
     auto ba = std::make_shared<bus_accessor>(true);
@@ -710,7 +691,7 @@ TEST(deployer, multichannel_single_core_deployment) {
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -799,6 +780,7 @@ TEST(deployer, simple_multi_core_deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -980,20 +962,13 @@ TEST(deployer, simple_multi_core_deployment) {
     "deployment_mode": false
 })");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -1102,6 +1077,7 @@ TEST(deployer, scalar_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -1263,20 +1239,13 @@ TEST(deployer, scalar_interconnect_test) {
 }
 )");
 
-    
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -1400,6 +1369,7 @@ TEST(deployer, scatter_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
         "cores": [
             {
                 "order": 0,
@@ -1489,19 +1459,12 @@ TEST(deployer, scatter_interconnect_test) {
     })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
-
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -1614,6 +1577,7 @@ TEST(deployer, gather_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"(
+    "version":1,
     {
     "cores": [
         {
@@ -1740,19 +1704,12 @@ TEST(deployer, gather_interconnect_test) {
 })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
-
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -1867,6 +1824,7 @@ TEST(deployer, vector_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"(
+    "version":1,
     {
         "cores": [
             {
@@ -1982,19 +1940,13 @@ TEST(deployer, vector_interconnect_test) {
     })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -2116,6 +2068,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"(
+    "version":1,
     {
         "cores": [
             {
@@ -2207,19 +2160,12 @@ TEST(deployer, 2d_vector_interconnect_test) {
     })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
-
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
 
     
     auto ops = ba->get_operations();
@@ -2356,6 +2302,7 @@ TEST(deployer, simple_single_core_output_select) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -2451,18 +2398,13 @@ TEST(deployer, simple_single_core_output_select) {
 })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
     output_specs_t out;
     out.address = 5,
     out.channel = 1,
@@ -2548,6 +2490,7 @@ TEST(deployer, simple_single_core_input_set) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -2643,19 +2586,12 @@ TEST(deployer, simple_single_core_input_set) {
 })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
-
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
     d.set_input(4,90,"test");
 
     
@@ -2732,6 +2668,7 @@ TEST(deployer, simple_single_core_start_stop) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
+    "version":1,
     "cores": [
         {
             "id": "test",
@@ -2827,19 +2764,13 @@ TEST(deployer, simple_single_core_start_stop) {
 })");
 
 
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(spec_json);
-    fcore::emulator_manager em;
-    em.set_specs(spec_json);
-    auto programs = em.get_programs();
-
 
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
     auto addr_map = get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(specs, programs);
+    d.deploy(spec_json);
     d.start();
     d.stop();
 
