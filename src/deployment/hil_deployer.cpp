@@ -61,14 +61,12 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
     });
 
     spdlog::info("------------------------------------------------------------------");
-    uint32_t idx_progressive = 0;
-    for(auto &[program_name, program_data]: programs){
-        auto core_address = this->addresses.bases.cores_rom + idx_progressive * this->addresses.offsets.cores_rom;
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", program_name, core_address);
-        cores_idx[program_name] = idx_progressive;
-        this->load_core(core_address, program_data.binary);
-        n_channels[program_name] = check_reciprocal(program_data.binary);
-        idx_progressive++;
+    for(auto &p: programs){
+        auto core_address = this->addresses.bases.cores_rom + p.index * this->addresses.offsets.cores_rom;
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
+        cores_idx[p.name] = p.index;
+        this->load_core(core_address, p.program.binary);
+        n_channels[p.name] = check_reciprocal(p.program.binary);
     }
 
     auto dividers = calculate_timebase_divider();
@@ -132,11 +130,11 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     spdlog::info("------------------------------------------------------------------");
 }
 
-void hil_deployer::setup_cores(std::unordered_map<std::string, fcore::fcore_program> &programs) {
+void hil_deployer::setup_cores(std::vector<fcore::deployed_program> &programs) {
     spdlog::info("SETUP CORES");
     spdlog::info("------------------------------------------------------------------");
-    for(auto program_name : programs | std::views::keys){
-        this->setup_core(this->addresses.bases.cores_control + cores_idx[program_name] * this->addresses.offsets.cores_control,  n_channels[program_name]);
+    for(auto p : programs ){
+        this->setup_core(this->addresses.bases.cores_control + p.index * this->addresses.offsets.cores_control,  n_channels[p.name]);
     }
 }
 
@@ -197,11 +195,10 @@ void hil_deployer::stop() {
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
     std::vector<uint32_t>core_dividers;
     auto programs = dispatcher.get_programs();
-    auto sampling_frequencies  = dispatcher.get_sampling_frequencies();
-    for(auto &[program_name, program_data]: programs){
+    for(auto &p: programs){
 
         double clock_period = 1/hil_clock_frequency;
-        double total_length = (program_data.program_length.fixed_portion + n_channels[program_name]*program_data.program_length.per_channel_portion)*clock_period;
+        double total_length = (p.program.program_length.fixed_portion + n_channels[p.name]*p.program.program_length.per_channel_portion)*clock_period;
 
         double max_frequency = 1/total_length;
 
@@ -209,7 +206,7 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
             timebase_divider += 1.0;
         }
 
-        core_dividers.push_back((uint32_t) timebase_frequency/sampling_frequencies[program_name]);
+        core_dividers.push_back((uint32_t) timebase_frequency/p.sampling_frequency);
     }
 
     return core_dividers;
@@ -227,10 +224,10 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
     auto programs = dispatcher.get_programs();
 
     std::vector<shift_calc_data> calc_data_v;
-    for(auto [program_name, data]:programs ){
-        auto l = data.program_length.fixed_portion + n_channels[program_name]*data.program_length.per_channel_portion;
+    for(auto &p :programs ){
+        auto l = p.program.program_length.fixed_portion + n_channels[p.name]*p.program.program_length.per_channel_portion;
 
-        calc_data_v.emplace_back(program_name, execution_order[program_name], l);
+        calc_data_v.emplace_back(p.name, execution_order[p.name], l);
     }
 
 
@@ -251,8 +248,8 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
     }
     std::vector<uint32_t> shifts;
 
-    for(const auto &program_name:programs | std::views::keys){
-        shifts.push_back(ordered_shifts[program_name]);
+    for(const auto &p:programs){
+        shifts.push_back(ordered_shifts[p.name]);
     }
 
     return shifts;

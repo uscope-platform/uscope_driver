@@ -41,16 +41,14 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
 
 
     spdlog::info("------------------------------------------------------------------");
-    auto index = 0;
-    for(auto &[program_name, program_data]: programs){
+    for(auto &p: programs){
         uint64_t core_address = 0;
         for(auto &core: specs.cores) {
-            if(core.id == program_name) core_address = core.deployment.rom_address;
+            if(core.id == p.name) core_address = core.deployment.rom_address;
         }
-        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", program_name, core_address);
-        cores_idx[program_name] = index;
-        index++;
-        this->load_core(core_address, program_data.binary);
+        spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
+        cores_idx[p.name] = p.index;
+        this->load_core(core_address, p.program.binary);
     }
 
     spdlog::info("------------------------------------------------------------------");
@@ -66,15 +64,15 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
     }
 
 
-    auto memories = dispatcher.get_memory_initializations();
+    auto memories = em.get_memory_initializations();
 
-    for(auto &[core_name, program]: programs){
-        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", core_name);
+    for(auto &p: programs){
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
         uint64_t control_address = 0;
         for(auto &core: specs.cores) {
-            if(core.id == core_name) control_address = core.deployment.control_address;
+            if(core.id == p.name) control_address = core.deployment.control_address;
         }
-        this->setup_memories(control_address, memories[core_name]);
+        this->setup_memories(control_address, memories[p.name]);
     }
 
 

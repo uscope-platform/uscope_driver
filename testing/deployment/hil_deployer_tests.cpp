@@ -1576,9 +1576,8 @@ TEST(deployer, gather_interconnect_test) {
 
 
     nlohmann::json spec_json = nlohmann::json::parse(
-            R"(
+            R"({
     "version":1,
-    {
     "cores": [
         {
             "order": 0,
@@ -1823,9 +1822,8 @@ TEST(deployer, vector_interconnect_test) {
 
 
     nlohmann::json spec_json = nlohmann::json::parse(
-            R"(
-    "version":1,
-    {
+            R"({
+        "version":1,
         "cores": [
             {
                 "order": 0,
@@ -2067,9 +2065,8 @@ TEST(deployer, 2d_vector_interconnect_test) {
 
 
     nlohmann::json spec_json = nlohmann::json::parse(
-            R"(
-    "version":1,
-    {
+            R"({
+        "version":1,
         "cores": [
             {
                 "order": 0,

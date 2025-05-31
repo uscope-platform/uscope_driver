@@ -43,7 +43,7 @@ private:
 
 
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
-    void setup_cores(std::unordered_map<std::string, fcore::fcore_program> &programs);
+    void setup_cores(std::vector<fcore::deployed_program> &programs);
 
     uint32_t check_reciprocal(const std::vector<uint32_t> &program);
     std::vector<uint32_t> calculate_timebase_divider();
