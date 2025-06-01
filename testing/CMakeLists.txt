@@ -1,6 +1,7 @@
 set(TEST_SOURCES
         testing_main.cpp
         deployment/hil_deployer_tests.cpp
+        deployment/hil_deployer_v2.cpp
         deployment/custom_deployer_test.cpp
         deployment/emulation.cpp
         deployment/fpga_bridge.cpp

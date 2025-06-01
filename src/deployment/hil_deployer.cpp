@@ -43,7 +43,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
     auto programs = dispatcher.get_programs();
     this->setup_base(specs);
 
-    if(specs.cores.size()>32){
+    if(programs.size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";
         spdlog::critical(msg);
         throw std::runtime_error(msg);
@@ -51,23 +51,20 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
     std::vector<uint32_t> frequencies;
 
-    for(auto & c : specs.cores){
-        frequencies.push_back(c.sampling_frequency);
-        execution_order[c.id] =  c.order;
-    }
-
-    timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
-        return std::lcm(a,b);
-    });
-
     spdlog::info("------------------------------------------------------------------");
     for(auto &p: programs){
         auto core_address = this->addresses.bases.cores_rom + p.index * this->addresses.offsets.cores_rom;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
+        execution_order[p.name] =  p.order;
         this->load_core(core_address, p.program.binary);
         n_channels[p.name] = check_reciprocal(p.program.binary);
+        frequencies.push_back(p.sampling_frequency);
+
     }
+    timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
+        return std::lcm(a,b);
+    });
 
     auto dividers = calculate_timebase_divider();
     auto shifts = calculate_timebase_shift();
@@ -75,10 +72,10 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
     spdlog::info("------------------------------------------------------------------");
 
     uint16_t max_transfers = 0;
-    for(int i = 0; i<programs.size(); i++){
-        uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*i;
+    for(auto &p:programs){
+        uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*cores_idx[p.name];
         auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
-        auto n_transfers = this->setup_output_dma(dma_address, specs.cores[i].id);
+        auto n_transfers = this->setup_output_dma(dma_address, p.name);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
