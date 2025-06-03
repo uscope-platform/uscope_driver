@@ -112,7 +112,8 @@ TEST(deployer_v2, simple_single_core_deployment) {
                     "metadata":{
                         "type": "float",
                         "width":16,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     }
                 }
             ],
@@ -276,8 +277,9 @@ TEST(deployer_v2, simple_single_core_integer_input) {
                     "metadata":{
                         "type": "float",
                         "width":16,
-                        "signed":true
-                    },
+                        "signed":true,
+                        "common_io":false
+                    }
                 }
             ],
             "memory_init": [],
@@ -406,7 +408,8 @@ TEST(deployer_v2, simple_single_core_memory_init) {
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     }
                 }
             ],
@@ -424,6 +427,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
                 },
                 {
                     "name": "mem_2",
+                    "type":"scalar",
                     "metadata":{
                         "type": "integer",
                         "width":16,
@@ -563,6 +567,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
         "inputs": [
             {
                 "name": "input_1",
+                "type":"scalar",
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -587,6 +592,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
             },
             {
                 "name": "input_2",
+                "type":"scalar",
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -613,11 +619,12 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
         "outputs": [
             {
                 "name": "out",
-                "type": "float",
+                "type":"scalar",
                 "metadata":{
                     "type": "float",
                     "width":16,
-                    "signed":true
+                    "signed":true,
+                    "common_io":false
                 }
             }
         ],
@@ -761,6 +768,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -779,6 +787,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -799,11 +808,12 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     }
                 }
             ],
@@ -842,6 +852,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -860,6 +871,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -880,11 +892,12 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata":{
                         "type": "float",
                         "width":32,
-                        "signed":true
+                        "signed":true,
+                        "common_io":false
                     }
                 }
             ],
@@ -1045,6 +1058,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1061,6 +1075,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1081,9 +1096,10 @@ TEST(deployer_v2, scalar_interconnect_test) {
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     },
-                    "type": "float",
+                    "type":"scalar",
                     "name": "out"
                 }
             ],
@@ -1123,11 +1139,12 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "inputs": [],
             "outputs": [
                 {
-                    "type": "float",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     },
                     "name": "out"
                 }
@@ -1358,11 +1375,12 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
-                        "type": "float",
+                        "type":"scalar",
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": true
+                            "signed": true,
+                            "common_io":false
                         }
                     }
                 ],
@@ -1539,6 +1557,7 @@ TEST(deployer_v2, gather_interconnect_test) {
             "inputs":[
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1550,6 +1569,7 @@ TEST(deployer_v2, gather_interconnect_test) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1563,11 +1583,12 @@ TEST(deployer_v2, gather_interconnect_test) {
             "outputs":[
                 {
                     "name":"out",
-                    "type": "float",
+                    "type": "scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     }
                 }
             ],
@@ -1596,11 +1617,12 @@ TEST(deployer_v2, gather_interconnect_test) {
             "outputs":[
                 {
                     "name":"out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     }
                 }
             ],
@@ -1779,6 +1801,7 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "inputs":[
                     {
                         "name": "input_1",
+                        "type":"scalar",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -1790,6 +1813,7 @@ TEST(deployer_v2, vector_interconnect_test) {
                     },
                     {
                         "name": "input_2",
+                        "type":"scalar",
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -1826,11 +1850,12 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
-                        "type": "float",
+                        "type":"scalar",
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": true
+                            "signed": true,
+                            "common_io": false
                         }
                     }
                 ],
@@ -2041,11 +2066,13 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 "outputs":[
                     {
                         "name":"consumer_out",
-                        "type": "float",
+                        "type":"vector",
+                        "vector_size":2,
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": false
+                            "signed": false,
+                            "common_io": false
                         }
                     }
                 ],
@@ -2241,6 +2268,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2259,6 +2287,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2279,11 +2308,12 @@ TEST(deployer_v2, simple_single_core_output_select) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     }
                 }
             ],
@@ -2423,6 +2453,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2441,6 +2472,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2461,12 +2493,13 @@ TEST(deployer_v2, simple_single_core_input_set) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
-                    },
+                        "signed": true,
+                        "common_io":false
+                    }
                 }
             ],
             "memory_init": [],
@@ -2595,11 +2628,12 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             "inputs": [
                 {
                     "name": "input_1",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2613,11 +2647,12 @@ TEST(deployer_v2, simple_single_core_start_stop) {
                 },
                 {
                     "name": "input_2",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2633,11 +2668,12 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "float",
+                    "type":"scalar",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     }
                 }
             ],
