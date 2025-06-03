@@ -34,14 +34,17 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 }
 
 responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(arguments);
 
 
     if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
     dispatcher.set_specs(arguments);
     auto programs = dispatcher.get_programs();
-    this->setup_base(specs);
+
+    bus_map.clear();
+
+    bus_map.set_map(dispatcher.get_interconnect_slots());
+    bus_map.check_conflicts();
+
 
     if(programs.size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";

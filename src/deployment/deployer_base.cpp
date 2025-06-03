@@ -36,7 +36,7 @@ uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &co
     spdlog::info("------------------------------------------------------------------");
     int current_io = 0;
     for(auto &i:bus_map){
-        if(i.core_name == core_name){
+        if(i.source_id == core_name){
             setup_output_entry(i, address, current_io);
             current_io++;
         }
@@ -46,7 +46,7 @@ uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &co
     return current_io;
 }
 
-void deployer_base::setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive) {
+void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive) {
 
     if(e.source_io_address > 0xfff){
         throw std::runtime_error("The maximum source address in an interconnect is 0xFFF");
@@ -159,27 +159,6 @@ void deployer_base::update_input_value(uint32_t address, uint32_t value, std::st
             write_register( in.const_ip_addr, value);
         }
     }
-}
-
-void deployer_base::setup_base(const fcore::emulator::emulator_specs &specs) {
-    //cleanup bus map from previous deployment data;
-    bus_map.clear();
-
-
-    if(!specs.custom_deploy_mode){
-        hil_bus_map input_bus_map;
-        for(auto &i:specs.interconnects){
-            for(auto &c:i.channels){
-                bus_map.add_interconnect_channel(c, i.source_core_id, i.destination_core_id);
-            }
-        }
-    }
-
-    for(const auto &c:specs.cores){
-        bus_map.add_standalone_output(c);
-    }
-
-    bus_map.check_conflicts();
 }
 
 void deployer_base::set_accessor(const std::shared_ptr<bus_accessor> &ba) {

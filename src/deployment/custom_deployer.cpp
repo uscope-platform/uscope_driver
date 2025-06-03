@@ -29,23 +29,21 @@ custom_deployer::custom_deployer() {
 
 
 responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
-    auto specs = fcore::emulator::emulator_specs();
-    specs.set_specs(arguments);
 
-    fcore::emulator_dispatcher em;
-    if(runtime_config.debug_hil) em.enable_debug_mode();
-    em.set_specs(arguments);
-    auto programs = em.get_programs();
+    if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
+    dispatcher.set_specs(arguments);
+    auto programs = dispatcher.get_programs();
 
-    this->setup_base(specs);
+
+    bus_map.clear();
+    bus_map.set_map(dispatcher.get_interconnect_slots());
+    bus_map.check_conflicts();
 
 
     spdlog::info("------------------------------------------------------------------");
     for(auto &p: programs){
         uint64_t core_address = 0;
-        for(auto &core: specs.cores) {
-            if(core.id == p.name) core_address = core.deployment.rom_address;
-        }
+        core_address = dispatcher.get_deployment_options(p.name).rom_address;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
         this->load_core(core_address, p.program.binary);
@@ -59,25 +57,23 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
         uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*i;
         auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
 
-        auto n_transfers = this->setup_output_dma(dma_address, specs.cores[i].id);
+        auto n_transfers = this->setup_output_dma(dma_address, programs[i].name);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
 
-    auto memories = em.get_memory_initializations();
+    auto memories = dispatcher.get_memory_initializations();
 
     for(auto &p: programs){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
         uint64_t control_address = 0;
-        for(auto &core: specs.cores) {
-            if(core.id == p.name) control_address = core.deployment.control_address;
-        }
+        control_address = dispatcher.get_deployment_options(p.name).control_address;
         this->setup_memories(control_address, memories[p.name]);
     }
 
 
     for(auto &p:programs){
-        auto inputs = em.get_inputs(p.name);
+        auto inputs = dispatcher.get_inputs(p.name);
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         for(int i = 0; i<inputs.size(); i++)  {
@@ -94,13 +90,14 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
 
     }
 
-    for(auto &c:specs.cores){
-        auto min_channels = c.deployment.has_reciprocal ? 11 : 8;
+    for(auto &p:programs){
+        auto opts = dispatcher.get_deployment_options(p.name);
+        auto min_channels =  opts.has_reciprocal ? 11 : 8;
 
-        if(c.channels> min_channels){
-            this->setup_core(c.deployment.control_address, c.channels);
+        if(p.n_channels> min_channels){
+            this->setup_core(opts.control_address, p.n_channels);
         } else{
-            this->setup_core(c.deployment.control_address, min_channels);
+            this->setup_core(opts.control_address, min_channels);
         }
     }
 

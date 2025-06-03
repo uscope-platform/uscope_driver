@@ -137,7 +137,6 @@ public:
 protected:
     std::pair<uint16_t, uint16_t> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);};
 
-    void setup_base(const fcore::emulator::emulator_specs &specs);
     void write_register(uint64_t addr, uint32_t val);
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     void setup_core(uint64_t core_address, uint32_t n_channels);
@@ -146,7 +145,7 @@ protected:
     void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t complex_address, uint64_t ip_address,std::string core_name);
 
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
-    void setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive);
+    void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive);
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
@@ -156,8 +155,8 @@ protected:
     logic_layout addresses;
 protected:
     fcore::emulator_dispatcher dispatcher;
-private:
     hil_bus_map bus_map;
+private:
     std::vector<input_metadata_t> inputs;
 };
 

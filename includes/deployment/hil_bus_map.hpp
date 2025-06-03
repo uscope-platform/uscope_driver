@@ -52,26 +52,21 @@ struct output_specs_t{
 class hil_bus_map {
 public:
 
-    void push_back(const bus_map_entry &e);;
+    void set_map(const std::vector<fcore::deployer_interconnect_slot> &slots){bus_map = slots;}
+    void push_back(const fcore::deployer_interconnect_slot &e);
 
-    std::vector<bus_map_entry>::iterator begin();
+    std::vector<fcore::deployer_interconnect_slot>::const_iterator begin() const;
+    std::vector<fcore::deployer_interconnect_slot>::iterator begin();
 
-    std::vector<bus_map_entry>::const_iterator begin() const;
-
-    std::vector<bus_map_entry>::iterator end();
+    std::vector<fcore::deployer_interconnect_slot>::const_iterator end() const;
+    std::vector<fcore::deployer_interconnect_slot>::iterator end();
 
     void add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core);
     void add_standalone_output(const fcore::emulator::emulator_core &out);
 
-    void process_scalar_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
-    void process_scatter_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
-    void process_gather_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
-    void process_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
-    void process_2d_vector_channel(const fcore::emulator::dma_channel &c, const std::string& source_core);
 
     std::pair<uint16_t, uint16_t> translate_output(const output_specs_t &out);
 
-    std::vector<bus_map_entry>::const_iterator end() const;
     uint16_t get_free_address(uint16_t original_addr);
     bool is_io_address_free(uint16_t addr, const std::string& p_n);
     bool is_bus_address_free(uint16_t addr);
@@ -80,7 +75,7 @@ public:
     void check_conflicts();
 
 private:
-    std::vector<bus_map_entry> bus_map;
+    std::vector<fcore::deployer_interconnect_slot> bus_map;
     std::map<std::string, std::set<std::string>> interconnect_exposed_outputs;
 
 };
