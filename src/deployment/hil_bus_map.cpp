@@ -121,7 +121,7 @@ void hil_bus_map::process_scalar_channel(const fcore::emulator::dma_channel &c, 
     e.source_io_address = c.source.address[0];
     e.source_channel = c.source.channel[0];
     e.type = "o";
-    e.metadata.type = fcore::emulator::type_float;
+    e.metadata.type = fcore::type_float;
     e.metadata.is_signed = false;
     e.metadata.width = 32;
     bus_map.push_back(e);
@@ -136,7 +136,7 @@ void hil_bus_map::process_scatter_channel(const fcore::emulator::dma_channel &c,
         e.destination_bus_address =  c.destination.address[0];
         e.destination_channel = c.destination.channel[0] + i;
         e.type = "o";
-        e.metadata.type = fcore::emulator::type_float;
+        e.metadata.type = fcore::type_float;
         e.metadata.is_signed = false;
         e.metadata.width = 32;
         bus_map.push_back(e);
@@ -152,7 +152,7 @@ void hil_bus_map::process_gather_channel(const fcore::emulator::dma_channel &c, 
         e.destination_bus_address =  c.destination.address[0] + i;
         e.destination_channel = c.destination.channel[0];
         e.type = "o";
-        e.metadata.type = fcore::emulator::type_float;
+        e.metadata.type = fcore::type_float;
         e.metadata.is_signed = false;
         e.metadata.width = 32;
         bus_map.push_back(e);
@@ -168,7 +168,7 @@ void hil_bus_map::process_vector_channel(const fcore::emulator::dma_channel &c, 
         e.destination_bus_address =  c.destination.address[0];
         e.destination_channel = c.destination.channel[0] + i;
         e.type = "o";
-        e.metadata.type = fcore::emulator::type_float;
+        e.metadata.type = fcore::type_float;
         e.metadata.is_signed = false;
         e.metadata.width = 32;
         bus_map.push_back(e);
@@ -185,7 +185,7 @@ void hil_bus_map::process_2d_vector_channel(const fcore::emulator::dma_channel &
             e.destination_bus_address =  c.destination.address[0] + j;
             e.destination_channel = c.destination.channel[0] + i;
             e.type = "o";
-            e.metadata.type = fcore::emulator::type_float;
+            e.metadata.type = fcore::type_float;
             e.metadata.is_signed = false;
             e.metadata.width = 32;
             bus_map.push_back(e);

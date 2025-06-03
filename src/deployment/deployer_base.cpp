@@ -76,7 +76,7 @@ void deployer_base::setup_output_entry(const bus_map_entry &e, uint64_t dma_addr
 
     uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
 
-    if(e.metadata.type == fcore::emulator::type_float){
+    if(e.metadata.type == fcore::type_float){
         write_register(metadata_address, get_metadata_value(
                 32,
                 true,
@@ -119,43 +119,37 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     spdlog::info("------------------------------------------------------------------");
 }
 
-void deployer_base::setup_inputs(const fcore::emulator::emulator_core &c, uint64_t complex_address, uint64_t inputs_offset,
+void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t complex_address, uint64_t inputs_offset,
                             uint64_t const_offset) {
-    spdlog::info("SETUP INPUTS FOR CORE: {0}", c.id);
-    spdlog::info("------------------------------------------------------------------");
-    for(int i = 0; i<c.inputs.size(); ++i){
-        auto in = c.inputs[i];
-        if(in.source_type ==fcore::emulator::constant_input){
-            std::string in_name = in.name;
-            uint32_t address =in.address[0];
 
-            uint64_t offset = inputs_offset + i*const_offset;
+    if(in.source_type ==fcore::constant_input){
+        std::string in_name = in.name;
+        uint32_t address =in.address[0];
 
-            input_metadata_t metadata;
+        uint64_t offset = inputs_offset + i*const_offset;
 
-            uint32_t input_value;
-            metadata.is_float = in.metadata.type == fcore::emulator::type_float;
-            metadata.core = c.id;
-            metadata.const_ip_addr = complex_address + offset;
-            metadata.dest = address;
+        input_metadata_t metadata;
 
-            if(std::holds_alternative<std::vector<float>>(in.data[0])){
-                auto c_val = std::get<std::vector<float>>(in.data[0])[0];
-                input_value = float_to_uint32(c_val);
-            } else {
-                input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
-            }
+        uint32_t input_value;
+        metadata.is_float = in.metadata.type == fcore::type_float;
+        metadata.core = c.id;
+        metadata.const_ip_addr = complex_address + offset;
+        metadata.dest = address;
 
-            spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, c.id);
-
-            write_register( metadata.const_ip_addr+ 8, address);
-            write_register( metadata.const_ip_addr, input_value);
-
-            inputs.push_back(metadata);
+        if(std::holds_alternative<std::vector<float>>(in.data[0])){
+            auto c_val = std::get<std::vector<float>>(in.data[0])[0];
+            input_value = float_to_uint32(c_val);
+        } else {
+            input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
         }
 
+        spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, c.id);
+
+        write_register( metadata.const_ip_addr+ 8, address);
+        write_register( metadata.const_ip_addr, input_value);
+
+        inputs.push_back(metadata);
     }
-    spdlog::info("------------------------------------------------------------------");
 }
 
 void deployer_base::update_input_value(uint32_t address, uint32_t value, std::string core) {

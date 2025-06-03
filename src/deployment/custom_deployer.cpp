@@ -76,14 +76,21 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
     }
 
 
-    for(auto &c: specs.cores){
-        uint64_t complex_base_addr = c.deployment.control_address;
-        this->setup_inputs(
-                c,
-                complex_base_addr,
-                this->addresses.bases.cores_inputs,
-                this->addresses.offsets.cores_inputs
-        );
+    for(auto &p:programs){
+        auto inputs = em.get_inputs(p.name);
+        spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
+        spdlog::info("------------------------------------------------------------------");
+        for(auto &i: inputs) {
+            uint64_t complex_base_addr = 1;
+            this->setup_inputs(
+                    i,
+                    complex_base_addr,
+                    this->addresses.bases.cores_inputs,
+                    this->addresses.offsets.cores_inputs
+            );
+        }
+        spdlog::info("------------------------------------------------------------------");
+
     }
 
     for(auto &c:specs.cores){

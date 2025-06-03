@@ -143,7 +143,7 @@ protected:
     void setup_core(uint64_t core_address, uint32_t n_channels);
     void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values);
 
-    void setup_inputs(const fcore::emulator::emulator_core &c, uint64_t complex_address, uint64_t inputs_offset, uint64_t const_offset);
+    void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t complex_address, uint64_t inputs_offset, uint64_t const_offset);
 
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(const bus_map_entry &e, uint64_t dma_address, uint32_t io_progressive);
