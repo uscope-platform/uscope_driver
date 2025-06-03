@@ -1136,7 +1136,20 @@ TEST(deployer_v2, scalar_interconnect_test) {
         },
         {
             "id": "test_move",
-            "inputs": [],
+            "inputs": [
+                {
+                    "name": "input",
+                    "type":"scalar",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true,
+                        "common_io":true
+                    },
+                    "channel":[0,1],
+                    "source":{"type": "external"}
+                }
+            ],
             "outputs": [
                 {
                     "type":"scalar",
@@ -1332,7 +1345,19 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 },
                 "sampling_frequency":1,
                 "inputs":[],
-                "outputs":[],
+                "outputs":[
+                    {
+                        "name":"out",
+                        "type": "vector",
+                        "vector_size": 2,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io":false
+                        }
+                    }
+                    ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float out[2] = {15.6, 17.2};\n}",
@@ -1354,7 +1379,20 @@ TEST(deployer_v2, scatter_interconnect_test) {
                     "efi_implementation":"none"
                 },
                 "sampling_frequency":1,
-                "inputs":[],
+                "inputs":[
+                    {
+                        "name": "input",
+                        "type":"scalar",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io":true
+                        },
+                        "channel":[0,1],
+                        "source":{"type": "external"}
+                    }
+                ],
                 "outputs":[
                     {
                         "name":"out",
@@ -1579,7 +1617,21 @@ TEST(deployer_v2, gather_interconnect_test) {
                 "efi_implementation":"none"
             },
             "sampling_frequency":1,
-            "inputs":[],
+            "inputs":[
+                {
+                        "name": "input_data",
+                        "type":"vector",
+                        "vector_size": 2,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io":true
+                        },
+                        "channel":[0,1],
+                        "source":{"type": "external"}
+                }
+            ],
             "outputs":[
                 {
                     "name":"out",
@@ -1773,7 +1825,18 @@ TEST(deployer_v2, vector_interconnect_test) {
                         "source":{"type": "constant","value": [31.2, 32.7]}
                     }
                 ],
-                "outputs":[],
+                "outputs":[
+                    {
+                        "name":"out",
+                        "type":"scalar",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        }
+                    }
+                ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
@@ -1795,7 +1858,20 @@ TEST(deployer_v2, vector_interconnect_test) {
                     "efi_implementation":"none"
                 },
                 "sampling_frequency":1,
-                "inputs":[],
+                "inputs":[
+                    {
+                        "name": "input",
+                        "type":"scalar",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io":true
+                        },
+                        "channel":[0,1],
+                        "source":{"type": "external"}
+                    }
+                ],
                 "outputs":[
                     {
                         "name":"out",
@@ -1972,7 +2048,19 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 },
                 "sampling_frequency":1,
                 "inputs":[],
-                "outputs":[],
+                "outputs":[
+                    {
+                        "name":"out",
+                        "type":"vector",
+                        "vector_size":2,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": false,
+                            "common_io": false
+                        }
+                    }
+                ],
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float out[2] = {15.6, 17.2};\n}",
@@ -1994,7 +2082,21 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                     "efi_implementation":"none"
                 },
                 "sampling_frequency":1,
-                "inputs":[],
+                "inputs":[
+                    {
+                            "name": "input",
+                            "type":"vector",
+                            "vector_size":2,
+                            "metadata": {
+                                "type": "float",
+                                "width": 32,
+                                "signed": true,
+                                "common_io":true
+                            },
+                            "channel":[0,1],
+                            "source":{"type": "external"}
+                    }
+                ],
                 "outputs":[
                     {
                         "name":"consumer_out",
