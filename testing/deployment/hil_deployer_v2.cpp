@@ -1181,25 +1181,8 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ],
     "interconnect": [
         {
-            "source": "test",
-            "destination": "test_move",
-            "channels": [
-                {
-                    "name": "interconnect_name",
-                    "length": 1,
-                    "type": "scalar_transfer",
-                    "source_output": "out2",
-                    "source": {
-                        "channel": 0,
-                        "register": 6
-                    },
-                    "destination_input": "input",
-                    "destination": {
-                        "channel": 0,
-                        "register": 1
-                    }
-                }
-            ]
+            "source": "test.out2",
+            "destination": "test_move.input"
         }
     ],
     "emulation_time": 2,
@@ -1399,25 +1382,8 @@ TEST(deployer_v2, scatter_interconnect_test) {
         ],
         "interconnect": [
             {
-                "source": "test_producer",
-                "destination": "test_consumer",
-                "channels": [
-                    {
-                        "name": "test_channel",
-                        "type": "scatter_transfer",
-                        "source": {
-                            "channel": 0,
-                            "register": 5
-                        },
-                        "source_output": "out",
-                        "destination": {
-                            "channel": 0,
-                            "register": 1
-                        },
-                        "destination_input": "input",
-                        "length": 2
-                    }
-                ]
+                "source": "test_producer.out",
+                "destination": "test_consumer.input"
             }
     ],
         "emulation_time": 1,
@@ -1641,25 +1607,8 @@ TEST(deployer_v2, gather_interconnect_test) {
     ],
     "interconnect": [
         {
-            "source": "test_producer",
-            "destination": "test_reducer",
-            "channels": [
-                {
-                    "name": "test_channel",
-                    "type": "gather_transfer",
-                    "source": {
-                        "channel": 0,
-                        "register": 5
-                    },
-                    "source_output": "out",
-                    "destination": {
-                        "channel": 0,
-                        "register": 1
-                    },
-                    "destination_input": "input_data",
-                    "length": 2
-                }
-            ]
+            "source": "test_producer.out",
+            "destination": "test_reducer.input_data"
         }
 ],
     "emulation_time": 1,
@@ -1874,25 +1823,8 @@ TEST(deployer_v2, vector_interconnect_test) {
         ],
         "interconnect": [
             {
-                "source": "test_producer",
-                "destination": "test_consumer",
-                "channels": [
-                    {
-                        "name": "test_channel",
-                        "type": "vector_transfer",
-                        "source": {
-                            "channel": 0,
-                            "register": 5
-                        },
-                        "source_output": "out",
-                        "destination": {
-                            "channel": 0,
-                            "register": 1
-                        },
-                        "destination_input": "input",
-                        "length": 2
-                    }
-                ]
+                "source": "test_producer.out",
+                "destination": "test_consumer.input"
             }
         ],
         "emulation_time": 1,
@@ -2091,26 +2023,8 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
         ],
         "interconnect": [
             {
-                "source": "test_producer",
-                "destination": "test_consumer",
-                "channels": [
-                    {
-                        "name": "test_channel",
-                        "type": "2d_vector_transfer",
-                        "source": {
-                            "channel": 0,
-                            "register": [5,6]
-                        },
-                        "source_output": "out",
-                        "destination": {
-                            "channel": 0,
-                            "register": [1,2]
-                        },
-                        "destination_input": "input",
-                        "length": 2,
-                        "stride": 2
-                    }
-                ]
+                "source": "test_producer.out",
+                "destination": "test_consumer.input"
             }
         ],
         "emulation_time": 2,
