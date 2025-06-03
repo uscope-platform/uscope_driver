@@ -93,13 +93,13 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
         auto inputs = dispatcher.get_inputs(p.name);
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
-        for(auto &i: inputs) {
+        for(int i = 0; i<inputs.size(); i++)  {
             uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
             this->setup_inputs(
-                    i,
+                    inputs[i],
                     complex_base_addr,
-                    this->addresses.bases.cores_inputs,
-                    this->addresses.offsets.cores_inputs
+                    this->addresses.bases.cores_inputs + this->addresses.offsets.cores_inputs*i,
+                    p.name
             );
         }
         spdlog::info("------------------------------------------------------------------");

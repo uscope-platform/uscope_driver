@@ -119,20 +119,19 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     spdlog::info("------------------------------------------------------------------");
 }
 
-void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t complex_address, uint64_t inputs_offset,
-                            uint64_t const_offset) {
+void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t complex_address, uint64_t ip_address, std::string core_name) {
 
     if(in.source_type ==fcore::constant_input){
         std::string in_name = in.name;
         uint32_t address =in.address[0];
 
-        uint64_t offset = inputs_offset + i*const_offset;
+        uint64_t offset = ip_address;
 
         input_metadata_t metadata;
 
         uint32_t input_value;
         metadata.is_float = in.metadata.type == fcore::type_float;
-        metadata.core = c.id;
+        metadata.core = core_name;
         metadata.const_ip_addr = complex_address + offset;
         metadata.dest = address;
 
@@ -143,7 +142,7 @@ void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t
             input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
         }
 
-        spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, c.id);
+        spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core_name);
 
         write_register( metadata.const_ip_addr+ 8, address);
         write_register( metadata.const_ip_addr, input_value);
