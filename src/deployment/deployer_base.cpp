@@ -109,11 +109,13 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     for(auto &[address, value]:init_values){
 
         if(std::holds_alternative<std::vector<float>>(value)){
-            auto values = std::get<std::vector<float>>(value);
-            write_register(base_address+address[0]*4, float_to_uint32(values[0]));
+            auto v = float_to_uint32(std::get<std::vector<float>>(value)[0]);
+            auto register_addr = base_address+address[0]*4;
+            write_register(register_addr, v);
         } else {
-            auto values = std::get<std::vector<uint32_t>>(value);
-            write_register(base_address+address[0]*4, values[0]);
+            auto v = std::get<std::vector<uint32_t>>(value)[0];
+            auto register_addr = base_address+address[0]*4;
+            write_register(register_addr,v);
         }
     }
     spdlog::info("------------------------------------------------------------------");

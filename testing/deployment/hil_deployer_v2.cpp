@@ -340,16 +340,16 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     auto ops = ba->get_operations();
 
     
-    std::vector<uint64_t> reference_program = {
-            0x20004,
-            0xc,
-            0x20003,
-            0x10004,
-            0x30005,
-            0xc,
-            0xc,
-            0x60841,
-            0xc,
+    std::vector<u_int64_t> reference_program = {
+        0x20004,
+        0xc,
+        0x30001,
+        0x10002,
+        0x20003,
+        0xc,
+        0xc,
+        0x60841,
+        0xc,
     };
 
     ASSERT_EQ(ops[0].type, "p");
@@ -359,7 +359,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
@@ -375,7 +375,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 4);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[7].data[0], 4);
@@ -498,9 +498,9 @@ TEST(deployer_v2, simple_single_core_memory_init) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
-            0x3e0003,
-            0x3f0004,
-            0x10005,
+            0x3e0001,
+            0x3f0002,
+            0x10003,
             0xc,
             0xc,
             0x3f7e1,
@@ -515,19 +515,19 @@ TEST(deployer_v2, simple_single_core_memory_init) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x40003);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[3].data[0], 0x40004);
+    ASSERT_EQ(ops[3].data[0], 0x50002);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'100c);
-    ASSERT_EQ(ops[5].data[0], 0x30003);
+    ASSERT_EQ(ops[5].data[0], 0x60001);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'104c);
     ASSERT_EQ(ops[6].data[0], 0x18);
@@ -537,10 +537,10 @@ TEST(deployer_v2, simple_single_core_memory_init) {
 
     // MEMORIES INITIALIZATION
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c2'0010);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'0008);
     ASSERT_EQ(ops[8].data[0], 0x41600000);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c2'000c);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'0004);
     ASSERT_EQ(ops[9].data[0], 12);
 
     // INPUTS
