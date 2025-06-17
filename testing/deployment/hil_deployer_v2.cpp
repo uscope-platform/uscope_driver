@@ -690,9 +690,9 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
+            0x30001,
+            0x10002,
             0x20003,
-            0x10004,
-            0x30005,
             0xc,
             0xc,
             0x60841,
@@ -706,25 +706,25 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[3].data[0], 0x3ed1005);
+    ASSERT_EQ(ops[3].data[0], 0x10031001);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'100c);
-    ASSERT_EQ(ops[5].data[0], 0x7d52005);
+    ASSERT_EQ(ops[5].data[0], 0x20042001);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'104c);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'1010);
-    ASSERT_EQ(ops[7].data[0], 0xbbd3005);
+    ASSERT_EQ(ops[7].data[0], 0x30053001);
 
     ASSERT_EQ(ops[8].address[0], 0x4'43c2'1050);
     ASSERT_EQ(ops[8].data[0], 0x38);
@@ -740,7 +740,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     ASSERT_EQ(ops[11].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[12].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[12].data[0], 4);
+    ASSERT_EQ(ops[12].data[0], 2);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[13].data[0], 0x40800000);
@@ -961,9 +961,9 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
-            0x20003,
-            0x10004,
-            0x30005,
+            0x30002,
+            0x10003,
+            0x20004,
             0xc,
             0xc,
             0x60841,
@@ -974,6 +974,18 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
+    reference_program = {
+        0x20004,
+        0xc,
+        0x30001,
+        0x10003,
+        0x20004,
+        0xc,
+        0xc,
+        0x60841,
+        0xc,
+};
+
     ASSERT_EQ(ops[1].type, "p");
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
@@ -981,7 +993,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     // DMA 1
     ASSERT_EQ(ops[2].type, "w");
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[2].data[0], 0x50005);
+    ASSERT_EQ(ops[2].data[0], 0x30002);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[3].data[0], 0x38);
@@ -991,7 +1003,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
 
     // DMA 2
     ASSERT_EQ(ops[5].address[0], 0x4'43c3'1004);
-    ASSERT_EQ(ops[5].data[0], 0x10005);
+    ASSERT_EQ(ops[5].data[0], 0x40001);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c3'1044);
     ASSERT_EQ(ops[6].data[0], 0x38);
@@ -1001,13 +1013,13 @@ TEST(deployer_v2, simple_multi_core_deployment) {
 
     // INPUTS 1
     ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[8].data[0], 3);
+    ASSERT_EQ(ops[8].data[0], 4);
 
     ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
     ASSERT_EQ(ops[9].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[10].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[10].data[0], 4);
+    ASSERT_EQ(ops[10].data[0], 3);
 
     ASSERT_EQ(ops[11].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[11].data[0], 0x40800000);
@@ -1015,13 +1027,13 @@ TEST(deployer_v2, simple_multi_core_deployment) {
 
     // INPUTS 2
     ASSERT_EQ(ops[12].address[0], 0x4'43c3'2008);
-    ASSERT_EQ(ops[12].data[0], 3);
+    ASSERT_EQ(ops[12].data[0], 4);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c3'2000);
     ASSERT_EQ(ops[13].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[14].address[0], 0x4'43c3'3008);
-    ASSERT_EQ(ops[14].data[0], 4);
+    ASSERT_EQ(ops[14].data[0], 3);
 
     ASSERT_EQ(ops[15].address[0], 0x4'43c3'3000);
     ASSERT_EQ(ops[15].data[0], 0x40800000);
