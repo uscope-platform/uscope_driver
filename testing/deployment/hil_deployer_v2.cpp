@@ -185,6 +185,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     dis = fcore::fcore_dis(actual_program);
     auto actual_dis = dis.get_disassembled_program_text();
 
+    ASSERT_EQ(ops.size(), 13);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -352,6 +353,8 @@ TEST(deployer_v2, simple_single_core_integer_input) {
         0xc,
     };
 
+    ASSERT_EQ(ops.size(), 13);
+
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
@@ -507,6 +510,8 @@ TEST(deployer_v2, simple_single_core_memory_init) {
             0xc
 
     };
+
+    ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -698,6 +703,8 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
             0x60841,
             0xc,
     };
+
+    ASSERT_EQ(ops.size(), 19);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1167,7 +1174,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "channel":[0,1],
                     "source":{"type": "external"}
@@ -1240,19 +1247,21 @@ TEST(deployer_v2, scalar_interconnect_test) {
     std::vector<uint64_t> reference_program = {
             0x40005,
             0xc,
-            0x20001,
-            0x10002,
-            0x10004,
-            0x20006,
+            0x10001,
+            0x20003,
+            0x20004,
+            0x30005,
             0xc,
             0xc,
-            0x60841,
-            0x865,
-            0x4002e,
+            0x81061,
+            0x1085,
+            0x2004E,
             0xc
 
     };
 
+
+    ASSERT_EQ(ops.size(), 22);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1262,7 +1271,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
             0x60003,
             0xc,
             0x10001,
-            0x10005,
+            0x10002,
             0xc,
             0xc,
             0x1024,
@@ -1475,6 +1484,8 @@ TEST(deployer_v2, scatter_interconnect_test) {
             0x4189999a,
             0xc
     };
+
+    ASSERT_EQ(ops.size(), 22);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1712,6 +1723,8 @@ TEST(deployer_v2, gather_interconnect_test) {
             0x60841,
             0xc
     };
+
+    ASSERT_EQ(ops.size(), 22);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2312,7 +2325,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2331,7 +2344,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2400,7 +2413,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
     d.set_layout_map(addr_map);
     d.deploy(spec_json);
     output_specs_t out;
-    out.address = 5,
+    out.address = 1,
     out.channel = 1,
     out.core_name = "test";
     out.source_output = "out";
@@ -2412,9 +2425,9 @@ TEST(deployer_v2, simple_single_core_output_select) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
+            0x30001,
+            0x10002,
             0x20003,
-            0x10004,
-            0x30005,
             0xc,
             0xc,
             0x60841,
@@ -2428,13 +2441,13 @@ TEST(deployer_v2, simple_single_core_output_select) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[3].data[0], 0x3ed1005);
+    ASSERT_EQ(ops[3].data[0], 0x10031001);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[4].data[0], 0x38);
@@ -2450,7 +2463,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
     ASSERT_EQ(ops[7].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[8].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[8].data[0], 4);
+    ASSERT_EQ(ops[8].data[0], 2);
 
     ASSERT_EQ(ops[9].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[9].data[0], 0x40800000);
@@ -2476,7 +2489,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
 
     // select_output
     ASSERT_EQ(ops[15].address[0], 0x443c50004);
-    ASSERT_EQ(ops[15].data[0],0x3ed);
+    ASSERT_EQ(ops[15].data[0],0x10003);
 
 }
 
@@ -2497,7 +2510,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2516,7 +2529,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
                         "type": "constant",
@@ -2583,7 +2596,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     auto addr_map = get_addr_map_v2();
     d.set_layout_map(addr_map);
     d.deploy(spec_json);
-    d.set_input(4,90,"test");
+    d.set_input(2,90,"test");
 
     
     auto ops = ba->get_operations();
@@ -2591,14 +2604,16 @@ TEST(deployer_v2, simple_single_core_input_set) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
+            0x30001,
+            0x10002,
             0x20003,
-            0x10004,
-            0x30005,
             0xc,
             0xc,
             0x60841,
             0xc,
     };
+
+    ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2607,7 +2622,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
@@ -2623,7 +2638,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 4);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[7].data[0], 0x40800000);
@@ -2648,7 +2663,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     ASSERT_EQ(ops[12].data[0],11);
 
     ASSERT_EQ(ops[13].address[0], 0x443c23008);
-    ASSERT_EQ(ops[13].data[0],4);
+    ASSERT_EQ(ops[13].data[0],2);
 
     ASSERT_EQ(ops[14].address[0], 0x443c23000);
     ASSERT_EQ(ops[14].data[0],90);
@@ -2768,9 +2783,9 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     std::vector<uint64_t> reference_program = {
             0x20004,
             0xc,
+            0x30001,
+            0x10002,
             0x20003,
-            0x10004,
-            0x30005,
             0xc,
             0xc,
             0x60841,
@@ -2784,7 +2799,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     // DMA
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
@@ -2800,7 +2815,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 4);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[7].data[0], 0x40800000);
