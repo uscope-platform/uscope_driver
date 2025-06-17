@@ -1134,7 +1134,7 @@ TEST(deployer, scalar_interconnect_test) {
             ],
             "memory_init": [],
             "program": {
-                "content": "int main(){float input_1; float input_2; float out; out = fti(input_1 + input_2); out2=out;}",
+                "content": "int main(){float input_1; float input_2; float out; out = input_1 + input_2 ; out2=fti(out);}",
                 "build_settings": {
                     "io": {
                         "inputs": [
@@ -1251,17 +1251,16 @@ TEST(deployer, scalar_interconnect_test) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0x40005,
+            0x30005,
             0xc,
             0x20001,
             0x10002,
-            0x10004,
-            0x20006,
+            0x30004,
+            0x10006,
             0xc,
             0xc,
             0x60841,
             0x865,
-            0x4002e,
             0xc
 
     };
@@ -1346,7 +1345,7 @@ TEST(deployer, scalar_interconnect_test) {
     ASSERT_EQ(ops[16].data[0], 0);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[17].data[0], 0x64);
+    ASSERT_EQ(ops[17].data[0], 0x59);
 
     ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[18].data[0], 100'000'000);

@@ -1131,11 +1131,21 @@ TEST(deployer_v2, scalar_interconnect_test) {
                     },
                     "type":"scalar",
                     "name": "out"
+                },
+                {
+                    "metadata": {
+                        "type": "integer",
+                        "width": 32,
+                        "signed": true,
+                        "common_io":false
+                    },
+                    "type":"scalar",
+                    "name": "out2"
                 }
             ],
             "memory_init": [],
             "program": {
-                "content": "int main(){float input_1; float input_2; float out; out = fti(input_1 + input_2); out2=out;}",
+                "content": "int main(){float input_1; float input_2; float out; out = input_1 + input_2 ; out2=fti(out);}",
                 "build_settings": {
                     "io": {
                         "inputs": [
@@ -1245,17 +1255,16 @@ TEST(deployer_v2, scalar_interconnect_test) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0x40005,
-            0xc,
-            0x10001,
-            0x20003,
-            0x20004,
             0x30005,
             0xc,
+            0x10001,
+            0x30003,
+            0x10004,
+            0x20005,
             0xc,
-            0x81061,
-            0x1085,
-            0x2004E,
+            0xc,
+            0x60841,
+            0x865,
             0xc
 
     };
@@ -1288,11 +1297,10 @@ TEST(deployer_v2, scalar_interconnect_test) {
     // DMA 1
     ASSERT_EQ(ops[2].type, "w");
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[2].data[0], 0x10006);
+    ASSERT_EQ(ops[2].data[0], 0x10001);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[3].data[0], 0x38);
-
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
     ASSERT_EQ(ops[4].data[0], 0x40004);
