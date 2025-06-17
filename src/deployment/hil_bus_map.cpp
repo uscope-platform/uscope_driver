@@ -67,19 +67,6 @@ uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
     throw std::runtime_error("Unable to find free bus address");
 }
 
-void hil_bus_map::add_interconnect_channel(const fcore::emulator::dma_channel &c, const std::string& source_core, const std::string& target_core) {
-
-    interconnect_exposed_outputs[source_core].insert(c.source.io_name);
-}
-
-void hil_bus_map::add_standalone_output(const fcore::emulator::emulator_core &core) {
-    for(auto &out:core.outputs){
-
-    }
-
-
-}
-
 
 void hil_bus_map::check_conflicts() {
     std::set<std::pair<uint16_t, uint16_t>> processed_entries;
@@ -95,11 +82,11 @@ void hil_bus_map::check_conflicts() {
     }
 }
 
-std::pair<uint16_t, uint16_t> hil_bus_map::translate_output(const output_specs_t &out) {
+bus_address hil_bus_map::translate_output(const output_specs_t &out) {
     for(auto &e:bus_map){
         if(e.source_id == out.core_name){
             if(e.source_io_address == out.address && e.source_channel == out.channel){
-                return std::make_pair(e.destination_bus_address, e.destination_channel);
+                return {e.destination_bus_address, e.destination_channel};
             }
         }
     }

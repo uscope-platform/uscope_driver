@@ -110,7 +110,6 @@ struct logic_layout{
 };
 
 
-
 struct input_metadata_t{
     std::string core;
     uint64_t const_ip_addr;
@@ -135,7 +134,7 @@ public:
     };
 
 protected:
-    std::pair<uint16_t, uint16_t> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);};
+    bus_address get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);}
 
     void write_register(uint64_t addr, uint32_t val);
     void load_core(uint64_t address, const std::vector<uint32_t> &program);

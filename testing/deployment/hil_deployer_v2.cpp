@@ -163,17 +163,28 @@ TEST(deployer_v2, simple_single_core_deployment) {
 
     auto ops = ba->get_operations();
 
-    std::vector<uint64_t> reference_program = {
+    std::vector<u_int64_t> reference_program = {
             0x20004,
             0xc,
+            0x30001,
+            0x10002,
             0x20003,
-            0x10004,
-            0x30005,
             0xc,
             0xc,
             0x60841,
             0xc,
     };
+
+
+    std::vector<uint32_t> ref_p;
+    for(auto i:reference_program) ref_p.push_back(i);
+    fcore::fcore_dis dis(ref_p);
+    auto ref_dis = dis.get_disassembled_program_text();
+    std::vector<uint32_t> actual_program;
+    for(auto i:ops[0].data) actual_program.push_back(i);
+    dis = fcore::fcore_dis(actual_program);
+    auto actual_dis = dis.get_disassembled_program_text();
+
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -183,7 +194,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
 
     ASSERT_EQ(ops[1].type, "w");
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50005);
+    ASSERT_EQ(ops[1].data[0], 0x20001);
 
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[2].data[0], 0x38);
@@ -199,7 +210,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     ASSERT_EQ(ops[5].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 4);
+    ASSERT_EQ(ops[6].data[0], 2);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
     ASSERT_EQ(ops[7].data[0], 0x40800000);

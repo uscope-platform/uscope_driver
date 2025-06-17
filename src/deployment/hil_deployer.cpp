@@ -180,7 +180,7 @@ void hil_deployer::select_output(uint32_t channel, const output_specs_t& output)
                  channel);
 
     auto data = this->get_bus_address(output);
-    auto selector = data.first | (data.second <<16);
+    auto selector = data.address | (data.channel <<16);
     this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
 }
 
