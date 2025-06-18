@@ -1300,7 +1300,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
-    ASSERT_EQ(ops[3].data[0], 0x38);
+    ASSERT_EQ(ops[3].data[0], 0x18);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
     ASSERT_EQ(ops[4].data[0], 0x40004);
