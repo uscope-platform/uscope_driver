@@ -1303,7 +1303,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops[3].data[0], 0x18);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[4].data[0], 0x40004);
+    ASSERT_EQ(ops[4].data[0], 0x40003);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[5].data[0], 0x38);
@@ -1313,7 +1313,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
 
     // DMA 2
     ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
-    ASSERT_EQ(ops[7].data[0], 0x50005);
+    ASSERT_EQ(ops[7].data[0], 0x50002);
 
     ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
     ASSERT_EQ(ops[8].data[0], 0x38);
@@ -1327,14 +1327,14 @@ TEST(deployer_v2, scalar_interconnect_test) {
 
 
     ASSERT_EQ(ops[10].address[0], 0x443c22008);
-    ASSERT_EQ(ops[10].data[0], 1);
+    ASSERT_EQ(ops[10].data[0], 5);
 
     ASSERT_EQ(ops[11].address[0], 0x443c22000);
     ASSERT_EQ(ops[11].data[0], 0x41f9999a);
 
 
     ASSERT_EQ(ops[12].address[0], 0x443c23008);
-    ASSERT_EQ(ops[12].data[0], 2);
+    ASSERT_EQ(ops[12].data[0], 4);
 
     ASSERT_EQ(ops[13].address[0], 0x443c23000);
     ASSERT_EQ(ops[13].data[0], 0x4202cccd);
@@ -1350,7 +1350,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops[16].data[0], 0);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[17].data[0], 0x64);
+    ASSERT_EQ(ops[17].data[0], 0x59);
 
     ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[18].data[0], 100'000'000);
