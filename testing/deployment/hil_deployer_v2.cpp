@@ -976,6 +976,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             0x60841,
             0xc,
     };
+    ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1303,7 +1304,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops[3].data[0], 0x18);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[4].data[0], 0x40003);
+     ASSERT_EQ(ops[4].data[0], 0x40003);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[5].data[0], 0x38);
@@ -1373,7 +1374,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
-    "version":2,
+        "version":2,
         "cores": [
             {
                 "order": 0,
@@ -1427,7 +1428,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
                             "type": "float",
                             "width": 32,
                             "signed": true,
-                            "common_io":true
+                            "common_io":false
                         },
                         "channel":[0,1],
                         "source":{"type": "external"}
@@ -1482,8 +1483,8 @@ TEST(deployer_v2, scatter_interconnect_test) {
     std::vector<uint64_t> reference_program = {
             0x50003,
             0xc,
-            0x10005,
-            0x20006,
+            0x10001,
+            0x20002,
             0xc,
             0xc,
             0x26,
@@ -1493,7 +1494,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(ops.size(), 22);
+    ASSERT_EQ(ops.size(), 20);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1503,7 +1504,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
             0x40003,
             0xc,
             0x10001,
-            0x30005,
+            0x30003,
             0xc,
             0xc,
             0x46,
@@ -1520,14 +1521,14 @@ TEST(deployer_v2, scatter_interconnect_test) {
     // DMA 1
     ASSERT_EQ(ops[2].type, "w");
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[2].data[0], 0x10005);
+    ASSERT_EQ(ops[2].data[0], 0x10001);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[4].data[0], 0x10010006);
+    ASSERT_EQ(ops[4].data[0], 0x10010002);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[5].data[0], 0x38);
@@ -1538,13 +1539,13 @@ TEST(deployer_v2, scatter_interconnect_test) {
 
     // DMA 2
     ASSERT_EQ(ops[7].address[0], 0x4'43c3'1004);
-    ASSERT_EQ(ops[7].data[0], 0x50005);
+    ASSERT_EQ(ops[7].data[0], 0x40003);
 
     ASSERT_EQ(ops[8].address[0], 0x4'43c3'1044);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
     ASSERT_EQ(ops[9].address[0], 0x4'43c3'1008);
-    ASSERT_EQ(ops[9].data[0], 0x3ed1005);
+    ASSERT_EQ(ops[9].data[0], 0x10051003);
 
     ASSERT_EQ(ops[10].address[0], 0x4'43c3'1048);
     ASSERT_EQ(ops[10].data[0], 0x38);
@@ -1975,6 +1976,7 @@ TEST(deployer_v2, vector_interconnect_test) {
             0xc
 
     };
+    ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2201,6 +2203,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
             0x4189999a,
             0xc
     };
+    ASSERT_EQ(ops.size(), 28);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2441,6 +2444,8 @@ TEST(deployer_v2, simple_single_core_output_select) {
             0x60841,
             0xc,
     };
+
+    ASSERT_EQ(ops.size(), 16);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2799,6 +2804,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             0x60841,
             0xc,
     };
+    ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, "p");
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
