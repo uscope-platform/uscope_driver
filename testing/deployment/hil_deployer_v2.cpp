@@ -2137,7 +2137,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                                 "type": "float",
                                 "width": 32,
                                 "signed": true,
-                                "common_io":true
+                                "common_io":false
                             },
                             "channel":[0,1],
                             "source":{"type": "external"}
@@ -2193,8 +2193,8 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     std::vector<uint64_t> reference_program = {
             0x50003,
             0xc,
-            0x10005,
-            0x20006,
+            0x10001,
+            0x20002,
             0xc,
             0xc,
             0x26,
@@ -2214,8 +2214,8 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
             0xc,
             0x20001,
             0x10002,
-            0x40007,
-            0x20008,
+            0x40003,
+            0x20004,
             0xc,
             0xc,
             0x66,
@@ -2233,25 +2233,25 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     // DMA 1
     ASSERT_EQ(ops[2].type, "w");
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
-    ASSERT_EQ(ops[2].data[0], 0x10005);
+    ASSERT_EQ(ops[2].data[0], 0x10001);
 
     ASSERT_EQ(ops[3].address[0], 0x4'43c2'1044);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
     ASSERT_EQ(ops[4].address[0], 0x4'43c2'1008);
-    ASSERT_EQ(ops[4].data[0], 0x10011005);
+    ASSERT_EQ(ops[4].data[0], 0x10011001);
 
     ASSERT_EQ(ops[5].address[0], 0x4'43c2'1048);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
     ASSERT_EQ(ops[6].address[0], 0x4'43c2'100c);
-    ASSERT_EQ(ops[6].data[0], 0x20006);
+    ASSERT_EQ(ops[6].data[0], 0x20002);
 
     ASSERT_EQ(ops[7].address[0], 0x4'43c2'104c);
     ASSERT_EQ(ops[7].data[0], 0x38);
 
     ASSERT_EQ(ops[8].address[0], 0x4'43c2'1010);
-    ASSERT_EQ(ops[8].data[0], 0x10021006);
+    ASSERT_EQ(ops[8].data[0], 0x10021002);
 
     ASSERT_EQ(ops[9].address[0], 0x4'43c2'1050);
     ASSERT_EQ(ops[9].data[0], 0x38);
@@ -2261,25 +2261,25 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
 
     // DMA 2
     ASSERT_EQ(ops[11].address[0], 0x4'43c3'1004);
-    ASSERT_EQ(ops[11].data[0], 0x70007);
+    ASSERT_EQ(ops[11].data[0], 0x50003);
 
     ASSERT_EQ(ops[12].address[0], 0x4'43c3'1044);
     ASSERT_EQ(ops[12].data[0], 0x38);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c3'1008);
-    ASSERT_EQ(ops[13].data[0], 0x3ef1007);
+    ASSERT_EQ(ops[13].data[0], 0x10061003);
 
     ASSERT_EQ(ops[14].address[0], 0x4'43c3'1048);
     ASSERT_EQ(ops[14].data[0], 0x38);
 
     ASSERT_EQ(ops[15].address[0], 0x4'43c3'100c);
-    ASSERT_EQ(ops[15].data[0], 0x80008);
+    ASSERT_EQ(ops[15].data[0], 0x70004);
 
     ASSERT_EQ(ops[16].address[0], 0x4'43c3'104c);
     ASSERT_EQ(ops[16].data[0], 0x38);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c3'1010);
-    ASSERT_EQ(ops[17].data[0], 0x3f01008);
+    ASSERT_EQ(ops[17].data[0], 0x10081004);
 
     ASSERT_EQ(ops[18].address[0], 0x4'43c3'1050);
     ASSERT_EQ(ops[18].data[0], 0x38);
