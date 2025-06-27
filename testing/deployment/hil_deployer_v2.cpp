@@ -72,7 +72,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -84,12 +84,11 @@ TEST(deployer_v2, simple_single_core_deployment) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [0]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -101,14 +100,13 @@ TEST(deployer_v2, simple_single_core_deployment) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [0]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -249,7 +247,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -261,12 +259,11 @@ TEST(deployer_v2, simple_single_core_integer_input) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [0]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "integer",
                         "width":16,
@@ -278,14 +275,13 @@ TEST(deployer_v2, simple_single_core_integer_input) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [0 ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":16,
@@ -418,7 +414,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
             "outputs": [
                 {
                     "name": "out",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -430,7 +426,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
             "memory_init": [
                 {
                     "name": "mem",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -441,7 +437,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
                 },
                 {
                     "name": "mem_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "integer",
                         "width":16,
@@ -583,7 +579,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
         "inputs": [
             {
                 "name": "input_1",
-                "type":"scalar",
+                "is_vector": false,
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -598,17 +594,11 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
                         62.1,
                         64
                     ]
-                },
-                "channel": [
-                    0,
-                    1,
-                    2,
-                    3
-                ]
+                }
             },
             {
                 "name": "input_2",
-                "type":"scalar",
+                "is_vector": false,
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -623,19 +613,13 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
                         6,
                         12
                     ]
-                },
-                "channel": [
-                    0,
-                    1,
-                    2,
-                    3
-                ]
+                }
             }
         ],
         "outputs": [
             {
                 "name": "out",
-                "type":"scalar",
+                "is_vector": false,
                 "metadata":{
                     "type": "float",
                     "width":16,
@@ -786,7 +770,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -798,14 +782,11 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -817,16 +798,13 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -870,7 +848,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -882,14 +860,11 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -901,16 +876,13 @@ TEST(deployer_v2, simple_multi_core_deployment) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata":{
                         "type": "float",
                         "width":32,
@@ -1089,7 +1061,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1101,12 +1073,11 @@ TEST(deployer_v2, scalar_interconnect_test) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": 0
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1118,8 +1089,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
                         "value": [
                             32.7
                         ]
-                    },
-                    "channel": 0
+                    }
                 }
             ],
             "outputs": [
@@ -1130,7 +1100,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
                         "signed": true,
                         "common_io":false
                     },
-                    "type":"scalar",
+                    "is_vector": false,
                     "name": "out"
                 },
                 {
@@ -1140,7 +1110,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
                         "signed": true,
                         "common_io":false
                     },
-                    "type":"scalar",
+                    "is_vector": false,
                     "name": "out2"
                 }
             ],
@@ -1180,20 +1150,19 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "inputs": [
                 {
                     "name": "input",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": true,
                         "common_io":false
                     },
-                    "channel":[0,1],
                     "source":{"type": "external"}
                 }
             ],
             "outputs": [
                 {
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1389,7 +1358,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
-                        "type": "vector",
+                        "is_vector":true,
                         "vector_size": 2,
                         "metadata": {
                             "type": "float",
@@ -1423,21 +1392,20 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 "inputs":[
                     {
                         "name": "input",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
                             "signed": true,
                             "common_io":false
                         },
-                        "channel":[0,1],
                         "source":{"type": "external"}
                     }
                 ],
                 "outputs":[
                     {
                         "name":"out",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -1604,33 +1572,31 @@ TEST(deployer_v2, gather_interconnect_test) {
             "inputs":[
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": true,
                         "common_io":false
                     },
-                    "channel":[0,1],
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": true,
                         "common_io":false
                     },
-                    "channel":[0,1],
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 }
             ],
             "outputs":[
                 {
                     "name":"out",
-                    "type": "scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1663,7 +1629,7 @@ TEST(deployer_v2, gather_interconnect_test) {
             "inputs":[
                 {
                         "name": "input_data",
-                        "type":"vector",
+                        "is_vector": true,
                         "vector_size": 2,
                         "metadata": {
                             "type": "float",
@@ -1671,14 +1637,13 @@ TEST(deployer_v2, gather_interconnect_test) {
                             "signed": true,
                             "common_io":false
                         },
-                        "channel":[0,1],
                         "source":{"type": "external"}
                 }
             ],
             "outputs":[
                 {
                     "name":"out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -1847,33 +1812,31 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "inputs":[
                     {
                         "name": "input_1",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
                             "signed": true,
                             "common_io":false
                         },
-                        "channel":[0,1],
                         "source":{"type": "constant","value": [31.2, 32.7]}
                     },
                     {
                         "name": "input_2",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
                             "signed": true,
                             "common_io":false
                         },
-                        "channel":[0,1],
                         "source":{"type": "constant","value": [31.2, 32.7]}
                     }
                 ],
                 "outputs":[
                     {
                         "name":"out",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -1906,21 +1869,20 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "inputs":[
                     {
                         "name": "input",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
                             "signed": true,
                             "common_io":false
                         },
-                        "channel":[0,1],
                         "source":{"type": "external"}
                     }
                 ],
                 "outputs":[
                     {
                         "name":"out",
-                        "type":"scalar",
+                        "is_vector": false,
                         "metadata": {
                             "type": "float",
                             "width": 32,
@@ -2097,7 +2059,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 "outputs":[
                     {
                         "name":"out",
-                        "type":"vector",
+                        "is_vector": true,
                         "vector_size":2,
                         "metadata": {
                             "type": "float",
@@ -2131,7 +2093,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 "inputs":[
                     {
                             "name": "input",
-                            "type":"vector",
+                            "is_vector": true,
                             "vector_size":2,
                             "metadata": {
                                 "type": "float",
@@ -2139,14 +2101,13 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                                 "signed": true,
                                 "common_io":false
                             },
-                            "channel":[0,1],
                             "source":{"type": "external"}
                     }
                 ],
                 "outputs":[
                     {
                         "name":"consumer_out",
-                        "type":"vector",
+                        "is_vector": true,
                         "vector_size":2,
                         "metadata": {
                             "type": "float",
@@ -2331,7 +2292,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2343,14 +2304,11 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2362,16 +2320,13 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2518,7 +2473,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2530,14 +2485,11 @@ TEST(deployer_v2, simple_single_core_input_set) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2549,16 +2501,13 @@ TEST(deployer_v2, simple_single_core_input_set) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2695,7 +2644,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             "inputs": [
                 {
                     "name": "input_1",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2707,14 +2656,11 @@ TEST(deployer_v2, simple_single_core_start_stop) {
                         "value": [
                             31.2
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 },
                 {
                     "name": "input_2",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
@@ -2726,16 +2672,13 @@ TEST(deployer_v2, simple_single_core_start_stop) {
                         "value": [
                             4
                         ]
-                    },
-                    "channel": [
-                        0
-                    ]
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "out",
-                    "type":"scalar",
+                    "is_vector": false,
                     "metadata": {
                         "type": "float",
                         "width": 32,
