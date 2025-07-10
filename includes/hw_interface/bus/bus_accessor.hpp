@@ -50,8 +50,12 @@ public:
 
     std::vector<bus_op> get_operations() {return operations;};
     std::pair<std::string, std::string> get_hardware_simulation_data();
-private:
 
+    void disable_access() {previous_sink_mode = sink_mode; sink_mode = true;}
+    void enable_access() {sink_mode = previous_sink_mode;}
+    void clear_operations() {operations.clear();}
+private:
+    bool previous_sink_mode = false;
     uint64_t control_addr, core_addr;
 
     volatile uint32_t *registers;

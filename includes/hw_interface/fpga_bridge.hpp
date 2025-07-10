@@ -66,6 +66,9 @@ public:
 
     std::pair<std::string, std::string> get_hardware_simulation_data() const;
 
+
+    void disable_bus_access() const {busses->disable_access(); busses->clear_operations();}
+    void enable_bus_access() const {busses->enable_access();}
 private:
 
     std::shared_ptr<bus_accessor> busses;

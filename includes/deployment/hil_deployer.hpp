@@ -39,6 +39,8 @@ public:
     void set_input(uint32_t address, uint32_t value, std::string core);
     void start();
     void stop();
+
+    std::pair<std::string, std::string> get_hardware_sim_data(nlohmann::json &specs);
 private:
 
 

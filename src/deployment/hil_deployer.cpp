@@ -198,6 +198,13 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
+std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
+    hw.disable_bus_access();
+    deploy(specs);
+    hw.enable_bus_access();
+    return hw.get_hardware_simulation_data();
+}
+
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
     std::vector<uint32_t>core_dividers;
     auto programs = dispatcher.get_programs();

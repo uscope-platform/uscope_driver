@@ -40,6 +40,8 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_debug(arguments);
     } else if(command_string=="hil_disassemble"){
         return process_hil_disassemble(arguments);
+    } else if(command_string=="hil_hardware_sim"){
+        return process_hil_hardware_sim(arguments);
     } else if(command_string == "compile_program") {
         return process_compile_program(arguments);
     }else if(command_string  == "set_layout_map") {
@@ -200,6 +202,18 @@ nlohmann::json cores_endpoints::process_hil_disassemble(nlohmann::json &argument
     nlohmann::json resp;
 
     resp["data"] = emulator.disassemble(arguments);
+    resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &arguments) {
+    std::vector<std::string> results;
+    nlohmann::json resp;
+
+    auto data =  hil.get_hardware_sim_data(arguments);;
+    resp["data"] = nlohmann::json();
+    resp["data"]["control"] = data.second;
+    resp["data"]["code"] = data.first;
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
