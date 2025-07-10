@@ -185,13 +185,13 @@ TEST(deployer_v2, simple_single_core_deployment) {
 
     ASSERT_EQ(ops.size(), 13);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
 
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -351,12 +351,12 @@ TEST(deployer_v2, simple_single_core_integer_input) {
 
     ASSERT_EQ(ops.size(), 13);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -509,12 +509,12 @@ TEST(deployer_v2, simple_single_core_memory_init) {
 
     ASSERT_EQ(ops.size(), 15);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x40003);
 
@@ -690,12 +690,12 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
 
     ASSERT_EQ(ops.size(), 19);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -950,7 +950,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     };
     ASSERT_EQ(ops.size(), 24);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -966,12 +966,12 @@ TEST(deployer_v2, simple_multi_core_deployment) {
         0xc,
 };
 
-    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x30002);
 
@@ -1242,7 +1242,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
 
     ASSERT_EQ(ops.size(), 22);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -1265,7 +1265,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
@@ -1464,7 +1464,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
 
     ASSERT_EQ(ops.size(), 20);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -1481,13 +1481,13 @@ TEST(deployer_v2, scatter_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
 
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
@@ -1700,7 +1700,7 @@ TEST(deployer_v2, gather_interconnect_test) {
 
     ASSERT_EQ(ops.size(), 22);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -1717,12 +1717,12 @@ TEST(deployer_v2, gather_interconnect_test) {
 
     };
 
-    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
@@ -1940,7 +1940,7 @@ TEST(deployer_v2, vector_interconnect_test) {
     };
     ASSERT_EQ(ops.size(), 24);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -1957,12 +1957,12 @@ TEST(deployer_v2, vector_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
@@ -2166,7 +2166,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     };
     ASSERT_EQ(ops.size(), 28);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
@@ -2187,12 +2187,12 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
 
     };
 
-    ASSERT_EQ(ops[1].type, "p");
+    ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
-    ASSERT_EQ(ops[2].type, "w");
+    ASSERT_EQ(ops[2].type, control_plane_write);
     ASSERT_EQ(ops[2].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
@@ -2402,12 +2402,12 @@ TEST(deployer_v2, simple_single_core_output_select) {
 
     ASSERT_EQ(ops.size(), 16);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -2577,12 +2577,12 @@ TEST(deployer_v2, simple_single_core_input_set) {
 
     ASSERT_EQ(ops.size(), 15);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -2749,12 +2749,12 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     };
     ASSERT_EQ(ops.size(), 15);
 
-    ASSERT_EQ(ops[0].type, "p");
+    ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
-    ASSERT_EQ(ops[1].type, "w");
+    ASSERT_EQ(ops[1].type, control_plane_write);
     ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
@@ -2802,4 +2802,115 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     ASSERT_EQ(ops[14].address[0], 0x4'43c0'0000);
     ASSERT_EQ(ops[14].data[0],0);
 
+}
+
+
+
+TEST(deployer_v2, hardware_sim_file_production) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+    "version":2,
+    "cores": [
+        {
+            "id": "test",
+            "order": 0,
+            "inputs": [
+                {
+                    "name": "input_1",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    },
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            31.2
+                        ]
+                    }
+                },
+                {
+                    "name": "input_2",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    },
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            4
+                        ]
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "out",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    }
+                }
+            ],
+            "memory_init": [],
+            "channels": 1,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "none"
+            },
+            "program": {
+                "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                "build_settings": {
+                    "io": {
+                        "inputs": [
+                            "input_1",
+                            "input_2"
+                        ],
+                        "memories": [],
+                        "outputs": [
+                            "out"
+                        ]
+                    }
+                },
+                "headers": []
+            },
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [],
+    "emulation_time": 2,
+    "deployment_mode": false
+})");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+    d.deploy(spec_json);
+
+    auto ops = ba->get_operations();
+
+
+    auto files = ba->get_hardware_simulation_data();
+    auto control_ref = "18316660740:131073\n18316660804:56\n18316660736:1\n18316664840:3\n18316664832:1106876826\n18316668936:2\n18316668928:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n";
+    auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
+    EXPECT_EQ(files.second, control_ref);
+    EXPECT_EQ(files.first, rom_ref);
 }

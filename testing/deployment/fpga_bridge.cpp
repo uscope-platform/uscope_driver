@@ -42,7 +42,7 @@ TEST(fpga_bridge, single_write_register_direct) {
     std::vector<uint64_t> ref_addr = {1136918532};
 
     EXPECT_EQ(ops.address, ref_addr);
-    EXPECT_EQ(ops.type, "w");
+    EXPECT_EQ(ops.type, control_plane_write);
     EXPECT_EQ(ops.data[0], 423);
 
     EXPECT_EQ(res,responses::ok);
@@ -72,7 +72,7 @@ TEST(fpga_bridge, single_write_register_axis_proxied) {
     std::vector<uint64_t> ref_addr = {1136918532, 76342};
 
     EXPECT_EQ(ops.address, ref_addr);
-    EXPECT_EQ(ops.type, "w");
+    EXPECT_EQ(ops.type, control_plane_write);
     EXPECT_EQ(ops.data[0], 222);
 
     EXPECT_EQ(res,responses::ok);
@@ -154,7 +154,7 @@ TEST(fpga_bridge, single_write_register_read) {
     EXPECT_EQ(res["response_code"], responses::ok);
 
     EXPECT_EQ(ops.address[0], 5432);
-    EXPECT_EQ(ops.type, "r");
+    EXPECT_EQ(ops.type, control_plane_read);
 }
 
 
@@ -178,7 +178,7 @@ TEST(fpga_bridge, load_program) {
     EXPECT_EQ(res, responses::ok);
 
     EXPECT_EQ(ops.address[0], 64235);
-    EXPECT_EQ(ops.type, "p");
+    EXPECT_EQ(ops.type, rom_plane_write);
     EXPECT_EQ(prog_res, prog_ref);
 }
 
@@ -238,7 +238,7 @@ TEST(fpga_bridge, set_scope_data) {
     std::vector<uint64_t> ref_addr = {1200};
 
     EXPECT_EQ(ops.address, ref_addr);
-    EXPECT_EQ(ops.type, "w");
+    EXPECT_EQ(ops.type, control_plane_write);
     EXPECT_EQ(ops.data[0], 124786);
     EXPECT_EQ(resp, responses::ok);
 

@@ -62,7 +62,9 @@ public:
     uint32_t get_pl_clock( uint8_t clk_n);
     responses::response_code  set_pl_clock(uint8_t clk_n, uint32_t freq);
 
-    std::vector<bus_op> get_bus_operations();
+    std::vector<bus_op> get_bus_operations() const;
+
+    std::pair<std::string, std::string> get_hardware_simulation_data() const;
 
 private:
 

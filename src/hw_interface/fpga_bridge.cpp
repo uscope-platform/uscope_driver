@@ -206,6 +206,10 @@ responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq)
     return responses::ok;
 }
 
-std::vector<bus_op> fpga_bridge::get_bus_operations() {
+std::vector<bus_op> fpga_bridge::get_bus_operations() const {
     return busses->get_operations();
+}
+
+std::pair<std::string, std::string> fpga_bridge::get_hardware_simulation_data() const {
+    return busses->get_hardware_simulation_data();
 }

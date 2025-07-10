@@ -30,10 +30,12 @@
 #define ZYNQMP_FCORE_BASE_ADDR 0x500000000
 
 
+enum bus_access_type {control_plane_write, rom_plane_write, control_plane_read, rom_plane_read};
+
 struct bus_op{
     std::vector<uint64_t> address;
     std::vector<uint64_t> data;
-    std::string type;
+    bus_access_type type;
 };
 
 class bus_accessor {
@@ -47,6 +49,7 @@ public:
     uint64_t fcore_address_to_index(uint64_t address) const;
 
     std::vector<bus_op> get_operations() {return operations;};
+    std::pair<std::string, std::string> get_hardware_simulation_data();
 private:
 
     uint64_t control_addr, core_addr;

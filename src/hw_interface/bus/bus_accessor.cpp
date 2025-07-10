@@ -100,7 +100,7 @@ bus_accessor::bus_accessor(bool sm) {
 
 void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
     if(sink_mode){
-        operations.push_back({addresses, {data}, "w"});
+        operations.push_back({addresses, {data}, control_plane_write});
     } else {
         m.lock();
         if(addresses.size() ==1){
@@ -115,7 +115,7 @@ void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64
 
 uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
     if(sink_mode){
-        operations.push_back({address, {0}, "r"});
+        operations.push_back({address, {0}, control_plane_read});
         return rand()%100;
     } else {
         uint32_t ret_val;
@@ -140,6 +140,24 @@ uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
     return (address - core_addr) / 4;
 }
 
+std::pair<std::string, std::string> bus_accessor::get_hardware_simulation_data() {
+    std::string rom_plane, control_plane;
+    auto ops = get_operations();
+    for(auto &o:ops) {
+        if(o.type == rom_plane_write) {
+            auto rom_address = o.address[0];
+            for(int i = 0; i<o.data.size(); i++) {
+                rom_plane += std::to_string(rom_address + 4*i) + ":" + std::to_string(o.data[i]) + '\n';
+            }
+        } else if(o.type == control_plane_write) {
+            for(int i = 0; i<o.data.size(); i++) {
+                control_plane += std::to_string(o.address[i]) + ":"  + std::to_string(o.data[i]) + "\n";
+            }
+        }
+    }
+    return {rom_plane, control_plane};
+}
+
 uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
     if(control_addr>address){
         spdlog::critical("Tried to write the control address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
@@ -155,7 +173,7 @@ void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> pr
         for (auto &p:program) {
             pn.push_back(p);
         }
-        operations.push_back({a, pn, "p"});
+        operations.push_back({a, pn, rom_plane_write});
     } else {
         m.lock();
         for(int i = 0; i< program.size(); i++){
