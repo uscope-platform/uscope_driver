@@ -44,8 +44,6 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_hil_hardware_sim(arguments);
     } else if(command_string == "compile_program") {
         return process_compile_program(arguments);
-    }else if(command_string  == "set_layout_map") {
-        return process_set_layout_map(arguments);
     }else if(command_string == "set_hil_address_map"){
         return process_set_hil_address_map(arguments);
     }else if(command_string == "get_hil_address_map") {
@@ -219,12 +217,6 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &argumen
 }
 
 
-nlohmann::json cores_endpoints::process_set_layout_map(nlohmann::json &arguments) {
-    nlohmann::json resp;
-    resp["response_code"] = responses::ok;
-    hil.set_layout_map(arguments);
-    return resp;
-}
 
 nlohmann::json cores_endpoints::process_set_hil_address_map(nlohmann::json &arguments) {
     nlohmann::json resp;

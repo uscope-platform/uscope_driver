@@ -201,6 +201,7 @@ void hil_deployer::stop() {
 std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
     hw.disable_bus_access();
     deploy(specs);
+    start();
     hw.enable_bus_access();
     return hw.get_hardware_simulation_data();
 }
