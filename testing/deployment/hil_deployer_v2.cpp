@@ -183,7 +183,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     dis = fcore::fcore_dis(actual_program);
     auto actual_dis = dis.get_disassembled_program_text();
 
-    ASSERT_EQ(ops.size(), 13);
+    ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -202,37 +202,42 @@ TEST(deployer_v2, simple_single_core_deployment) {
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[4].data[0], 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[7].data[0], 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[7].data[0], 1);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[8].data[0], 2);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[8].data[0], 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[9].data[0], 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[10].data[0], 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[11].data[0], 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[12].address[0], 0x443c20000);
-    ASSERT_EQ(ops[12].data[0],11);
-
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 }
 
 TEST(deployer_v2, simple_single_core_integer_input) {
@@ -349,7 +354,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
         0xc,
     };
 
-    ASSERT_EQ(ops.size(), 13);
+    ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -367,36 +372,42 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[4].data[0], 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[7].data[0], 4);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[7].data[0], 1);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[8].data[0], 2);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[9].data[0], 4);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[8].data[0], 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[9].data[0], 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[10].data[0], 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[11].data[0], 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[12].address[0], 0x443c20000);
-    ASSERT_EQ(ops[12].data[0],11);
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 
 }
 
@@ -688,7 +699,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
             0xc,
     };
 
-    ASSERT_EQ(ops.size(), 19);
+    ASSERT_EQ(ops.size(), 21);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -724,36 +735,42 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     ASSERT_EQ(ops[9].data[0], 4);
 
     // INPUTS
-    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[10].data[0], 3);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[11].data[0], 3);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[12].data[0], 2);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[13].data[0], 0x40800000);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[13].data[0], 1);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[14].data[0], 2);
+
+    ASSERT_EQ(ops[15].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[15].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[14].data[0], 0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[15].data[0], 2);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[16].data[0], 100'000'000);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[18].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[17].data[0], 1);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[19].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[18].address[0], 0x443c20000);
-    ASSERT_EQ(ops[18].data[0],11);
+    ASSERT_EQ(ops[20].address[0], 0x443c20000);
+    ASSERT_EQ(ops[20].data[0],11);
 
 }
 
@@ -948,7 +965,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             0x60841,
             0xc,
     };
-    ASSERT_EQ(ops.size(), 24);
+    ASSERT_EQ(ops.size(), 28);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -992,60 +1009,73 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     ASSERT_EQ(ops[7].data[0], 1);
 
     // INPUTS 1
-    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[8].data[0], 4);
+    ASSERT_EQ(ops[8].address[0],  0x4'43c2'200c);
+    ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[9].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[9].data[0], 4);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[10].data[0], 3);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[10].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[11].data[0], 0x40800000);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[11].data[0], 1);
+
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[12].data[0], 3);
+
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[13].data[0], 0x40800000);
 
 
     // INPUTS 2
-    ASSERT_EQ(ops[12].address[0], 0x4'43c3'2008);
-    ASSERT_EQ(ops[12].data[0], 4);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c3'2000);
-    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c3'200c);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c3'3008);
-    ASSERT_EQ(ops[14].data[0], 3);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c3'2008);
+    ASSERT_EQ(ops[15].data[0], 4);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c3'3000);
-    ASSERT_EQ(ops[15].data[0], 0x40800000);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c3'2000);
+    ASSERT_EQ(ops[16].data[0], 0x41f9999a);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c3'200c);
+    ASSERT_EQ(ops[17].data[0], 1);
+
+    ASSERT_EQ(ops[18].address[0], 0x4'43c3'2008);
+    ASSERT_EQ(ops[18].data[0], 3);
+
+    ASSERT_EQ(ops[19].address[0], 0x4'43c3'2000);
+    ASSERT_EQ(ops[19].data[0], 0x40800000);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[16].data[0], 0);
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[20].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[17].data[0], 2);
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[21].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
-    ASSERT_EQ(ops[18].data[0], 0);
+    ASSERT_EQ(ops[22].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[22].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[19].data[0], 0x4e);
+    ASSERT_EQ(ops[23].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[23].data[0], 0x4e);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[20].data[0], 100'000'000);
+    ASSERT_EQ(ops[24].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[24].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[21].data[0], 3);
+    ASSERT_EQ(ops[25].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[25].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[22].address[0], 0x443c20000);
-    ASSERT_EQ(ops[22].data[0],11);
+    ASSERT_EQ(ops[26].address[0], 0x443c20000);
+    ASSERT_EQ(ops[26].data[0],11);
 
-    ASSERT_EQ(ops[23].address[0], 0x443c30000);
-    ASSERT_EQ(ops[23].data[0],11);
+    ASSERT_EQ(ops[27].address[0], 0x443c30000);
+    ASSERT_EQ(ops[27].data[0],11);
 
 }
 
@@ -1240,7 +1270,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     };
 
 
-    ASSERT_EQ(ops.size(), 22);
+    ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1295,46 +1325,50 @@ TEST(deployer_v2, scalar_interconnect_test) {
 
     // INPUTS
 
+    ASSERT_EQ(ops[10].address[0], 0x443c2200c);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[10].address[0], 0x443c22008);
-    ASSERT_EQ(ops[10].data[0], 5);
+    ASSERT_EQ(ops[11].address[0], 0x443c22008);
+    ASSERT_EQ(ops[11].data[0], 5);
 
-    ASSERT_EQ(ops[11].address[0], 0x443c22000);
-    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[12].address[0], 0x443c22000);
+    ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
+    ASSERT_EQ(ops[13].address[0], 0x443c2200c);
+    ASSERT_EQ(ops[13].data[0], 1);
 
-    ASSERT_EQ(ops[12].address[0], 0x443c23008);
-    ASSERT_EQ(ops[12].data[0], 4);
+    ASSERT_EQ(ops[14].address[0], 0x443c22008);
+    ASSERT_EQ(ops[14].data[0], 4);
 
-    ASSERT_EQ(ops[13].address[0], 0x443c23000);
-    ASSERT_EQ(ops[13].data[0], 0x4202cccd);
+    ASSERT_EQ(ops[15].address[0], 0x443c22000);
+    ASSERT_EQ(ops[15].data[0], 0x4202cccd);
     // SEQUENCER
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[14].data[0], 0);
-
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[15].data[0], 2);
-
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[17].data[0], 0x59);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[18].data[0], 100'000'000);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[19].data[0], 3);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[19].data[0], 0x59);
+
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].data[0], 100'000'000);
+
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[20].address[0], 0x443c20000);
-    ASSERT_EQ(ops[20].data[0],11);
+    ASSERT_EQ(ops[22].address[0], 0x443c20000);
+    ASSERT_EQ(ops[22].data[0],11);
 
-    ASSERT_EQ(ops[21].address[0], 0x443c30000);
-    ASSERT_EQ(ops[21].data[0],11);
+    ASSERT_EQ(ops[23].address[0], 0x443c30000);
+    ASSERT_EQ(ops[23].data[0],11);
 
 }
 
@@ -1698,7 +1732,7 @@ TEST(deployer_v2, gather_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(ops.size(), 22);
+    ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1751,45 +1785,51 @@ TEST(deployer_v2, gather_interconnect_test) {
 
     // MEMORY INITIALIZATIONS
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[10].data[0], 0x5);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[11].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[11].data[0], 0x5);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[12].data[0], 0x4);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[13].data[0], 1);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[14].data[0], 0x4);
+
+    ASSERT_EQ(ops[15].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[15].data[0], 0x41f9999a);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[14].data[0], 0);
-
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[15].data[0], 2);
-
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[17].data[0], 78);
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[18].data[0], 100'000'000);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[19].data[0], 3);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[19].data[0], 78);
+
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].data[0], 100'000'000);
+
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[20].address[0], 0x443c20000);
-    ASSERT_EQ(ops[20].data[0],11);
+    ASSERT_EQ(ops[22].address[0], 0x443c20000);
+    ASSERT_EQ(ops[22].data[0],11);
 
-    ASSERT_EQ(ops[21].address[0], 0x443c30000);
-    ASSERT_EQ(ops[21].data[0],11);
+    ASSERT_EQ(ops[23].address[0], 0x443c30000);
+    ASSERT_EQ(ops[23].data[0],11);
 
 }
 
@@ -1938,7 +1978,7 @@ TEST(deployer_v2, vector_interconnect_test) {
             0xc
 
     };
-    ASSERT_EQ(ops.size(), 24);
+    ASSERT_EQ(ops.size(), 26);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -1997,45 +2037,51 @@ TEST(deployer_v2, vector_interconnect_test) {
 
     // MEMORY INITIALIZATIONS
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[12].data[0], 0x4);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[13].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[13].data[0], 0x4);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[14].data[0], 0x3);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[14].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[15].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[15].data[0], 1);
+
+    ASSERT_EQ(ops[16].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[16].data[0], 0x3);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[17].data[0], 0x41f9999a);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[16].data[0], 0);
-
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[17].data[0], 2);
-
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1004);
     ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[19].data[0], 78);
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[19].data[0], 2);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[20].data[0], 100'000'000);
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[20].data[0], 0);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[21].data[0], 3);
+    ASSERT_EQ(ops[21].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[21].data[0], 78);
+
+    ASSERT_EQ(ops[22].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[22].data[0], 100'000'000);
+
+    ASSERT_EQ(ops[23].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[23].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[22].address[0], 0x443c20000);
-    ASSERT_EQ(ops[22].data[0],11);
+    ASSERT_EQ(ops[24].address[0], 0x443c20000);
+    ASSERT_EQ(ops[24].data[0],11);
 
-    ASSERT_EQ(ops[23].address[0], 0x443c30000);
-    ASSERT_EQ(ops[23].data[0],11);
+    ASSERT_EQ(ops[25].address[0], 0x443c30000);
+    ASSERT_EQ(ops[25].data[0],11);
 
 }
 
@@ -2400,7 +2446,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
             0xc,
     };
 
-    ASSERT_EQ(ops.size(), 16);
+    ASSERT_EQ(ops.size(), 18);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2424,40 +2470,47 @@ TEST(deployer_v2, simple_single_core_output_select) {
     ASSERT_EQ(ops[5].data[0], 2);
 
     // INPUTS
-    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[6].data[0], 3);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[7].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[6].data[0], 0);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[8].data[0], 2);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[7].data[0], 3);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[9].data[0], 0x40800000);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[8].data[0], 0x41f9999a);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[9].data[0], 1);
+
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[10].data[0], 2);
+
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[11].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[10].data[0], 0);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[11].data[0], 2);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[12].data[0], 100'000'000);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[14].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[13].data[0], 1);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[15].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c20000);
-    ASSERT_EQ(ops[14].data[0],11);
+    ASSERT_EQ(ops[16].address[0], 0x443c20000);
+    ASSERT_EQ(ops[16].data[0],11);
 
     // select_output
-    ASSERT_EQ(ops[15].address[0], 0x443c50004);
-    ASSERT_EQ(ops[15].data[0],0x10003);
+    ASSERT_EQ(ops[17].address[0], 0x443c50004);
+    ASSERT_EQ(ops[17].data[0],0x10003);
 
 }
 
@@ -2575,7 +2628,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
             0xc,
     };
 
-    ASSERT_EQ(ops.size(), 15);
+    ASSERT_EQ(ops.size(), 18);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2593,42 +2646,51 @@ TEST(deployer_v2, simple_single_core_input_set) {
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[4].data[0], 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[7].data[0], 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[7].data[0], 1);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[8].data[0], 2);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[8].data[0], 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[9].data[0], 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[10].data[0], 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[11].data[0], 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[12].address[0], 0x443c20000);
-    ASSERT_EQ(ops[12].data[0],11);
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 
-    ASSERT_EQ(ops[13].address[0], 0x443c23008);
-    ASSERT_EQ(ops[13].data[0],2);
+    ASSERT_EQ(ops[15].address[0], 0x443c2200c);
+    ASSERT_EQ(ops[15].data[0],1);
 
-    ASSERT_EQ(ops[14].address[0], 0x443c23000);
-    ASSERT_EQ(ops[14].data[0],90);
+    ASSERT_EQ(ops[16].address[0], 0x443c22008);
+    ASSERT_EQ(ops[16].data[0],2);
+
+    ASSERT_EQ(ops[17].address[0], 0x443c22000);
+    ASSERT_EQ(ops[17].data[0],90);
 
 }
 
@@ -2747,7 +2809,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             0x60841,
             0xc,
     };
-    ASSERT_EQ(ops.size(), 15);
+    ASSERT_EQ(ops.size(), 17);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
@@ -2765,42 +2827,48 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c2'2008);
-    ASSERT_EQ(ops[4].data[0], 3);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2000);
-    ASSERT_EQ(ops[5].data[0], 0x41f9999a);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c2'3008);
-    ASSERT_EQ(ops[6].data[0], 2);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c2'3000);
-    ASSERT_EQ(ops[7].data[0], 0x40800000);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'200c);
+    ASSERT_EQ(ops[7].data[0], 1);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'2008);
+    ASSERT_EQ(ops[8].data[0], 2);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'2000);
+    ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[8].data[0], 0);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[9].data[0], 2);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[10].data[0], 100'000'000);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[11].data[0], 1);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[12].address[0], 0x443c20000);
-    ASSERT_EQ(ops[12].data[0],11);
+    ASSERT_EQ(ops[14].address[0], 0x443c20000);
+    ASSERT_EQ(ops[14].data[0],11);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c0'0000);
-    ASSERT_EQ(ops[13].data[0],1);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[15].data[0],1);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c0'0000);
-    ASSERT_EQ(ops[14].data[0],0);
+    ASSERT_EQ(ops[16].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[16].data[0],0);
 
 }
 
@@ -2909,7 +2977,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
 
 
     auto files = ba->get_hardware_simulation_data();
-    auto control_ref = "18316660740:131073\n18316660804:56\n18316660736:1\n18316664840:3\n18316664832:1106876826\n18316668936:2\n18316668928:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n";
+    auto control_ref = "18316660740:131073\n18316660804:56\n18316660736:1\n18316664844:0\n18316664840:3\n18316664832:1106876826\n18316664844:1\n18316664840:2\n18316664832:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n";
     auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
     EXPECT_EQ(files.second, control_ref);
     EXPECT_EQ(files.first, rom_ref);
