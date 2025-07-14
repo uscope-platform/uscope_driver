@@ -100,8 +100,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
             uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
             this->setup_inputs(
                     inputs[i],
-                    complex_base_addr,
-                    this->addresses.bases.cores_inputs + this->addresses.offsets.cores_inputs*i,
+                    complex_base_addr + this->addresses.bases.cores_inputs,
+                    i,
                     p.name
             );
         }

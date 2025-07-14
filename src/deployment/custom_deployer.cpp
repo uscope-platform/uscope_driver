@@ -80,8 +80,8 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
             uint64_t complex_base_addr = 1;
             this->setup_inputs(
                     inputs[i],
-                    complex_base_addr,
-                    this->addresses.bases.cores_inputs + this->addresses.offsets.cores_inputs*i,
+                    complex_base_addr + this->addresses.bases.cores_inputs,
+                    i,
                     p.name
 
             );

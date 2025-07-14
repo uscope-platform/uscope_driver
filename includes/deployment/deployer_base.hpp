@@ -112,7 +112,7 @@ struct logic_layout{
 
 struct input_metadata_t{
     std::string core;
-    uint64_t const_ip_addr;
+    std::pair<uint64_t, uint32_t> const_ip_addr;
     uint32_t dest;
     bool is_float;
 };
@@ -141,7 +141,7 @@ protected:
     void setup_core(uint64_t core_address, uint32_t n_channels);
     void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values);
 
-    void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t complex_address, uint64_t ip_address,std::string core_name);
+    void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t const_ip_address,  uint32_t const_idx,std::string core_name);
 
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive);
@@ -158,6 +158,17 @@ protected:
 private:
     std::vector<input_metadata_t> inputs;
 };
+
+
+static constexpr struct {
+    uint8_t const_lsb = 0;
+    uint8_t const_hsb = 0x4;
+    uint8_t const_dest = 0x8;
+    uint8_t const_selector = 0xC;
+    uint8_t clear_constant = 0x10;
+    uint8_t active_channels = 0x14;
+    uint8_t const_user = 0x18;
+} fcore_constant_engine;
 
 
 #endif //USCOPE_DRIVER_DEPLOYER_BASE_HPP

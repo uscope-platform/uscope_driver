@@ -121,20 +121,24 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     spdlog::info("------------------------------------------------------------------");
 }
 
-void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t complex_address, uint64_t ip_address, std::string core_name) {
+void deployer_base::setup_inputs(
+    const fcore::deployed_core_inputs &in,
+    uint64_t const_ip_address,
+    uint32_t const_idx,
+    std::string core_name
+) {
 
     if(in.source_type ==fcore::constant_input){
         std::string in_name = in.name;
         uint32_t address =in.address[0];
 
-        uint64_t offset = ip_address;
 
         input_metadata_t metadata;
 
         uint32_t input_value;
         metadata.is_float = in.metadata.type == fcore::type_float;
         metadata.core = core_name;
-        metadata.const_ip_addr = complex_address + offset;
+        metadata.const_ip_addr = {const_ip_address, const_idx};
         metadata.dest = address;
 
         if(std::holds_alternative<std::vector<float>>(in.data[0])){
@@ -146,8 +150,10 @@ void deployer_base::setup_inputs(const fcore::deployed_core_inputs &in, uint64_t
 
         spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core_name);
 
-        write_register( metadata.const_ip_addr+ 8, address);
-        write_register( metadata.const_ip_addr, input_value);
+
+        write_register(metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second);
+        write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest);
+        write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, input_value);
 
         inputs.push_back(metadata);
     }
@@ -157,8 +163,11 @@ void deployer_base::update_input_value(uint32_t address, uint32_t value, std::st
     spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
     for(auto &in:inputs){
         if(in.dest == address && in.core == core){
-            write_register( in.const_ip_addr+ 8, address);
-            write_register( in.const_ip_addr, value);
+
+            write_register(in.const_ip_addr.first + fcore_constant_engine.const_selector, in.const_ip_addr.second);
+            write_register( in.const_ip_addr.first + fcore_constant_engine.const_dest, in.dest);
+            write_register( in.const_ip_addr.first + fcore_constant_engine.const_lsb, value);
+
         }
     }
 }
