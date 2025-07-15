@@ -113,8 +113,10 @@ struct logic_layout{
 struct input_metadata_t{
     std::string core;
     std::pair<uint64_t, uint32_t> const_ip_addr;
+    uint32_t channel;
     uint32_t dest;
     bool is_float;
+
 };
 
 class deployer_base {
@@ -141,7 +143,7 @@ protected:
     void setup_core(uint64_t core_address, uint32_t n_channels);
     void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values);
 
-    void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t const_ip_address,  uint32_t const_idx,std::string core_name);
+    void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t const_ip_address, uint32_t const_idx, uint32_t target_channel,std::string core_name);
 
     uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
     void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive);

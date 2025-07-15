@@ -125,12 +125,13 @@ void deployer_base::setup_inputs(
     const fcore::deployed_core_inputs &in,
     uint64_t const_ip_address,
     uint32_t const_idx,
+    uint32_t target_channel,
     std::string core_name
 ) {
 
     if(in.source_type ==fcore::constant_input){
         std::string in_name = in.name;
-        uint32_t address =in.address[0];
+        uint32_t address =in.address[0] + (target_channel<<16);
 
 
         input_metadata_t metadata;
@@ -140,6 +141,7 @@ void deployer_base::setup_inputs(
         metadata.core = core_name;
         metadata.const_ip_addr = {const_ip_address, const_idx};
         metadata.dest = address;
+        metadata.channel = target_channel;
 
         if(std::holds_alternative<std::vector<float>>(in.data[0])){
             auto c_val = std::get<std::vector<float>>(in.data[0])[0];

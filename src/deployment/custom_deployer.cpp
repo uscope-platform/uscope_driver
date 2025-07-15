@@ -77,14 +77,29 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         for(int i = 0; i<inputs.size(); i++)  {
-            uint64_t complex_base_addr = 1;
-            this->setup_inputs(
-                    inputs[i],
-                    complex_base_addr + this->addresses.bases.cores_inputs,
-                    i,
-                    p.name
+            uint64_t complex_base_addr = 1; // this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
 
-            );
+            if(inputs[i].data.size()>1 && p.n_channels >1) {
+                auto in = inputs[i];
+                for(int j = 0; j<inputs[i].data.size(); j++) {
+                    this->setup_inputs(
+                        in,
+                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        i,
+                        j,
+                        p.name + "[" + std::to_string(j)  + "]"
+                    );
+                    in.data.erase(in.data.begin());
+                }
+            } else {
+                this->setup_inputs(
+                        inputs[i],
+                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        i,
+                        0,
+                        p.name
+                );
+            }
         }
         spdlog::info("------------------------------------------------------------------");
 

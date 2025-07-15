@@ -96,14 +96,34 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
         auto inputs = dispatcher.get_inputs(p.name);
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
-        for(int i = 0; i<inputs.size(); i++)  {
+        int input_progressive = 0;
+        for(auto &input: inputs)  {
+
             uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
-            this->setup_inputs(
-                    inputs[i],
-                    complex_base_addr + this->addresses.bases.cores_inputs,
-                    i,
-                    p.name
-            );
+
+            if(input.data.size()>1 && p.n_channels >1) {
+                auto in = input;
+                for(int j = 0; j<input.data.size(); j++) {
+                    this->setup_inputs(
+                        in,
+                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        input_progressive,
+                        j,
+                        p.name + "[" + std::to_string(j)  + "]"
+                    );
+                    input_progressive++;
+                    in.data.erase(in.data.begin());
+                }
+            } else {
+                this->setup_inputs(
+                        input,
+                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        input_progressive,
+                        0,
+                        p.name
+                );
+                input_progressive++;
+            }
         }
         spdlog::info("------------------------------------------------------------------");
     }
