@@ -764,7 +764,7 @@ TEST(deployer, multichannel_single_core_deployment) {
     ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[13].data[0], 1);
+    ASSERT_EQ(ops[13].data[0], 0x10000);
 
     ASSERT_EQ(ops[14].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[14].data[0], 0x10003);
@@ -774,7 +774,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[16].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[16].data[0], 2);
+    ASSERT_EQ(ops[16].data[0], 0x20000);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[17].data[0], 0x20003);
@@ -784,7 +784,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[19].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[19].data[0], 3);
+    ASSERT_EQ(ops[19].data[0], 0x30000);
 
     ASSERT_EQ(ops[20].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[20].data[0], 0x30003);
@@ -795,7 +795,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[22].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[22].data[0], 4);
+    ASSERT_EQ(ops[22].data[0], 1);
 
     ASSERT_EQ(ops[23].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[23].data[0], 4);
@@ -805,7 +805,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[25].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[25].data[0], 5);
+    ASSERT_EQ(ops[25].data[0], 0x10001);
 
     ASSERT_EQ(ops[26].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[26].data[0], 0x10004);
@@ -815,7 +815,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[28].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[28].data[0], 6);
+    ASSERT_EQ(ops[28].data[0], 0x20001);
 
     ASSERT_EQ(ops[29].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[29].data[0], 0x20004);
@@ -825,7 +825,7 @@ TEST(deployer, multichannel_single_core_deployment) {
 
 
     ASSERT_EQ(ops[31].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[31].data[0], 7);
+    ASSERT_EQ(ops[31].data[0], 0x30001);
 
     ASSERT_EQ(ops[32].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[32].data[0], 0x30004);
@@ -1867,7 +1867,7 @@ TEST(deployer, gather_interconnect_test) {
     ASSERT_EQ(ops[9].address[0], 0x4'43c3'1000);
     ASSERT_EQ(ops[9].data[0], 1);
 
-    // MEMORY INITIALIZATIONS
+    // INPUTS
 
     ASSERT_EQ(ops[10].address[0], 0x4'43c2'200c);
     ASSERT_EQ(ops[10].data[0], 0);
@@ -1879,7 +1879,7 @@ TEST(deployer, gather_interconnect_test) {
     ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[13].data[0], 1);
+    ASSERT_EQ(ops[13].data[0], 0x10000);
 
     ASSERT_EQ(ops[14].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[14].data[0], 0x10003);
@@ -1889,7 +1889,7 @@ TEST(deployer, gather_interconnect_test) {
 
 
     ASSERT_EQ(ops[16].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[16].data[0], 2);
+    ASSERT_EQ(ops[16].data[0], 1);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[17].data[0], 0x4);
@@ -1899,7 +1899,7 @@ TEST(deployer, gather_interconnect_test) {
 
 
     ASSERT_EQ(ops[19].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[19].data[0], 3);
+    ASSERT_EQ(ops[19].data[0], 0x10001);
 
     ASSERT_EQ(ops[20].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[20].data[0], 0x10004);
@@ -2150,7 +2150,7 @@ TEST(deployer, vector_interconnect_test) {
 
 
     ASSERT_EQ(ops[15].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[15].data[0], 1);
+    ASSERT_EQ(ops[15].data[0], 0x10000);
 
     ASSERT_EQ(ops[16].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[16].data[0], 0x10003);
@@ -2160,7 +2160,7 @@ TEST(deployer, vector_interconnect_test) {
 
 
     ASSERT_EQ(ops[18].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[18].data[0], 2);
+    ASSERT_EQ(ops[18].data[0], 0x1);
 
     ASSERT_EQ(ops[19].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[19].data[0], 0x4);
@@ -2170,7 +2170,7 @@ TEST(deployer, vector_interconnect_test) {
 
 
     ASSERT_EQ(ops[21].address[0], 0x4'43c2'200c);
-    ASSERT_EQ(ops[21].data[0], 3);
+    ASSERT_EQ(ops[21].data[0], 0x10001);
 
     ASSERT_EQ(ops[22].address[0], 0x4'43c2'2008);
     ASSERT_EQ(ops[22].data[0], 0x10004);

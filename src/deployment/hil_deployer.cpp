@@ -111,7 +111,6 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
                         j,
                         p.name + "[" + std::to_string(j)  + "]"
                     );
-                    input_progressive++;
                     in.data.erase(in.data.begin());
                 }
             } else {
@@ -122,8 +121,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
                         0,
                         p.name
                 );
-                input_progressive++;
             }
+            input_progressive++;
         }
         spdlog::info("------------------------------------------------------------------");
     }

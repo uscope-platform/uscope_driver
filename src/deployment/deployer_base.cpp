@@ -139,7 +139,8 @@ void deployer_base::setup_inputs(
         uint32_t input_value;
         metadata.is_float = in.metadata.type == fcore::type_float;
         metadata.core = core_name;
-        metadata.const_ip_addr = {const_ip_address, const_idx};
+        auto selector = const_idx + (target_channel<<16);
+        metadata.const_ip_addr = {const_ip_address, selector};
         metadata.dest = address;
         metadata.channel = target_channel;
 
