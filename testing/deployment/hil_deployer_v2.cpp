@@ -3084,6 +3084,97 @@ TEST(deployer_v2, hardware_sim_file_production) {
     EXPECT_EQ(files.first, rom_ref);
 }
 
+
+
+TEST(deployer_v2, hardware_sim_file_production_mem_out) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+    "version":2,
+    "cores": [
+        {
+            "id": "test",
+            "order": 0,
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "out",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    }
+                }
+            ],
+            "memory_init": [
+                {
+                    "name": "mem",
+                    "vector_size": 1,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "is_output": true,
+                    "is_vector": false,
+                    "value": [
+                        0
+                    ]
+                }
+            ],
+            "channels": 1,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "none"
+            },
+            "program": {
+                "content": "int main(){\n  float mem = mem + 5.3; \n float out = mem*2.0;\n}",
+                "build_settings": {
+                    "io": {
+                        "inputs": [
+                            "input_1",
+                            "input_2"
+                        ],
+                        "memories": [],
+                        "outputs": [
+                            "out"
+                        ]
+                    }
+                },
+                "headers": []
+            },
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [],
+    "emulation_time": 2,
+    "deployment_mode": false
+})");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+
+    auto files = d.get_hardware_sim_data(spec_json);
+
+    auto control_ref = "18316660740:196610\n18316660804:56\n18316660744:262145\n18316660808:56\n18316660736:2\n18316656644:0\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n18316525568:1\n--\n3:test.out\n4:test.mem\n";
+    auto rom_ref = "21474836480:458755\n21474836484:12\n21474836488:4128769\n21474836492:131074\n21474836496:12\n21474836500:12\n21474836504:38\n21474836508:1084856730\n21474836512:8261601\n21474836516:38\n21474836520:1073741824\n21474836524:266211\n21474836528:12\n";
+    EXPECT_EQ(files.first, rom_ref);
+    EXPECT_EQ(files.second, control_ref);
+}
+
+
 TEST(deployer_v2, multichannel_diversified_input_constants) {
 
     nlohmann::json spec_json = nlohmann::json::parse(

@@ -65,7 +65,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
         frequencies.push_back(p.sampling_frequency);
 
     }
-    timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
+        timebase_frequency = std::accumulate(frequencies.begin(), frequencies.end(), 1,[](uint32_t a, uint32_t b){
         return std::lcm(a,b);
     });
 
@@ -78,7 +78,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
     for(auto &p:programs){
         uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*cores_idx[p.name];
         auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
-        auto n_transfers = this->setup_output_dma(dma_address, p.name);
+        auto n_transfers = this->setup_output_dma(dma_address, p.name, p.n_channels);
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 

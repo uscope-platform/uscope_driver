@@ -31,13 +31,13 @@ void deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &pro
     hw.apply_program(address, program);
 }
 
-uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &core_name) {
+uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &core_name, uint32_t n_channels) {
     spdlog::info("SETUP DMA FOR CORE: {0} AT ADDRESS 0x{1:x}", core_name, address);
     spdlog::info("------------------------------------------------------------------");
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.source_id == core_name){
-            setup_output_entry(i, address, current_io);
+            setup_output_entry(i, address, current_io, n_channels);
             current_io++;
         }
     }
@@ -46,7 +46,7 @@ uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &co
     return current_io;
 }
 
-void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive) {
+void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels) {
 
     if(e.source_io_address > 0xfff){
         throw std::runtime_error("The maximum source address in an interconnect is 0xFFF");
@@ -75,7 +75,12 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
     auto n_dma_channels = 16;
 
     uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
-    bus_labels[destination_portion] = e.source_id + "." + e.source_name;
+    if(n_channels == 1) {
+        bus_labels[destination_portion] = e.source_id + "." + e.source_name;
+    } else {
+        bus_labels[destination_portion] = e.source_id + "." + e.source_name + '[' + std::to_string(e.source_channel) + ']';
+    }
+
 
     if(e.metadata.type == fcore::type_float){
         write_register(metadata_address, get_metadata_value(

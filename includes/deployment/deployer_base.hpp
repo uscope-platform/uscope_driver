@@ -145,8 +145,8 @@ protected:
 
     void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t const_ip_address, uint32_t const_idx, uint32_t target_channel,std::string core_name);
 
-    uint16_t setup_output_dma(uint64_t address, const std::string& core_name);
-    void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive);
+    uint16_t setup_output_dma(uint64_t address, const std::string& core_name, uint32_t n_channels);
+    void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels);
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
