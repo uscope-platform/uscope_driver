@@ -3075,17 +3075,15 @@ TEST(deployer_v2, hardware_sim_file_production) {
     d.set_accessor(ba);
     auto addr_map = get_addr_map_v2();
     d.set_layout_map(addr_map);
-    d.deploy(spec_json);
 
-    auto ops = ba->get_operations();
+    auto files = d.get_hardware_sim_data(spec_json);
 
-
-    auto files = ba->get_hardware_simulation_data();
-    auto control_ref = "18316660740:131073\n18316660804:56\n18316660736:1\n18316664844:0\n18316664840:3\n18316664832:1106876826\n18316664844:1\n18316664840:2\n18316664832:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n";
+    auto control_ref = "18316660740:131073\n18316660804:56\n18316660736:1\n18316664844:0\n18316664840:3\n18316664832:1106876826\n18316664844:1\n18316664840:2\n18316664832:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316656640:11\n18316525568:1\n--\n2:test.out\n";
     auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
     EXPECT_EQ(files.second, control_ref);
     EXPECT_EQ(files.first, rom_ref);
 }
+
 TEST(deployer_v2, multichannel_diversified_input_constants) {
 
     nlohmann::json spec_json = nlohmann::json::parse(

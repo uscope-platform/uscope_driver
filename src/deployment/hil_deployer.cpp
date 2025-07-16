@@ -222,7 +222,12 @@ std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann
     deploy(specs);
     start();
     hw.enable_bus_access();
-    return hw.get_hardware_simulation_data();
+    auto [rom, control] = hw.get_hardware_simulation_data();
+    control += "--\n";
+    for(auto &[key, val]:bus_labels) {
+        control += std::to_string(key) + ":" + val + "\n";
+    }
+    return {rom, control};
 }
 
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
