@@ -3568,29 +3568,32 @@ TEST(deployer_v2, multichannel_memory_init) {
     ASSERT_EQ(ops[10].address[0], 0x4'43c2'0004);
     ASSERT_EQ(ops[10].data[0], 0x42C80000);
 
+    ASSERT_EQ(ops[11].address[0], 0x4'43c2'0404);
+    ASSERT_EQ(ops[11].data[0], 0x43FA0000);
+
     // SEQUENCER
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[11].data[0], 0);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[12].data[0], 2);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[13].data[0], 100000000);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[14].data[0], 100000000);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[14].data[0], 1);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[15].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[15].address[0], 0x443c20000);
-    ASSERT_EQ(ops[15].data[0],11);
-
-    ASSERT_EQ(ops[16].address[0], 0x4'43c0'0000);
-    ASSERT_EQ(ops[16].data[0],1);
+    ASSERT_EQ(ops[16].address[0], 0x443c20000);
+    ASSERT_EQ(ops[16].data[0],11);
 
     ASSERT_EQ(ops[17].address[0], 0x4'43c0'0000);
-    ASSERT_EQ(ops[17].data[0],0);
+    ASSERT_EQ(ops[17].data[0],1);
+
+    ASSERT_EQ(ops[18].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[18].data[0],0);
 
 }
