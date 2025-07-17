@@ -273,7 +273,8 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
         return a.execution_order < b.execution_order;
     });
 
-    uint32_t inter_core_buffer = 60;
+    // TODO: characterize and use dma bus characteristics to set this dynamically
+    uint32_t inter_core_buffer = 90;
 
     std::unordered_map<std::string, uint32_t>ordered_shifts;
     ordered_shifts[calc_data_v[0].name] = 2;

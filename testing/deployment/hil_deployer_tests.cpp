@@ -1146,7 +1146,7 @@ TEST(deployer, simple_multi_core_deployment) {
     ASSERT_EQ(ops[22].data[0], 0);
 
     ASSERT_EQ(ops[23].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[23].data[0], 0x4e);
+    ASSERT_EQ(ops[23].data[0], 108);
 
     ASSERT_EQ(ops[24].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[24].data[0], 100'000'000);
@@ -1439,7 +1439,7 @@ TEST(deployer, scalar_interconnect_test) {
     ASSERT_EQ(ops[18].data[0], 0);
 
     ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[19].data[0], 0x59);
+    ASSERT_EQ(ops[19].data[0], 119);
 
     ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[20].data[0], 100'000'000);
@@ -1647,7 +1647,7 @@ TEST(deployer, scatter_interconnect_test) {
     ASSERT_EQ(ops[14].data[0], 0);
 
     ASSERT_EQ(ops[15].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[15].data[0], 0x5d);
+    ASSERT_EQ(ops[15].data[0], 123);
 
     ASSERT_EQ(ops[16].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[16].data[0], 100'000'000);
@@ -1920,7 +1920,7 @@ TEST(deployer, gather_interconnect_test) {
     ASSERT_EQ(ops[24].data[0], 0);
 
     ASSERT_EQ(ops[25].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[25].data[0], 78);
+    ASSERT_EQ(ops[25].data[0], 108);
 
     ASSERT_EQ(ops[26].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[26].data[0], 100'000'000);
@@ -2190,7 +2190,7 @@ TEST(deployer, vector_interconnect_test) {
     ASSERT_EQ(ops[26].data[0], 0);
 
     ASSERT_EQ(ops[27].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[27].data[0], 78);
+    ASSERT_EQ(ops[27].data[0], 108);
 
     ASSERT_EQ(ops[28].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[28].data[0], 100'000'000);
@@ -2424,7 +2424,7 @@ TEST(deployer, 2d_vector_interconnect_test) {
     ASSERT_EQ(ops[22].data[0], 0);
 
     ASSERT_EQ(ops[23].address[0], 0x4'43c1'000C);
-    ASSERT_EQ(ops[23].data[0], 93);
+    ASSERT_EQ(ops[23].data[0], 123);
 
     ASSERT_EQ(ops[24].address[0], 0x4'43c1'0004);
     ASSERT_EQ(ops[24].data[0], 100'000'000);
