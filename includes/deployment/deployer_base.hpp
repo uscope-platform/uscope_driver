@@ -141,7 +141,7 @@ protected:
     void write_register(uint64_t addr, uint32_t val);
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     void setup_core(uint64_t core_address, uint32_t n_channels);
-    void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values);
+    void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values,  uint32_t n_channels);
 
     void setup_inputs(const fcore::deployed_core_inputs &c, uint64_t const_ip_address, uint32_t const_idx, uint32_t target_channel,std::string core_name);
 

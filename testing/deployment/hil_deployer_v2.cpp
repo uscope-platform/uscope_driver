@@ -3423,3 +3423,174 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
     ASSERT_EQ(ops[29].data[0],0);
 
 }
+
+
+TEST(deployer_v2, multichannel_memory_init) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+    "version": 2,
+    "cores": [
+        {
+            "id": "test",
+            "order": 1,
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "out",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width": 24,
+                        "signed":false,
+                        "common_io": false
+                    }
+                }
+            ],
+            "memory_init": [
+                {
+                    "name": "mem",
+                    "vector_size": 1,
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true
+                    },
+                    "is_output": true,
+                    "is_vector": false,
+                    "value": [
+                        100.0,
+                        500.0
+                    ]
+                }
+            ],
+            "channels": 2,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "none"
+            },
+            "program": {
+                "content": "int main(){\n  float out = mem*2.5;\n mem += 0.1;\n}",
+                "build_settings": {
+                    "io": {
+                        "inputs": [
+                            "input_1",
+                            "input_2"
+                        ],
+                        "memories": [],
+                        "outputs": [
+                            "out"
+                        ]
+                    }
+                },
+                "headers": []
+            },
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [],
+    "emulation_time": 2,
+    "deployment_mode": false
+})");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+    d.deploy(spec_json);
+    d.start();
+    d.stop();
+
+
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
+            0x70003,
+            0xc,
+            0x3F0001,
+            0x20002,
+            0xc,
+            0xc,
+            0x26,
+            0x40200000,
+            0x40FE3,
+            0x26,
+            0x3DCCCCCD,
+            0x7E0FE1,
+            0xc,
+    };
+    ASSERT_EQ(ops.size(), 19);
+
+    ASSERT_EQ(ops[0].type, rom_plane_write);
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
+
+    ASSERT_EQ(ops[1].type, control_plane_write);
+    // DMA
+
+    ASSERT_EQ(ops[1].address[0], 0x4'43c2'1004);
+    ASSERT_EQ(ops[1].data[0], 0x30002);
+
+    ASSERT_EQ(ops[2].address[0], 0x4'43c2'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
+
+    ASSERT_EQ(ops[3].address[0], 0x4'43c2'1008);
+    ASSERT_EQ(ops[3].data[0], 0x10041002);
+
+    ASSERT_EQ(ops[4].address[0], 0x4'43c2'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
+
+    ASSERT_EQ(ops[5].address[0], 0x4'43c2'100c);
+    ASSERT_EQ(ops[5].data[0], 0x50001);
+
+    ASSERT_EQ(ops[6].address[0], 0x4'43c2'104c);
+    ASSERT_EQ(ops[6].data[0], 0x38);
+
+    ASSERT_EQ(ops[7].address[0], 0x4'43c2'1010);
+    ASSERT_EQ(ops[7].data[0], 0x10061001);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c2'1050);
+    ASSERT_EQ(ops[8].data[0], 0x38);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c2'1000);
+    ASSERT_EQ(ops[9].data[0], 4);
+
+    // MEMORY INITIALIZATION
+
+    ASSERT_EQ(ops[10].address[0], 0x4'43c2'0004);
+    ASSERT_EQ(ops[10].data[0], 0x42C80000);
+
+    // SEQUENCER
+
+    ASSERT_EQ(ops[11].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[11].data[0], 0);
+
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[12].data[0], 2);
+
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[13].data[0], 100000000);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[14].data[0], 1);
+
+    // CORES
+
+    ASSERT_EQ(ops[15].address[0], 0x443c20000);
+    ASSERT_EQ(ops[15].data[0],11);
+
+    ASSERT_EQ(ops[16].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[16].data[0],1);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c0'0000);
+    ASSERT_EQ(ops[17].data[0],0);
+
+}

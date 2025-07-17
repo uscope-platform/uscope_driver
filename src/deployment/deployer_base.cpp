@@ -110,18 +110,37 @@ void deployer_base::setup_core(uint64_t core_address, uint32_t n_channels) {
     write_register(core_address, n_channels);
 }
 
-void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::memory_init_value> init_values) {
+void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::memory_init_value> init_values, uint32_t n_channels) {
     spdlog::info("------------------------------------------------------------------");
     for(auto &[address, value]:init_values){
 
         if(std::holds_alternative<std::vector<float>>(value)){
-            auto v = float_to_uint32(std::get<std::vector<float>>(value)[0]);
-            auto register_addr = base_address+address[0]*4;
-            write_register(register_addr, v);
+            auto vect = std::get<std::vector<float>>(value);
+            if(vect.size() == n_channels) {
+                for(int i = 0; i < n_channels; i++) {
+                    auto v = float_to_uint32(vect[i]);
+                    auto register_addr = base_address + ((address[0] & 0xFF) + (i<<8))*4;
+                    write_register(register_addr, v);
+                }
+            } else {
+                auto v = float_to_uint32(vect[0]);
+                auto register_addr = base_address+address[0]*4;
+                write_register(register_addr, v);
+            }
+
         } else {
-            auto v = std::get<std::vector<uint32_t>>(value)[0];
-            auto register_addr = base_address+address[0]*4;
-            write_register(register_addr,v);
+            auto vect = std::get<std::vector<uint32_t>>(value);
+            if(vect.size() == n_channels) {
+                for(int i = 0; i < n_channels; i++) {
+                    auto v = std::get<std::vector<uint32_t>>(value)[i];
+                    auto register_addr = base_address + ((address[0] & 0xFF) + (i<<8))*4;
+                    write_register(register_addr,v);
+                }
+            } else {
+                auto v = std::get<std::vector<uint32_t>>(value)[0];
+                auto register_addr = base_address+address[0]*4;
+                write_register(register_addr,v);
+            }
         }
     }
     spdlog::info("------------------------------------------------------------------");

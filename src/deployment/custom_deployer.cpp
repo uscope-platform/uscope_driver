@@ -68,7 +68,7 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
         uint64_t control_address = 0;
         control_address = dispatcher.get_deployment_options(p.name).control_address;
-        this->setup_memories(control_address, memories[p.name]);
+        this->setup_memories(control_address, memories[p.name], p.n_channels);
     }
 
 

@@ -84,11 +84,13 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
     auto memories = dispatcher.get_memory_initializations();
 
-    for(auto &[core_name, initializations]: memories){
-        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", core_name);
 
-        auto control_address = this->addresses.bases.cores_control + cores_idx[core_name] * this->addresses.offsets.cores_control;
-        this->setup_memories(control_address, initializations);
+    for(auto &p:programs) {
+        auto initializations = memories[p.name];
+        spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
+
+        auto control_address = this->addresses.bases.cores_control + cores_idx[p.name] * this->addresses.offsets.cores_control;
+        this->setup_memories(control_address, initializations, p.n_channels);
     }
 
 
