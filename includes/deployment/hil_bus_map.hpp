@@ -38,7 +38,7 @@ public:
     uint16_t destination_channel;
     std::string core_name;
     std::string type;
-    fcore::emulator::iom_metadata metadata;
+    fcore::iom_metadata metadata;
 };
 
 struct bus_address {

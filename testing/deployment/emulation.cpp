@@ -24,25 +24,23 @@ TEST(emulator, simple_emulation) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
-        "version":1,
+        "version":2,
         "cores": [
             {
                 "id": "test_producer",
                 "order": 1,
-                "input_data": [],
                 "inputs": [],
                 "outputs": [
                     {
                         "name": "out",
-                        "type": "float",
                         "metadata": {
                             "type": "float",
                             "width": 32,
-                            "signed": false
+                            "signed": false,
+                            "common_io":false
                         },
-                        "reg_n": [
-                            5,6
-                        ]
+                        "is_vector":true,
+                        "vector_size":2
                     }
                 ],
                 "memory_init": [
@@ -54,9 +52,8 @@ TEST(emulator, simple_emulation) {
                             "signed": false
                         },
                         "is_output": true,
-                        "reg_n": [
-                            32
-                        ],
+                        "is_vector":false,
+                        "vector_size":1,
                         "value": [
                             0
                         ]
@@ -105,7 +102,7 @@ TEST(emulator, simple_emulation) {
     expected_result["duplicates"] = "";
     expected_result["results_valid"] = true;
     nlohmann::json prod_res;
-    prod_res["timebase"] = {0.0};
+    prod_res["timebase"] = {0.0, 0.5};
     prod_res["test_producer"]["error_code"] = "";
     prod_res["test_producer"]["outputs"] =  nlohmann::json();
     prod_res["test_producer"]["outputs"]["mem"] =  nlohmann::json();
@@ -122,7 +119,7 @@ TEST(emulator, disassembly) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
-    "version":1,
+    "version":2,
     "cores": [
         {
             "order": 1,
@@ -133,7 +130,6 @@ TEST(emulator, disassembly) {
                 "efi_implementation":"none"
             },
             "sampling_frequency":1,
-            "input_data":[],
             "inputs":[
                 {
                     "name": "input_1",
@@ -143,8 +139,8 @@ TEST(emulator, disassembly) {
                         "signed":false,
                         "common_io": false
                     },
-                    "reg_n": 3,
-                    "channel":[0,1],
+                    "is_vector":false,
+                    "vector_size":1,
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 },
                 {
@@ -155,21 +151,22 @@ TEST(emulator, disassembly) {
                         "signed":false,
                         "common_io": false
                     },
-                    "reg_n": 4,
-                    "channel":[0,1],
+                    "is_vector":false,
+                    "vector_size":1,
                     "source":{"type": "constant","value": [31.2, 32.7]}
                 }
             ],
             "outputs":[
                 {
                     "name":"out",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": false
+                        "signed": false,
+                        "common_io": false
                     },
-                    "reg_n":[5]
+                    "is_vector":false,
+                    "vector_size":1
                 }
             ],
             "memory_init":[],
@@ -193,7 +190,6 @@ TEST(emulator, disassembly) {
                 "efi_implementation":"none"
             },
             "sampling_frequency":1,
-            "input_data":[],
             "inputs":[
                 {
                     "name": "input_data",
@@ -203,21 +199,22 @@ TEST(emulator, disassembly) {
                         "signed":false,
                         "common_io": false
                     },
-                    "reg_n": [4,3],
-                    "channel":[0],
-                    "source":{"type": "constant","value": [31.2, 32.7]}
+                    "source":{"type": "constant","value": [31.2, 32.7]},
+                    "is_vector":true,
+                    "vector_size":2
                 }
             ],
             "outputs":[
                 {
                     "name":"out",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": false
+                        "signed": false,
+                        "common_io": false
                     },
-                    "reg_n":[5]
+                    "is_vector":false,
+                    "vector_size":1
                 }
             ],
             "memory_init":[],
@@ -243,8 +240,8 @@ TEST(emulator, disassembly) {
 
     std::unordered_map<std::string, fcore::disassembled_program> check_map;
 
-    check_map["test_producer"] = {{{3,2},{4,1},{5,3}},"add r2, r1, r3\nstop\n"};
-    check_map["test_reducer"] = {{{3,1}, {4,2}, {5,3}},"mul r2, r1, r3\nstop\n"};
+    check_map["test_producer"] = {{{2,3},{3,1},{4,2}},"add r2, r1, r3\nstop\n"};
+    check_map["test_reducer"] = {{{1,3}, {3,2}, {4,1}},"mul r2, r1, r3\nstop\n"};
 
 
     EXPECT_EQ(check_map["test_producer"].translation_table, res["test_producer"].translation_table);

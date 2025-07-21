@@ -65,12 +65,11 @@ TEST(custom_deployer, deployment) {
 
     nlohmann::json spec_json = nlohmann::json::parse(
             R"({
-    "version":1,
+    "version":2,
     "cores": [
         {
             "id": "vsi",
             "order": 1,
-            "input_data": [],
             "inputs": [
                 {
                     "name": "sin_t",
@@ -78,18 +77,13 @@ TEST(custom_deployer, deployment) {
                         "type": "integer",
                         "width": 14,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
+                    "is_vector":false,
+                    "vector_size":1,
                     "source": {
-                        "type": "external",
-                        "value": ""
-                    },
-                    "reg_n": [
-                        1
-                    ],
-                    "channel": [
-                        0
-                    ]
+                        "type": "external"
+                    }
                 },
                 {
                     "name": "cos_t",
@@ -97,16 +91,14 @@ TEST(custom_deployer, deployment) {
                         "type": "integer",
                         "width": 10,
                         "signed": true,
-                        "common_io":true
+                        "common_io":false
                     },
+                    "is_vector":false,
+                    "vector_size":1,
                     "source": {
                         "type": "external",
                         "value": ""
-                    },
-                    "reg_n": [
-                        2
-                    ],
-                    "channel": 0
+                    }
                 },
                 {
                     "name": "v_in",
@@ -114,16 +106,13 @@ TEST(custom_deployer, deployment) {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
+                    "is_vector":false,
+                    "vector_size":1,
                     "source": {
-                        "type": "external",
-                        "value": ""
-                    },
-                    "reg_n": [
-                        3
-                    ],
-                    "channel": 0
+                        "type": "external"
+                    }
                 },
                 {
                     "name": "i_out",
@@ -131,17 +120,13 @@ TEST(custom_deployer, deployment) {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
-                        "type": "external",
-                        "value": ""
+                        "type": "external"
                     },
-                    "reg_n": [
-                        4,
-                        5,
-                        6
-                    ],
+                    "is_vector":true,
+                    "vector_size":3,
                     "channel": 0
                 },
                 {
@@ -150,16 +135,14 @@ TEST(custom_deployer, deployment) {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
+                    "is_vector":false,
+                    "vector_size":1,
                     "source": {
                         "type": "external",
                         "value": ""
-                    },
-                    "reg_n": [
-                        7
-                    ],
-                    "channel": 0
+                    }
                 },
                 {
                     "name": "i_q_ref",
@@ -167,46 +150,38 @@ TEST(custom_deployer, deployment) {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
+                    "is_vector":false,
+                    "vector_size":1,
                     "source": {
                         "type": "external",
                         "value": ""
-                    },
-                    "reg_n": [
-                        8
-                    ],
-                    "channel": 0
+                    }
                 }
             ],
             "outputs": [
                 {
                     "name": "v_out",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
-                    "reg_n": [
-                        10,
-                        11,
-                        12
-                    ]
+                    "is_vector": true,
+                    "vector_size": 3
                 },
                 {
                     "name": "i_in",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
-                    "reg_n": [
-                        13
-                    ]
+                    "is_vector": false,
+                    "vector_size": 1
                 }
             ],
             "memory_init": [
@@ -218,9 +193,8 @@ TEST(custom_deployer, deployment) {
                         "signed": false
                     },
                     "is_output": false,
-                    "reg_n": [
-                        14
-                    ],
+                    "is_vector": false,
+                    "vector_size": 1,
                     "value": [
                         0
                     ]
@@ -233,9 +207,8 @@ TEST(custom_deployer, deployment) {
                         "signed": false
                     },
                     "is_output": false,
-                    "reg_n": [
-                        15
-                    ],
+                    "is_vector": false,
+                    "vector_size": 1,
                     "value": [
                         0
                     ]
@@ -282,7 +255,6 @@ TEST(custom_deployer, deployment) {
         {
             "id": "machine",
             "order": 2,
-            "input_data": [],
             "inputs": [
                 {
                     "name": "voltages",
@@ -290,72 +262,59 @@ TEST(custom_deployer, deployment) {
                         "type": "float",
                         "width": 32,
                         "signed": false,
-                        "common_io":true
+                        "common_io":false
                     },
                     "source": {
-                        "type": "external",
-                        "value": ""
+                        "type": "external"
                     },
-                    "reg_n": [
-                        1,
-                        2,
-                        3
-                    ],
-                    "channel": [
-                        0
-                    ]
+                    "is_vector": true,
+                    "vector_size": 3
                 }
             ],
             "outputs": [
                 {
                     "name": "currents",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": false
+                        "signed": false,
+                        "common_io":false
                     },
-                    "reg_n": [
-                        4,
-                        5,
-                        6
-                    ]
+                    "is_vector": true,
+                    "vector_size": 3
                 },
                 {
                     "name": "speed",
-                    "type": "float",
                     "metadata": {
                         "type": "float",
                         "width": 32,
-                        "signed": false
+                        "signed": false,
+                        "common_io":false
                     },
-                    "reg_n": [
-                        7
-                    ]
+                    "is_vector": false,
+                    "vector_size": 1
                 },
                 {
                     "name": "sin_t",
-                    "type": "integer",
                     "metadata": {
                         "type": "integer",
                         "width": 16,
-                        "signed": true
+                        "signed": true,
+                        "common_io":false
                     },
-                    "reg_n": [
-                        8
-                    ]
+                    "is_vector": false,
+                    "vector_size": 1
                 },
                 {
                     "name": "cos_t",
-                    "type": "integer",
                     "metadata": {
                         "type": "integer",
                         "width": 14,
-                        "signed": false
+                        "signed": false,
+                        "common_io":false
                     },
-                    "reg_n": [
-                        9
-                    ]
+                    "is_vector": false,
+                    "vector_size": 1
                 }
             ],
             "memory_init": [
@@ -367,9 +326,8 @@ TEST(custom_deployer, deployment) {
                         "signed": false
                     },
                     "is_output": false,
-                    "reg_n": [
-                        22
-                    ],
+                    "is_vector": false,
+                    "vector_size": 1,
                     "value": [
                         0
                     ]
@@ -382,9 +340,8 @@ TEST(custom_deployer, deployment) {
                         "signed": false
                     },
                     "is_output": false,
-                    "reg_n": [
-                        23
-                    ],
+                    "is_vector": false,
+                    "vector_size": 1,
                     "value": [
                         0
                     ]
@@ -397,9 +354,8 @@ TEST(custom_deployer, deployment) {
                         "signed": false
                     },
                     "is_output": false,
-                    "reg_n": [
-                        24
-                    ],
+                    "is_vector": false,
+                    "vector_size": 1,
                     "value": [
                         0
                     ]
