@@ -185,8 +185,8 @@ void deployer_base::setup_inputs(
 
         inputs.push_back(metadata);
     } else if(in.source_type == fcore::random_input) {
-        auto selector = const_idx + (target_channel<<16);
-        write_register( const_ip_address + (active_random_inputs+1)*4, selector);
+        uint32_t address =in.address[0] + (target_channel<<16);
+        write_register( const_ip_address + (active_random_inputs+1)*4, address);
         active_random_inputs++;
     }
 }
