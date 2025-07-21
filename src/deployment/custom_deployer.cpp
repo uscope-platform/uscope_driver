@@ -79,12 +79,19 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
         for(int i = 0; i<inputs.size(); i++)  {
             uint64_t complex_base_addr = 1; // this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
 
+            auto in = inputs[i];
+            uint64_t ip_addr;
+            if(in.source_type==fcore::random_input) {
+                ip_addr = complex_base_addr + this->addresses.bases.noise_generator;
+            } else {
+                ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
+            }
+
             if(inputs[i].data.size()>1 && p.n_channels >1) {
-                auto in = inputs[i];
                 for(int j = 0; j<inputs[i].data.size(); j++) {
                     this->setup_inputs(
                         in,
-                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        ip_addr,
                         i,
                         j,
                         p.name + "[" + std::to_string(j)  + "]"
@@ -93,8 +100,8 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
                 }
             } else {
                 this->setup_inputs(
-                        inputs[i],
-                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        in,
+                        ip_addr,
                         i,
                         0,
                         p.name

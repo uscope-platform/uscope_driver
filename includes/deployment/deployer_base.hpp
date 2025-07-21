@@ -157,6 +157,7 @@ protected:
     fpga_bridge hw;
     logic_layout addresses;
 protected:
+    uint32_t active_random_inputs = 0;
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
     std::map<uint32_t, std::string> bus_labels;

@@ -103,28 +103,49 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
             uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
 
+            auto in = input;
+            uint64_t ip_addr;
+            if(in.source_type==fcore::random_input) {
+                ip_addr = this->addresses.bases.noise_generator;
+            } else {
+                ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
+            }
+
             if(input.data.size()>1 && p.n_channels >1) {
-                auto in = input;
                 for(int j = 0; j<input.data.size(); j++) {
                     this->setup_inputs(
                         in,
-                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        ip_addr,
                         input_progressive,
                         j,
                         p.name + "[" + std::to_string(j)  + "]"
                     );
                     in.data.erase(in.data.begin());
                 }
+            } else if(p.n_channels>1 && in.source_type == fcore::random_input){
+                for(int j = 0; j<p.n_channels; j++) {
+                    this->setup_inputs(
+                        in,
+                        ip_addr,
+                        input_progressive,
+                        j,
+                        p.name + "[" + std::to_string(j)  + "]"
+                    );
+                }
             } else {
                 this->setup_inputs(
-                        input,
-                        complex_base_addr + this->addresses.bases.cores_inputs,
+                        in,
+                        ip_addr,
                         input_progressive,
                         0,
                         p.name
                 );
             }
             input_progressive++;
+        }
+
+        if(active_random_inputs>0) {
+            write_register(this->addresses.bases.noise_generator, active_random_inputs);
         }
         spdlog::info("------------------------------------------------------------------");
     }

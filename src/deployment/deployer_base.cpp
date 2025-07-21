@@ -184,6 +184,10 @@ void deployer_base::setup_inputs(
         write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, input_value);
 
         inputs.push_back(metadata);
+    } else if(in.source_type == fcore::random_input) {
+        auto selector = const_idx + (target_channel<<16);
+        write_register( const_ip_address + (active_random_inputs+1)*4, selector);
+        active_random_inputs++;
     }
 }
 
