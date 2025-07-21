@@ -34,6 +34,7 @@ struct logic_layout{
         uint64_t cores_rom;
         uint64_t cores_control;
         uint64_t cores_inputs;
+        uint64_t noise_generator;
         uint64_t controller;
 
         uint64_t scope_mux;
@@ -58,7 +59,7 @@ struct logic_layout{
         bases.controller = obj["bases"]["controller"];
         bases.scope_mux = obj["bases"]["scope_mux"];
         bases.hil_control = obj["bases"]["hil_control"];
-
+        bases.noise_generator = obj["bases"]["noise_generator"];
 
         offsets.cores_rom = obj["offsets"]["cores_rom"];
         offsets.dma = obj["offsets"]["dma"];
@@ -127,6 +128,7 @@ public:
 
     void set_layout_map(nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
+        auto dbg = obj.dump(4);
         addresses.parse_layout_object(obj);
         spdlog::trace(addresses.dump());
     };
