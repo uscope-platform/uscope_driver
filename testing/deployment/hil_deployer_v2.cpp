@@ -3763,10 +3763,10 @@ TEST(deployer_v2, multichannel_random_inputs) {
     // INPUTS
 
     ASSERT_EQ(ops[11].address[0], 0x4'43c3'0004);
-    ASSERT_EQ(ops[11].data[0], 0);
+    ASSERT_EQ(ops[11].data[0], 2);
 
     ASSERT_EQ(ops[12].address[0], 0x4'43c3'0008);
-    ASSERT_EQ(ops[12].data[0], 0x10000);
+    ASSERT_EQ(ops[12].data[0], 0x10002);
 
     ASSERT_EQ(ops[13].address[0], 0x4'43c3'000c);
     ASSERT_EQ(ops[13].data[0], 1);
