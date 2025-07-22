@@ -67,17 +67,6 @@ TEST(emulator, simple_emulation) {
                 "channels": 1,
                 "program": {
                     "content": "int main(){\n  float mem;\n\n  mem = mem  + 1.0;\n  mem = fti(mem);\n  mem = mem & 0x3ff;\n  mem = itf(mem);\n  \n  float out[2];\n  out[0] = mem + 100.0;\n  out[1] = mem + 1000.0;\n}",
-                    "build_settings": {
-                        "io": {
-                            "inputs": [],
-                            "memories": [
-                                "mem"
-                            ],
-                            "outputs": [
-                                "out"
-                            ]
-                        }
-                    },
                     "headers": []
                 },
                 "options": {
@@ -172,7 +161,6 @@ TEST(emulator, disassembly) {
             "memory_init":[],
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
                 "headers": []
             },
             "deployment": {
@@ -220,7 +208,6 @@ TEST(emulator, disassembly) {
             "memory_init":[],
             "program": {
                 "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] * input_data[1];\n}\n",
-                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
                 "headers": []
             },
             "deployment": {

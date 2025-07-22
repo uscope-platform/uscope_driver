@@ -109,18 +109,6 @@ TEST(deployer_v2, simple_single_core_deployment) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -289,18 +277,6 @@ TEST(deployer_v2, simple_single_core_integer_input) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -451,19 +427,6 @@ TEST(deployer_v2, simple_single_core_memory_init) {
             },
             "program": {
                 "content": "int main(){\n  float mem;\n  float mem_2;\n  float out = mem + mem_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                        ],
-                        "memories": [
-                            "mem",
-                            "mem_2"
-                        ],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -633,18 +596,6 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
         },
         "program": {
             "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-            "build_settings": {
-                "io": {
-                    "inputs": [
-                        "input_1",
-                        "input_2"
-                    ],
-                    "memories": [],
-                    "outputs": [
-                        "out"
-                    ]
-                }
-            },
             "headers": []
         },
         "sampling_frequency": 1,
@@ -886,18 +837,6 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -964,18 +903,6 @@ TEST(deployer_v2, simple_multi_core_deployment) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -1195,19 +1122,6 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "memory_init": [],
             "program": {
                 "content": "int main(){float input_1; float input_2; float out; out = input_1 + input_2 ; out2=fti(out);}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "outputs": [
-                            "out",
-                            "out2"
-                        ],
-                        "memories": []
-                    }
-                },
                 "headers": []
             },
             "order": 0,
@@ -1253,17 +1167,6 @@ TEST(deployer_v2, scalar_interconnect_test) {
             "memory_init": [],
             "program": {
                 "content": "int main(){float input; float out; float val = itf(input); out = fti(val+1.0);}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input"
-                        ],
-                        "outputs": [
-                            "out"
-                        ],
-                        "memories": []
-                    }
-                },
                 "headers": []
             },
             "order": 1,
@@ -1453,7 +1356,6 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float out[2] = {15.6, 17.2};\n}",
-                    "build_settings":{"io":{"inputs":[],"outputs":["out"],"memories":[]}},
                     "headers": []
                 },
                 "deployment": {
@@ -1499,7 +1401,6 @@ TEST(deployer_v2, scatter_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input;float out = input*3.5;\n}",
-                    "build_settings":{"io":{"inputs":["input"],"outputs":["out"],"memories":[]}},
                     "headers": []
                 },
                 "deployment": {
@@ -1690,7 +1591,6 @@ TEST(deployer_v2, gather_interconnect_test) {
             "memory_init":[],
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings":{"io":{"inputs":["input_data"],"outputs":["out"],"memories":[]}},
                 "headers": []
             },
             "deployment": {
@@ -1737,7 +1637,6 @@ TEST(deployer_v2, gather_interconnect_test) {
             "memory_init":[],
             "program": {
                 "content": "int main(){\n    float input_data[2];\n    float out = input_data[0] + input_data[1];\n}\n",
-                "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
                 "headers": []
             },
             "deployment": {
@@ -1957,7 +1856,6 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                    "build_settings":{"io":{"inputs":["input_1", "input_2"],"outputs":["out"],"memories":[]}},
                     "headers": []
                 },
                 "deployment": {
@@ -2003,7 +1901,6 @@ TEST(deployer_v2, vector_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input;float out = input*3.5;\n}",
-                    "build_settings":{"io":{"inputs":["input"],"outputs":["out"],"memories":[]}},
                     "headers": []
                 },
                 "deployment": {
@@ -2208,7 +2105,6 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float out[2] = {15.6, 17.2};\n}",
-                    "build_settings":{"io":{"inputs":[],"outputs":["out"],"memories":[]}},
                     "headers": []
                 },
                 "deployment": {
@@ -2256,7 +2152,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                 "memory_init":[],
                 "program": {
                     "content": "int main(){\n  float input[2]; \n  float consumer_out[2]; \n  consumer_out[0] = input[0]*3.5; \n  consumer_out[1] = input[1]*3.5;\n}",
-                    "build_settings":{"io":{"inputs":["input"],"outputs":["consumer_out"],"memories":[]}},
+
                     "headers": []
                 },
                 "deployment": {
@@ -2479,18 +2375,6 @@ TEST(deployer_v2, simple_single_core_output_select) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -2667,18 +2551,6 @@ TEST(deployer_v2, simple_single_core_input_set) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -2847,18 +2719,6 @@ TEST(deployer_v2, simple_single_core_start_stop) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -3027,18 +2887,6 @@ TEST(deployer_v2, hardware_sim_file_production) {
             },
             "program": {
                 "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -3117,18 +2965,6 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
             },
             "program": {
                 "content": "int main(){\n  float mem = mem + 5.3; \n float out = mem*2.0;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -3245,20 +3081,6 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
             "channels": 2,
             "program": {
                 "content": "int main() {\n  float a, b, mem;\n  float input_data = a + b;\n  mem += input_data;\n  c = mem*2.0;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "a",
-                            "b"
-                        ],
-                        "outputs": [
-                            "c"
-                        ],
-                        "memories": [
-                            "mem"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "options": {
@@ -3457,18 +3279,6 @@ TEST(deployer_v2, multichannel_memory_init) {
             },
             "program": {
                 "content": "int main(){\n  float out = mem*2.5;\n mem += 0.1;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "input_1",
-                            "input_2"
-                        ],
-                        "memories": [],
-                        "outputs": [
-                            "out"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "sampling_frequency": 1,
@@ -3661,20 +3471,6 @@ TEST(deployer_v2, multichannel_random_inputs) {
             "channels": 2,
             "program": {
                 "content": "int main() {\n  float a, b, mem;\n  float input_data = a + b;\n  mem += input_data;\n  c = mem*2.0;\n}",
-                "build_settings": {
-                    "io": {
-                        "inputs": [
-                            "a",
-                            "b"
-                        ],
-                        "outputs": [
-                            "c"
-                        ],
-                        "memories": [
-                            "mem"
-                        ]
-                    }
-                },
                 "headers": []
             },
             "options": {
