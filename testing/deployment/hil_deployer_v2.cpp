@@ -406,6 +406,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
                         "signed":true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "value": 14
                 },
                 {
@@ -417,6 +418,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
                         "signed":true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "value": 12
                 }
             ],
@@ -2952,6 +2954,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
                         "signed": true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "is_vector": false,
                     "value": [
                         0
@@ -3067,6 +3070,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
                         "signed": true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "is_vector": false,
                     "value": [
                         0
@@ -3265,6 +3269,7 @@ TEST(deployer_v2, multichannel_memory_init) {
                         "signed": true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "is_vector": false,
                     "value": [
                         100.0,
@@ -3457,6 +3462,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
                         "signed": true
                     },
                     "is_output": true,
+                    "is_input": false,
                     "is_vector": false,
                     "value": [
                         0
@@ -3484,6 +3490,223 @@ TEST(deployer_v2, multichannel_random_inputs) {
     "emulation_time": 0.001,
     "deployment_mode": false
 })");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+    d.deploy(spec_json);
+    d.start();
+    d.stop();
+
+
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
+            0x60005,
+            0xc,
+            0x10001,
+            0x20002,
+            0x3f0003,
+            0x20004,
+            0xc,
+            0xc,
+            0x60841,
+            0x7E1FE1,
+            0x26,
+            0x40000000,
+            0x40FE3,
+            0xc,
+    };
+    ASSERT_EQ(ops.size(), 23);
+
+    ASSERT_EQ(ops[0].type, rom_plane_write);
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
+
+    ASSERT_EQ(ops[1].type, control_plane_write);
+    // DMA
+
+    ASSERT_EQ(ops[1].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[1].data[0], 0x50004);
+
+    ASSERT_EQ(ops[2].address[0], 0x4'43c4'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
+
+    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].data[0], 0x10061004);
+
+    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
+
+    ASSERT_EQ(ops[5].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[5].data[0], 0x70003);
+
+    ASSERT_EQ(ops[6].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[6].data[0], 0x38);
+
+    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[7].data[0], 0x10081003);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[8].data[0], 0x38);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[9].data[0], 4);
+
+    // MEMORY INITIALIZATION
+
+    ASSERT_EQ(ops[10].address[0], 0x4'43c4'000c);
+    ASSERT_EQ(ops[10].data[0], 0);
+
+    // INPUTS
+
+    ASSERT_EQ(ops[11].address[0], 0x4'43c3'0004);
+    ASSERT_EQ(ops[11].data[0], 2);
+
+    ASSERT_EQ(ops[12].address[0], 0x4'43c3'0008);
+    ASSERT_EQ(ops[12].data[0], 0x10002);
+
+    ASSERT_EQ(ops[13].address[0], 0x4'43c3'000c);
+    ASSERT_EQ(ops[13].data[0], 1);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c3'0010);
+    ASSERT_EQ(ops[14].data[0], 0x10001);
+
+    ASSERT_EQ(ops[15].address[0], 0x4'43c3'0000);
+    ASSERT_EQ(ops[15].data[0], 4);
+
+    // SEQUENCER
+
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].data[0], 0);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].data[0], 2);
+
+    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[18].data[0], 5000);
+
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[19].data[0], 1);
+
+    // CORES
+
+    ASSERT_EQ(ops[20].address[0], 0x443c40000);
+    ASSERT_EQ(ops[20].data[0],11);
+
+    ASSERT_EQ(ops[21].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[21].data[0],1);
+
+    ASSERT_EQ(ops[22].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[22].data[0],0);
+
+}
+
+TEST(deployer_v2, memory_to_memory_inteconnect) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+      "version": 2,
+      "cores": [
+        {
+          "id": "test_producer",
+          "inputs": [],
+          "order": 1,
+          "outputs": [
+          ],
+          "program":{
+            "content": "void main(){float mem; mem += 1.2;}",
+            "headers": []
+          },
+          "memory_init": [
+            {
+              "name": "mem",
+              "is_vector": false,
+              "metadata": {
+                "type": "float",
+                "width": 32,
+                "signed": false,
+                "common_io": false
+              },
+              "is_output": true,
+              "is_input": false,
+              "is_input": false,
+              "value": 0
+            }
+          ],
+          "options":{
+            "comparators":"reducing",
+            "efi_implementation":"efi_sort"
+          },
+          "channels":1,
+          "sampling_frequency": 1,
+          "deployment": {
+            "has_reciprocal": false,
+            "control_address": 18316525568,
+            "rom_address": 17179869184
+          }
+        },
+        {
+          "id": "test_consumer",
+          "inputs": [],
+          "memory_init": [
+            {
+              "name": "mem",
+              "is_vector": false,
+              "metadata": {
+                "type": "float",
+                "width": 32,
+                "signed": false,
+                "common_io": false
+              },
+              "is_output": true,
+              "is_input": true,
+              "value": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name":"out",
+              "is_vector": false,
+              "metadata": {
+                "type": "integer",
+                "width": 32,
+                "signed": false,
+                "common_io": false
+              }
+            }
+          ],
+          "order": 2,
+          "program":{
+            "content": "void main(){float mem; float out = mem*2.0;}",
+            "headers": []
+          },
+          "options":{
+            "comparators":"reducing",
+            "efi_implementation":"efi_sort"
+          },
+          "channels":1,
+          "sampling_frequency": 1,
+          "deployment": {
+            "has_reciprocal": false,
+            "control_address": 18316525568,
+            "rom_address": 17179869184
+          }
+        }
+      ],
+      "interconnect":[
+        {
+          "source": "test_producer.mem",
+          "destination": "test_consumer.mem"
+        }
+      ],
+      "emulation_time": 2,
+      "deployment_mode": false
+    })");
 
 
 

@@ -52,6 +52,7 @@ TEST(emulator, simple_emulation) {
                             "signed": false
                         },
                         "is_output": true,
+                        "is_input": false,
                         "is_vector":false,
                         "vector_size":1,
                         "value": [
