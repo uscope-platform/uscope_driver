@@ -21,7 +21,6 @@
 
 
 nlohmann::json get_addr_map_v2(){
-
     std::string map = R"({
         "bases": {
             "controller": 18316591104,
@@ -3828,3 +3827,201 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
 }
 
 
+
+TEST(deployer_v2, multichannel_partial_transfer) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+      "version": 2,
+      "cores": [
+        {
+          "id": "test_producer",
+          "inputs": [
+            {
+                "name": "in_c",
+                "is_vector": false,
+                "metadata":{
+                    "type": "float",
+                    "width": 12,
+                    "signed":true,
+                    "common_io": false
+                },
+                "source": {
+                    "type": "constant",
+                    "value": [5,1]
+                }
+            }
+          ],
+          "order": 1,
+          "outputs": [
+            {
+              "name":"out",
+              "is_vector": false,
+              "metadata": {
+                "type": "float",
+                "width": 32,
+                "signed": false,
+                "common_io": false
+              }
+            }
+          ],
+          "program":{
+            "content": "void main(){float mem; mem += in_c; float out = mem*1.0;}",
+            "headers": []
+          },
+          "memory_init": [
+            {
+              "name": "mem",
+              "is_vector": false,
+              "metadata": {
+                "type": "float",
+                "width": 32,
+                "signed": false,
+                "common_io": false
+              },
+              "is_output": true,
+              "is_input": true,
+              "value": 0
+            }
+          ],
+          "options":{
+            "comparators":"reducing",
+            "efi_implementation":"efi_sort"
+          },
+          "channels":2,
+          "sampling_frequency": 1,
+          "deployment": {
+            "has_reciprocal": false,
+            "control_address": 18316525568,
+            "rom_address": 17179869184
+          }
+        }
+      ],
+      "interconnect":[
+        {
+          "source": "test_producer.mem",
+          "source_channel":0,
+          "destination": "test_producer.mem",
+          "destination_channel": 1
+        }
+      ],
+      "emulation_time": 2,
+      "deployment_mode": false
+    })");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+    d.deploy(spec_json);
+    d.start();
+
+
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
+            0x50004,
+            0xc,
+            0x3f0001,
+            0x20002,
+            0x10003,
+            0xc,
+            0xc,
+            0x7E0FE1,
+            0x26,
+            0x3f800000,
+            0x40FE3,
+            0xc,
+    };
+    ASSERT_EQ(ops.size(), 25);
+
+    ASSERT_EQ(ops[0].type, rom_plane_write);
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
+    // DMA
+
+    ASSERT_EQ(ops[1].type, control_plane_write);
+    ASSERT_EQ(ops[1].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[1].data[0], 0x10010001);
+
+    ASSERT_EQ(ops[2].address[0], 0x4'43c4'1044);
+    ASSERT_EQ(ops[2].data[0], 0x38);
+
+    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].data[0], 0x30002);
+
+    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1048);
+    ASSERT_EQ(ops[4].data[0], 0x38);
+
+    ASSERT_EQ(ops[5].address[0], 0x4'43c4'100C);
+    ASSERT_EQ(ops[5].data[0], 0x10041002);
+
+    ASSERT_EQ(ops[6].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[6].data[0], 0x38);
+
+    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[7].data[0], 0x50001);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[8].data[0], 0x38);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[9].data[0], 0x10061001);
+
+    ASSERT_EQ(ops[10].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[10].data[0], 0x38);
+
+    ASSERT_EQ(ops[11].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[11].data[0], 0x5);
+
+    // MEMORY INITIALIZATION
+
+    ASSERT_EQ(ops[12].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[12].data[0], 0);
+
+    // INPUTS
+    ASSERT_EQ(ops[13].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[13].data[0], 0);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[14].data[0], 3);
+
+    ASSERT_EQ(ops[15].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[15].data[0], 0x40A00000);
+
+    ASSERT_EQ(ops[16].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[16].data[0], 0x10000);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[17].data[0], 0x10003);
+
+    ASSERT_EQ(ops[18].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[18].data[0], 0x3f800000);
+
+    // SEQUENCER
+
+
+    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[19].data[0], 0);
+
+    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[20].data[0], 2);
+
+    ASSERT_EQ(ops[21].address[0], 0x443c10004);
+    ASSERT_EQ(ops[21].data[0], 100000000);
+
+    ASSERT_EQ(ops[22].address[0], 0x443c11000);
+    ASSERT_EQ(ops[22].data[0],1);
+
+    // CORES
+
+    ASSERT_EQ(ops[23].address[0], 0x4'43c4'0000);
+    ASSERT_EQ(ops[23].data[0],11);
+
+    ASSERT_EQ(ops[24].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[24].data[0],1);
+
+}
