@@ -85,7 +85,7 @@ void hil_bus_map::check_conflicts() {
 bus_address hil_bus_map::translate_output(const output_specs_t &out) {
     for(auto &e:bus_map){
         if(e.source_id == out.core_name){
-            if(e.source_io_address == out.address && e.source_channel == out.channel){
+            if(e.source_name == out.source_output && e.source_channel == out.channel){
                 return {e.destination_bus_address, e.destination_channel};
             }
         }

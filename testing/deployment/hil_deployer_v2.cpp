@@ -3663,7 +3663,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
                 "signed": false,
                 "common_io": false
               },
-              "is_output": true,
+              "is_output": false,
               "is_input": true,
               "value": 0
             }
@@ -3723,102 +3723,108 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0x60005,
+            0x40002,
             0xc,
-            0x10001,
-            0x20002,
-            0x3f0003,
-            0x20004,
+            0x3f0001,
             0xc,
             0xc,
-            0x60841,
-            0x7E1FE1,
             0x26,
-            0x40000000,
-            0x40FE3,
+            0x3f99999a,
+            0x7E0FE1,
             0xc,
     };
-    ASSERT_EQ(ops.size(), 23);
+    ASSERT_EQ(ops.size(), 22);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
     ASSERT_EQ(ops[0].data, reference_program);
 
-    ASSERT_EQ(ops[1].type, control_plane_write);
+    reference_program = {
+        0x40003,
+        0xc,
+        0x3f0001,
+        0x20002,
+        0xc,
+        0xc,
+        0x26,
+        0x40000000,
+        0x40FE3,
+        0xc,
+    };
+
+    ASSERT_EQ(ops[1].type, rom_plane_write);
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
+
     // DMA
 
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'1004);
-    ASSERT_EQ(ops[1].data[0], 0x50004);
+    ASSERT_EQ(ops[2].type, control_plane_write);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'1044);
-    ASSERT_EQ(ops[2].data[0], 0x38);
+    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1044);
+    ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
-    ASSERT_EQ(ops[3].data[0], 0x10061004);
+    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[4].data[0], 0x30001);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1048);
-    ASSERT_EQ(ops[4].data[0], 0x38);
+    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1048);
+    ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'100c);
-    ASSERT_EQ(ops[5].data[0], 0x70003);
+    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[6].data[0], 2);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'104c);
-    ASSERT_EQ(ops[6].data[0], 0x38);
+    ASSERT_EQ(ops[7].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[7].data[0], 0x40002);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1010);
-    ASSERT_EQ(ops[7].data[0], 0x10081003);
+    ASSERT_EQ(ops[8].address[0], 0x4'43c5'1044);
+    ASSERT_EQ(ops[8].data[0], 0x18);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1050);
-    ASSERT_EQ(ops[8].data[0], 0x38);
-
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
-    ASSERT_EQ(ops[9].data[0], 4);
+    ASSERT_EQ(ops[9].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[9].data[0], 0x1);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'000c);
+    ASSERT_EQ(ops[10].address[0], 0x4'43c4'0004);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    // INPUTS
-
-    ASSERT_EQ(ops[11].address[0], 0x4'43c3'0004);
-    ASSERT_EQ(ops[11].data[0], 2);
-
-    ASSERT_EQ(ops[12].address[0], 0x4'43c3'0008);
-    ASSERT_EQ(ops[12].data[0], 0x10002);
-
-    ASSERT_EQ(ops[13].address[0], 0x4'43c3'000c);
-    ASSERT_EQ(ops[13].data[0], 1);
-
-    ASSERT_EQ(ops[14].address[0], 0x4'43c3'0010);
-    ASSERT_EQ(ops[14].data[0], 0x10001);
-
-    ASSERT_EQ(ops[15].address[0], 0x4'43c3'0000);
-    ASSERT_EQ(ops[15].data[0], 4);
+    ASSERT_EQ(ops[11].address[0], 0x4'43c5'0004);
+    ASSERT_EQ(ops[11].data[0], 0);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
-    ASSERT_EQ(ops[16].data[0], 0);
+    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
-    ASSERT_EQ(ops[17].data[0], 2);
+    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
-    ASSERT_EQ(ops[18].data[0], 5000);
+    ASSERT_EQ(ops[14].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
-    ASSERT_EQ(ops[19].data[0], 1);
+    ASSERT_EQ(ops[15].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[15].data[0], 121);
+
+    ASSERT_EQ(ops[16].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[16].data[0], 100000000);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[17].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[20].address[0], 0x443c40000);
-    ASSERT_EQ(ops[20].data[0],11);
+    ASSERT_EQ(ops[18].address[0], 0x443c40000);
+    ASSERT_EQ(ops[18].data[0],11);
+
+    ASSERT_EQ(ops[19].address[0], 0x443c50000);
+    ASSERT_EQ(ops[19].data[0],11);
+
+    ASSERT_EQ(ops[20].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[20].data[0],1);
 
     ASSERT_EQ(ops[21].address[0], 0x4'43c2'0000);
-    ASSERT_EQ(ops[21].data[0],1);
-
-    ASSERT_EQ(ops[22].address[0], 0x4'43c2'0000);
-    ASSERT_EQ(ops[22].data[0],0);
+    ASSERT_EQ(ops[21].data[0],0);
 
 }
+
+
