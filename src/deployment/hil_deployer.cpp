@@ -247,8 +247,9 @@ std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann
     hw.enable_bus_access();
     auto [rom, control] = hw.get_hardware_simulation_data();
     control += "--\n";
-    for(auto &[key, val]:bus_labels) {
-        control += std::to_string(key) + ":" + val + "\n";
+    for(auto [key, name]:bus_labels) {
+        std::ranges::replace(name, ' ', '_');
+        control += std::to_string(key) + ":" + name + "\n";
     }
     return {rom, control};
 }
