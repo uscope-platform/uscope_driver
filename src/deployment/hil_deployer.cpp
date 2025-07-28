@@ -251,6 +251,12 @@ std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann
         std::ranges::replace(name, ' ', '_');
         control += std::to_string(key) + ":" + name + "\n";
     }
+    control += "--\n";
+    for(auto [name, address]:inputs_labels) {
+        auto ep = name;
+        std::ranges::replace(ep, ' ', '_');
+        control += ep + ":" + std::to_string(address) + "\n";
+    }
     return {rom, control};
 }
 

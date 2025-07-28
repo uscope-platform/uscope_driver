@@ -177,7 +177,8 @@ void deployer_base::setup_inputs(
         }
 
         spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core_name);
-
+        auto input_path = core_name + "." + in_name;
+        inputs_labels[input_path] = metadata.const_ip_addr.first + fcore_constant_engine.const_lsb;
 
         write_register(metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second);
         write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest);

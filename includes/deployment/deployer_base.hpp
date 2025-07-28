@@ -161,6 +161,7 @@ protected:
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
     std::map<uint32_t, std::string> bus_labels;
+    std::map<std::string, uint64_t> inputs_labels;
 private:
     std::vector<input_metadata_t> inputs;
 };
