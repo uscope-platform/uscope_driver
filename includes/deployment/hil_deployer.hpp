@@ -27,6 +27,13 @@
 
 #include "deployment/deployer_base.hpp"
 
+struct hardware_sim_data_t {
+    std::string cores;
+    std::string control;
+    std::string outputs;
+    std::string inputs;
+};
+
 class hil_deployer : public deployer_base{
 public:
     hil_deployer();
@@ -40,7 +47,7 @@ public:
     void start();
     void stop();
 
-    std::pair<std::string, std::string> get_hardware_sim_data(nlohmann::json &specs);
+    hardware_sim_data_t get_hardware_sim_data(nlohmann::json &specs);
 private:
 
 

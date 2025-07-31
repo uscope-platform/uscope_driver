@@ -117,7 +117,12 @@ struct input_metadata_t{
     uint32_t channel;
     uint32_t dest;
     bool is_float;
+};
 
+struct tb_input_addresses_t {
+    uint64_t peripheral;
+    uint32_t destination;
+    uint32_t selector;
 };
 
 class deployer_base {
@@ -161,7 +166,7 @@ protected:
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
     std::map<uint32_t, std::string> bus_labels;
-    std::map<std::string, uint64_t> inputs_labels;
+    std::map<std::string, tb_input_addresses_t> inputs_labels;
 private:
     std::vector<input_metadata_t> inputs;
 };

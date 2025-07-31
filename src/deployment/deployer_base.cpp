@@ -154,7 +154,7 @@ void deployer_base::setup_inputs(
     std::string core_name
 ) {
 
-    if(in.source_type ==fcore::constant_input){
+    if(in.source_type ==fcore::constant_input || in.source_type == fcore::time_series_input){
         std::string in_name = in.name;
         uint32_t address =in.address[0] + (target_channel<<16);
 
@@ -178,7 +178,9 @@ void deployer_base::setup_inputs(
 
         spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core_name);
         auto input_path = core_name + "." + in_name;
-        inputs_labels[input_path] = metadata.const_ip_addr.first + fcore_constant_engine.const_lsb;
+        tb_input_addresses_t tb =
+
+        inputs_labels[input_path] = {metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, metadata.dest, metadata.const_ip_addr.second};
 
         write_register(metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second);
         write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest);

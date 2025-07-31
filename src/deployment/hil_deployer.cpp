@@ -240,24 +240,33 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
-std::pair<std::string, std::string> hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
+hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
+    hardware_sim_data_t sim_data;
     hw.disable_bus_access();
     deploy(specs);
     start();
     hw.enable_bus_access();
     auto [rom, control] = hw.get_hardware_simulation_data();
-    control += "--\n";
+
+    std::string outputs;
     for(auto [key, name]:bus_labels) {
         std::ranges::replace(name, ' ', '_');
-        control += std::to_string(key) + ":" + name + "\n";
+        outputs += std::to_string(key) + ":" + name + "\n";
     }
-    control += "--\n";
-    for(auto [name, address]:inputs_labels) {
+
+    std::string inputs;
+    for(auto &[name, tb]:inputs_labels) {
         auto ep = name;
         std::ranges::replace(ep, ' ', '_');
-        control += ep + ":" + std::to_string(address) + "\n";
+        inputs += ep + "," + std::to_string(tb.peripheral) + "," + std::to_string(tb.destination) + "," + std::to_string(tb.selector) + "\n";
     }
-    return {rom, control};
+
+    sim_data.inputs = inputs;
+    sim_data.outputs = outputs;
+    sim_data.cores = rom;
+    sim_data.control = control;
+
+    return sim_data;
 }
 
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {

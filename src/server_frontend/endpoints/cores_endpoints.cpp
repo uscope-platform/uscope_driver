@@ -210,8 +210,10 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &argumen
 
     auto data =  hil.get_hardware_sim_data(arguments);;
     resp["data"] = nlohmann::json();
-    resp["data"]["control"] = data.second;
-    resp["data"]["code"] = data.first;
+    resp["data"]["control"] = data.control;
+    resp["data"]["code"] = data.cores;
+    resp["data"]["inputs"] = data.inputs;
+    resp["data"]["outputs"] = data.outputs;
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
