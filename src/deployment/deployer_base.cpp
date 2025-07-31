@@ -180,7 +180,11 @@ void deployer_base::setup_inputs(
         auto input_path = core_name + "." + in_name;
         tb_input_addresses_t tb =
 
-        inputs_labels[input_path] = {metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, metadata.dest, metadata.const_ip_addr.second};
+        inputs_labels[input_path] = {
+            metadata.const_ip_addr.first + fcore_constant_engine.const_lsb,
+            metadata.dest,
+            metadata.const_ip_addr.second,
+        };
 
         write_register(metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second);
         write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest);

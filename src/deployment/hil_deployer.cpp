@@ -110,37 +110,44 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
             } else {
                 ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
             }
-
+            std::string core_name;
             if(input.data.size()>1 && p.n_channels >1) {
                 for(int j = 0; j<input.data.size(); j++) {
+                    core_name = p.name + "[" + std::to_string(j)  + "]";
                     this->setup_inputs(
                         in,
                         ip_addr,
                         input_progressive,
                         j,
-                        p.name + "[" + std::to_string(j)  + "]"
+                        core_name
                     );
+                    if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+
                     in.data.erase(in.data.begin());
                 }
             } else if(p.n_channels>1 && in.source_type == fcore::random_input){
                 for(int j = 0; j<p.n_channels; j++) {
+                    core_name = p.name + "[" + std::to_string(j)  + "]";
                     this->setup_inputs(
                         in,
                         ip_addr,
                         input_progressive,
                         j,
-                        p.name + "[" + std::to_string(j)  + "]"
+                        core_name
                     );
+
                 }
             } else {
+                core_name = p.name;
                 this->setup_inputs(
                         in,
                         ip_addr,
                         input_progressive,
                         0,
-                        p.name
+                        core_name
                 );
             }
+            if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
             input_progressive++;
         }
 
@@ -258,7 +265,7 @@ hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
     for(auto &[name, tb]:inputs_labels) {
         auto ep = name;
         std::ranges::replace(ep, ' ', '_');
-        inputs += ep + "," + std::to_string(tb.peripheral) + "," + std::to_string(tb.destination) + "," + std::to_string(tb.selector) + "\n";
+        inputs += ep + "," + std::to_string(tb.peripheral) + "," + std::to_string(tb.destination) + "," + std::to_string(tb.selector) + "," + std::to_string(tb.core_idx) +"\n";
     }
 
     sim_data.inputs = inputs;

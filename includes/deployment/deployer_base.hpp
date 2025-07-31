@@ -123,6 +123,7 @@ struct tb_input_addresses_t {
     uint64_t peripheral;
     uint32_t destination;
     uint32_t selector;
+    uint32_t core_idx;
 };
 
 class deployer_base {
