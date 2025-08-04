@@ -115,32 +115,51 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
                 ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
             }
             std::string core_name;
-            if(input.data.size()>1 && p.n_channels >1) {
-                for(int j = 0; j<input.data.size(); j++) {
-                    core_name = p.name + "[" + std::to_string(j)  + "]";
-                    this->setup_inputs(
-                        in,
-                        ip_addr,
-                        input_progressive,
-                        j,
-                        core_name
-                    );
-                    if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+            if(p.n_channels >1) {
+                if(input.data.size()>1) {
+                    // TODO: test if this support deploying multiple disjointed constants
+                    for(int j = 0; j<input.data.size(); j++) {
+                        core_name = p.name + "[" + std::to_string(j)  + "]";
+                        this->setup_inputs(
+                            in,
+                            ip_addr,
+                            input_progressive,
+                            j,
+                            core_name
+                        );
+                        if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
-                    in.data.erase(in.data.begin());
-                }
-            } else if(p.n_channels>1 && in.source_type == fcore::random_input){
-                for(int j = 0; j<p.n_channels; j++) {
-                    core_name = p.name + "[" + std::to_string(j)  + "]";
-                    this->setup_inputs(
-                        in,
-                        ip_addr,
-                        input_progressive,
-                        j,
-                        core_name
-                    );
+                        in.data.erase(in.data.begin());
+                    }
+                } else {
+                    if(in.source_type == fcore::random_input) {
+                        for(int j = 0; j<p.n_channels; j++) {
+                            core_name = p.name + "[" + std::to_string(j)  + "]";
+                            this->setup_inputs(
+                                in,
+                                ip_addr,
+                                input_progressive,
+                                j,
+                                core_name
+                            );
+                        }
+                    }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
+                        for(int j = 0; j<input.data.size(); j++) {
+                            core_name = p.name + "[" + std::to_string(j)  + "]";
+                            this->setup_inputs(
+                                in,
+                                ip_addr,
+                                input_progressive,
+                                j,
+                                core_name
+                            );
+                            if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
+                            in.data.erase(in.data.begin());
+                        }
+                    }
                 }
+
             } else {
                 core_name = p.name;
                 this->setup_inputs(
@@ -152,7 +171,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
                 );
             }
             if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
-            input_progressive++;
+            if(in.source_type==fcore::constant_input || in.source_type == fcore::time_series_input) input_progressive++;
         }
 
         if(active_random_inputs>0) {

@@ -75,11 +75,15 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
     auto n_dma_channels = 16;
 
     uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
+    std::string signal_name;
+    auto bus_dest = (e.destination_bus_address & 0xFFF) |((e.destination_channel & 0xF)<<16);
     if(n_channels == 1) {
-        bus_labels[destination_portion] = e.source_id + "." + e.source_name;
+        signal_name = e.source_id + "." + e.source_name;
     } else {
-        bus_labels[destination_portion] = e.source_id + "." + e.source_name + '[' + std::to_string(e.source_channel) + ']';
+        signal_name = e.source_id + "." + e.source_name + '[' + std::to_string(e.source_channel) + ']';
     }
+    bus_labels[bus_dest] = signal_name;
+
 
 
     if(e.metadata.type == fcore::type_float){

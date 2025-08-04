@@ -2330,7 +2330,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":false
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2346,7 +2346,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
                         "type": "float",
                         "width": 32,
                         "signed": true,
-                        "common_io":false
+                        "common_io":true
                     },
                     "source": {
                         "type": "constant",
@@ -2410,14 +2410,14 @@ TEST(deployer_v2, simple_single_core_output_select) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0x20004,
+            0x20002,
             0xc,
-            0x30001,
-            0x10002,
-            0x20003,
+            0x10001,
             0xc,
+            0x20002,
+            0x10003,
             0xc,
-            0x60841,
+            0x1821021,
             0xc,
     };
 
@@ -2913,12 +2913,115 @@ TEST(deployer_v2, hardware_sim_file_production) {
 
     auto files = d.get_hardware_sim_data(spec_json);
 
-    auto control_ref = "18316791812:131073\n18316791876:56\n18316791808:1\n18316795916:0\n18316795912:3\n18316795904:1106876826\n18316795916:1\n18316795912:2\n18316795904:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316787712:11\n18316656640:1\n--\n2:test.out\n";
+    auto control_ref = "18316791812:131073\n18316791876:56\n18316791808:1\n18316795916:0\n18316795912:3\n18316795904:1106876826\n18316795916:1\n18316795912:2\n18316795904:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316787712:11\n18316656640:1\n";
+    auto outputs_ref = "2:test.out\n";
     auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
-    EXPECT_EQ(files.second, control_ref);
-    EXPECT_EQ(files.first, rom_ref);
+    auto inputs_ref = "test.input_1,18316795904,3,0,0\ntest.input_2,18316795904,2,1,0\n";
+    EXPECT_EQ(files.control, control_ref);
+    EXPECT_EQ(files.outputs, outputs_ref);
+    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.inputs, inputs_ref);
 }
 
+
+
+TEST(deployer_v2, hardware_sim_file_production_multichannel) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(
+            R"({
+    "version":2,
+    "cores": [
+        {
+            "id": "test",
+            "order": 0,
+            "inputs": [
+                {
+                    "name": "input_1",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    },
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            31.2
+                        ]
+                    }
+                },
+                {
+                    "name": "input_2",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    },
+                    "source": {
+                        "type": "constant",
+                        "value": [
+                            4
+                        ]
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "out",
+                    "is_vector": false,
+                    "metadata":{
+                        "type": "float",
+                        "width":16,
+                        "signed":true,
+                        "common_io":false
+                    }
+                }
+            ],
+            "memory_init": [],
+            "channels": 2,
+            "options": {
+                "comparators": "reducing",
+                "efi_implementation": "none"
+            },
+            "program": {
+                "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                "headers": []
+            },
+            "sampling_frequency": 1,
+            "deployment": {
+                "has_reciprocal": false,
+                "control_address": 18316525568,
+                "rom_address": 17179869184
+            }
+        }
+    ],
+    "interconnect": [],
+    "emulation_time": 2,
+    "deployment_mode": false
+})");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+
+    auto files = d.get_hardware_sim_data(spec_json);
+
+    auto control_ref = "18316791812:131073\n18316791876:56\n18316791816:268636161\n18316791880:56\n18316791808:2\n18316795916:0\n18316795912:3\n18316795904:1106876826\n18316795916:1\n18316795912:2\n18316795904:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316787712:11\n18316656640:1\n";
+    auto outputs_ref = "2:test.out[0]\n65539:test.out[1]\n";
+    auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
+    auto inputs_ref = "test[0].input_1,18316795904,3,0,0\ntest[0].input_2,18316795904,2,1,0\n";
+    EXPECT_EQ(files.control, control_ref);
+    EXPECT_EQ(files.outputs, outputs_ref);
+    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.inputs, inputs_ref);
+}
 
 
 TEST(deployer_v2, hardware_sim_file_production_mem_out) {
@@ -2992,10 +3095,14 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
 
     auto files = d.get_hardware_sim_data(spec_json);
 
-    auto control_ref = "18316791812:196610\n18316791876:56\n18316791816:262145\n18316791880:56\n18316791808:2\n18316787716:0\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316787712:11\n18316656640:1\n--\n3:test.out\n4:test.mem\n";
+    auto control_ref = "18316791812:196610\n18316791876:56\n18316791816:262145\n18316791880:56\n18316791808:2\n18316787716:0\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316787712:11\n18316656640:1\n";
     auto rom_ref = "21474836480:458755\n21474836484:12\n21474836488:4128769\n21474836492:131074\n21474836496:12\n21474836500:12\n21474836504:38\n21474836508:1084856730\n21474836512:8261601\n21474836516:38\n21474836520:1073741824\n21474836524:266211\n21474836528:12\n";
-    EXPECT_EQ(files.first, rom_ref);
-    EXPECT_EQ(files.second, control_ref);
+    auto outputs_ref = "3:test.out\n4:test.mem\n";
+    auto inputs_ref = "";
+    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.outputs, outputs_ref);
+    EXPECT_EQ(files.control, control_ref);
+    EXPECT_EQ(files.inputs, inputs_ref);
 }
 
 
