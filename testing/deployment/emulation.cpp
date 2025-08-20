@@ -228,8 +228,8 @@ TEST(emulator, disassembly) {
 
     std::unordered_map<std::string, fcore::disassembled_program> check_map;
 
-    check_map["test_producer"] = {{{2,3},{3,1},{4,2}},{},"add r2, r1, r3\nstop\n"};
-    check_map["test_reducer"] = {{{1,3}, {3,2}, {4,1}},{},"mul r2, r1, r3\nstop\n"};
+    check_map["test_producer"] = {{{2,{"out",3}},{3,{"input_2",1}},{4,{"input_1",2}}},{},"add r2, r1, r3\nstop\n"};
+    check_map["test_reducer"] = {{{1,{"out",3}}, {3,{"input_data_0",2}}, {4,{"input_data_1",1}}},{},"mul r2, r1, r3\nstop\n"};
 
 
     EXPECT_EQ(check_map["test_producer"].translation_table, res["test_producer"].translation_table);
