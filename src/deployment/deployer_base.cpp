@@ -198,6 +198,14 @@ void deployer_base::setup_inputs(
         uint32_t address =in.address[0] + (target_channel<<16);
         write_register( const_ip_address + (active_random_inputs+1)*4, address);
         active_random_inputs++;
+
+        if(core_name.contains("[")){
+            auto index = stoul(core_name.substr(core_name.find_last_of('[')+1, core_name.find_last_of(']')-core_name.find_last_of('[')-1));
+            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(index) + "]";
+        } else {
+            bus_labels[address] = core_name + "." + in.name;
+        }
+
     }
 }
 
