@@ -36,6 +36,7 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
 
+    active_random_inputs = 0;
     inputs_labels.clear();
     bus_labels.clear();
 
@@ -98,7 +99,6 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
 
     for(auto &p:programs){
-        active_random_inputs = 0;
         auto inputs = dispatcher.get_inputs(p.name);
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
