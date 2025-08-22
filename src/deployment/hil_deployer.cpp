@@ -190,8 +190,6 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
 
-    auto timebase_reg_val = (uint32_t)(hil_clock_frequency/timebase_frequency);
-
 
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
@@ -200,7 +198,12 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
         this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 8 + 4*i, shifts[i]);
     }
 
-    this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, timebase_reg_val);
+    if(timebase_frequency == 0) {
+        this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, min_timebase);
+    } else {
+        this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, hil_clock_frequency/timebase_frequency);
+    }
+
 
     this->write_register(this->addresses.bases.controller + this->addresses.offsets.controller, enable.to_ulong());
 
@@ -303,17 +306,19 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
     std::vector<uint32_t>core_dividers;
     auto programs = dispatcher.get_programs();
     for(auto &p: programs){
+        if(p.sampling_frequency == 0) {
+            core_dividers.push_back(1);
+        } else {
+            double clock_period = 1/hil_clock_frequency;
+            double total_length = (p.program.program_length.fixed_portion + n_channels[p.name]*p.program.program_length.per_channel_portion)*clock_period;
 
-        double clock_period = 1/hil_clock_frequency;
-        double total_length = (p.program.program_length.fixed_portion + n_channels[p.name]*p.program.program_length.per_channel_portion)*clock_period;
+            double max_frequency = 1/total_length;
 
-        double max_frequency = 1/total_length;
-
-        while(timebase_frequency/timebase_divider > max_frequency){
-            timebase_divider += 1.0;
+            while(timebase_frequency/timebase_divider > max_frequency){
+                timebase_divider += 1.0;
+            }
+            core_dividers.push_back((uint32_t) timebase_frequency/p.sampling_frequency);
         }
-
-        core_dividers.push_back((uint32_t) timebase_frequency/p.sampling_frequency);
     }
 
     return core_dividers;
@@ -355,6 +360,10 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
         next_starting_point += calc_data_v[i].program_length + inter_core_buffer;
     }
     std::vector<uint32_t> shifts;
+
+    for(int i = 0; i < calc_data_v.size(); i++) {
+        min_timebase += calc_data_v[i].program_length + inter_core_buffer;
+    }
 
     for(const auto &p:programs){
         shifts.push_back(ordered_shifts[p.name]);

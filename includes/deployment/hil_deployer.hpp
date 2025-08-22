@@ -62,7 +62,7 @@ private:
 
     std::map<std::string, uint32_t> cores_idx;
     float hil_clock_frequency = 100e6;
-
+    uint32_t min_timebase = 0;
     std::unordered_map<std::string, uint32_t> n_channels;
     std::unordered_map<std::string, uint32_t> execution_order;
 
