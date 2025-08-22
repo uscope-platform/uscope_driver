@@ -35,7 +35,7 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 
 responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
-
+    min_timebase = 0;
     active_random_inputs = 0;
     inputs_labels.clear();
     bus_labels.clear();
@@ -144,19 +144,35 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
                             );
                         }
                     }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
-                        for(int j = 0; j<input.data.size(); j++) {
-                            core_name = p.name + "[" + std::to_string(j)  + "]";
-                            this->setup_inputs(
-                                in,
-                                ip_addr,
-                                input_progressive,
-                                j,
-                                core_name
-                            );
-                            if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+                        if(input.data.size() == 1) {
+                            for(int j = 0; j<p.n_channels; j++) {
+                                core_name = p.name + "[" + std::to_string(j)  + "]";
+                                this->setup_inputs(
+                                    in,
+                                    ip_addr,
+                                    input_progressive,
+                                    j,
+                                    core_name
+                                );
+                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
-                            in.data.erase(in.data.begin());
+                            }
+                        } else {
+                            for(int j = 0; j<input.data.size(); j++) {
+                                core_name = p.name + "[" + std::to_string(j)  + "]";
+                                this->setup_inputs(
+                                    in,
+                                    ip_addr,
+                                    input_progressive,
+                                    j,
+                                    core_name
+                                );
+                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+
+                                in.data.erase(in.data.begin());
+                            }
                         }
+
                     }
                 }
 
