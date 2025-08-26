@@ -67,14 +67,14 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
 
     uint32_t mapping = (destination_portion<<16) | source_portion;
 
-    uint64_t mapping_address = dma_address + 4 + io_progressive*4;
+    uint64_t mapping_address = dma_address + +3*4 + io_progressive*4;
     spdlog::info("map core io address: ({0},{1}) to hil bus address: ({2},{3})",
                  e.source_io_address,e.source_channel, e.destination_bus_address, e.destination_channel);
     write_register(mapping_address, mapping);
 
     auto n_dma_channels = 16;
 
-    uint64_t metadata_address = dma_address + 4*(n_dma_channels + 1) + io_progressive*4;
+    uint64_t metadata_address = dma_address + 4*(n_dma_channels + 3) + io_progressive*4;
     std::string signal_name;
     auto bus_dest = (e.destination_bus_address & 0xFFF) |((e.destination_channel & 0xF)<<16);
     if(n_channels == 1) {

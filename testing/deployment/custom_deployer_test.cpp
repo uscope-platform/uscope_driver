@@ -84,7 +84,8 @@ TEST(custom_deployer, deployment) {
                     "is_vector":false,
                     "vector_size":1,
                     "source": {
-                        "type": "external"
+                        "type": "external",
+                        "value": [0]
                     }
                 },
                 {
@@ -99,7 +100,7 @@ TEST(custom_deployer, deployment) {
                     "vector_size":1,
                     "source": {
                         "type": "external",
-                        "value": ""
+                        "value": [0]
                     }
                 },
                 {
@@ -113,7 +114,8 @@ TEST(custom_deployer, deployment) {
                     "is_vector":false,
                     "vector_size":1,
                     "source": {
-                        "type": "external"
+                        "type": "external",
+                        "value": [0]
                     }
                 },
                 {
@@ -125,7 +127,8 @@ TEST(custom_deployer, deployment) {
                         "common_io":false
                     },
                     "source": {
-                        "type": "external"
+                        "type": "external",
+                        "value": [ 0 ]
                     },
                     "is_vector":true,
                     "vector_size":3,
@@ -143,7 +146,7 @@ TEST(custom_deployer, deployment) {
                     "vector_size":1,
                     "source": {
                         "type": "external",
-                        "value": ""
+                        "value": [0]
                     }
                 },
                 {
@@ -158,7 +161,7 @@ TEST(custom_deployer, deployment) {
                     "vector_size":1,
                     "source": {
                         "type": "external",
-                        "value": ""
+                        "value": [0]
                     }
                 }
             ],
@@ -249,7 +252,8 @@ TEST(custom_deployer, deployment) {
                         "common_io":false
                     },
                     "source": {
-                        "type": "external"
+                        "type": "external",
+                        "value": 0
                     },
                     "is_vector": true,
                     "vector_size": 3
