@@ -89,7 +89,7 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
 
             if(inputs[i].data.size()>1 && p.n_channels >1) {
                 for(int j = 0; j<inputs[i].data.size(); j++) {
-                    this->setup_inputs(
+                    this->setup_input(
                         in,
                         ip_addr,
                         i,
@@ -99,7 +99,7 @@ responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
                     in.data.erase(in.data.begin());
                 }
             } else {
-                this->setup_inputs(
+                this->setup_input(
                         in,
                         ip_addr,
                         i,

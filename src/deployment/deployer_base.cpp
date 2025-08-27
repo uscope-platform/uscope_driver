@@ -84,7 +84,13 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
     }
     bus_labels[bus_dest] = signal_name;
 
-
+    if(ivs.contains(e.source_id)) {
+        if(ivs[e.source_id].contains(e.source_name)) {
+            auto iv = ivs[e.source_id][e.source_name];
+            write_register(dma_address+8, io_progressive);
+            write_register(dma_address+4, iv);
+        }
+    }
 
     if(e.metadata.type == fcore::type_float){
         write_register(metadata_address, get_metadata_value(
@@ -150,7 +156,7 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     spdlog::info("------------------------------------------------------------------");
 }
 
-void deployer_base::setup_inputs(
+void deployer_base::setup_input(
     const fcore::deployed_core_inputs &in,
     uint64_t const_ip_address,
     uint32_t const_idx,

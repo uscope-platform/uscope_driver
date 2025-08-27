@@ -78,6 +78,8 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
     spdlog::info("------------------------------------------------------------------");
 
+    setup_interconnect_iv(programs);
+
     uint16_t max_transfers = 0;
     for(auto &p:programs){
         uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*cores_idx[p.name];
@@ -97,104 +99,7 @@ responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
         this->setup_memories(control_address, initializations, p.n_channels);
     }
 
-
-    for(auto &p:programs){
-        auto inputs = dispatcher.get_inputs(p.name);
-        spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
-        spdlog::info("------------------------------------------------------------------");
-        int input_progressive = 0;
-        for(auto &input: inputs)  {
-
-            uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
-
-            auto in = input;
-            uint64_t ip_addr;
-            if(in.source_type==fcore::random_input) {
-                ip_addr = this->addresses.bases.noise_generator;
-            } else {
-                ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
-            }
-            std::string core_name;
-            if(p.n_channels >1) {
-                if(input.data.size()>1) {
-                    // TODO: test if this support deploying multiple disjointed constants
-                    for(int j = 0; j<input.data.size(); j++) {
-                        core_name = p.name + "[" + std::to_string(j)  + "]";
-                        this->setup_inputs(
-                            in,
-                            ip_addr,
-                            input_progressive,
-                            j,
-                            core_name
-                        );
-                        if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
-
-                        in.data.erase(in.data.begin());
-                    }
-                } else {
-                    if(in.source_type == fcore::random_input) {
-                        for(int j = 0; j<p.n_channels; j++) {
-                            core_name = p.name + "[" + std::to_string(j)  + "]";
-                            this->setup_inputs(
-                                in,
-                                ip_addr,
-                                input_progressive,
-                                j,
-                                core_name
-                            );
-                        }
-                    }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
-                        if(input.data.size() == 1) {
-                            for(int j = 0; j<p.n_channels; j++) {
-                                core_name = p.name + "[" + std::to_string(j)  + "]";
-                                this->setup_inputs(
-                                    in,
-                                    ip_addr,
-                                    input_progressive,
-                                    j,
-                                    core_name
-                                );
-                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
-
-                            }
-                        } else {
-                            for(int j = 0; j<input.data.size(); j++) {
-                                core_name = p.name + "[" + std::to_string(j)  + "]";
-                                this->setup_inputs(
-                                    in,
-                                    ip_addr,
-                                    input_progressive,
-                                    j,
-                                    core_name
-                                );
-                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
-
-                                in.data.erase(in.data.begin());
-                            }
-                        }
-
-                    }
-                }
-
-            } else {
-                core_name = p.name;
-                this->setup_inputs(
-                        in,
-                        ip_addr,
-                        input_progressive,
-                        0,
-                        core_name
-                );
-            }
-            if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
-            if(in.source_type==fcore::constant_input || in.source_type == fcore::time_series_input) input_progressive++;
-        }
-
-        if(active_random_inputs>0) {
-            write_register(this->addresses.bases.noise_generator, active_random_inputs);
-        }
-        spdlog::info("------------------------------------------------------------------");
-    }
+    setup_inputs(programs);
 
     setup_sequencer(programs.size(), dividers, shifts);
     setup_cores(programs);
@@ -316,6 +221,130 @@ hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
     sim_data.control = control;
 
     return sim_data;
+}
+
+void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_program> &programs) {
+    spdlog::info("------------------------------------------------------------------");
+    spdlog::info("SETUP INTERCONNECTS INITIAL VALUES");
+    spdlog::info("------------------------------------------------------------------");
+    for(auto &slot:dispatcher.get_interconnect_slots()) {
+        for(auto &p:programs) {
+            if(p.name == slot.destination_id) {
+                for(auto &in:p.inputs) {
+                    if(in.name == slot.destination_name) {
+                        if(std::holds_alternative<std::vector<float>>(in.data[0])) {
+                            auto data = std::get<std::vector<float>>(in.data[0]);
+                            ivs[slot.source_id][slot.source_name] = fcore::emulator_v2::emulator_backend::float_to_uint32(data[0]);
+                        } else {
+                            auto data = std::get<std::vector<uint32_t>>(in.data[0]);
+                            ivs[slot.source_id][slot.source_name] = data[0];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) {
+    for(auto &p:programs){
+        auto inputs = dispatcher.get_inputs(p.name);
+        spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
+        spdlog::info("------------------------------------------------------------------");
+        int input_progressive = 0;
+        for(auto &input: inputs)  {
+
+            uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
+
+            auto in = input;
+            uint64_t ip_addr;
+            if(in.source_type==fcore::random_input) {
+                ip_addr = this->addresses.bases.noise_generator;
+            } else {
+                ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
+            }
+            std::string core_name;
+            if(p.n_channels >1) {
+                if(input.data.size()>1) {
+                    // TODO: test if this support deploying multiple disjointed constants
+                    for(int j = 0; j<input.data.size(); j++) {
+                        core_name = p.name + "[" + std::to_string(j)  + "]";
+                        this->setup_input(
+                            in,
+                            ip_addr,
+                            input_progressive,
+                            j,
+                            core_name
+                        );
+                        if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+
+                        in.data.erase(in.data.begin());
+                    }
+                } else {
+                    if(in.source_type == fcore::random_input) {
+                        for(int j = 0; j<p.n_channels; j++) {
+                            core_name = p.name + "[" + std::to_string(j)  + "]";
+                            this->setup_input(
+                                in,
+                                ip_addr,
+                                input_progressive,
+                                j,
+                                core_name
+                            );
+                        }
+                    }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
+                        if(input.data.size() == 1) {
+                            for(int j = 0; j<p.n_channels; j++) {
+                                core_name = p.name + "[" + std::to_string(j)  + "]";
+                                this->setup_input(
+                                    in,
+                                    ip_addr,
+                                    input_progressive,
+                                    j,
+                                    core_name
+                                );
+                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+
+                            }
+                        } else {
+                            for(int j = 0; j<input.data.size(); j++) {
+                                core_name = p.name + "[" + std::to_string(j)  + "]";
+                                this->setup_input(
+                                    in,
+                                    ip_addr,
+                                    input_progressive,
+                                    j,
+                                    core_name
+                                );
+                                if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+
+                                in.data.erase(in.data.begin());
+                            }
+                        }
+
+                    }
+                }
+
+            } else {
+                core_name = p.name;
+                this->setup_input(
+                        in,
+                        ip_addr,
+                        input_progressive,
+                        0,
+                        core_name
+                );
+            }
+            if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
+            if(in.source_type==fcore::constant_input || in.source_type == fcore::time_series_input) input_progressive++;
+        }
+
+        if(active_random_inputs>0) {
+            write_register(this->addresses.bases.noise_generator, active_random_inputs);
+        }
+        spdlog::info("------------------------------------------------------------------");
+    }
+
 }
 
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {

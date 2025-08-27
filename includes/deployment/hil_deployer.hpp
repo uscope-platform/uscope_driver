@@ -50,6 +50,8 @@ public:
     hardware_sim_data_t get_hardware_sim_data(nlohmann::json &specs);
 private:
 
+    void setup_interconnect_iv(const std::vector<fcore::deployed_program> &programs);
+    void setup_inputs(std::vector<fcore::deployed_program> &programs);
 
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
     void setup_cores(std::vector<fcore::deployed_program> &programs);
