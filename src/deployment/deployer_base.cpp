@@ -88,7 +88,7 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
         if(ivs[e.source_id].contains(e.source_name)) {
             auto iv = ivs[e.source_id][e.source_name];
             write_register(dma_address+8, io_progressive);
-            write_register(dma_address+4, iv);
+            write_register(dma_address+4, iv[e.source_channel]);
         }
     }
 

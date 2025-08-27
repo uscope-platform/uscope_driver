@@ -3621,7 +3621,8 @@ TEST(deployer_v2, multichannel_random_inputs) {
                         "common_io": false
                     },
                     "source": {
-                        "type": "random"
+                        "type": "random",
+                        "value":[0]
                     },
                     "vector_size": 1,
                     "is_vector": false
@@ -3635,7 +3636,8 @@ TEST(deployer_v2, multichannel_random_inputs) {
                         "common_io": false
                     },
                     "source": {
-                        "type": "random"
+                        "type": "random",
+                        "value":[0]
                     },
                     "vector_size": 1,
                     "is_vector": false
@@ -4211,9 +4213,6 @@ TEST(deployer_v2, multichannel_partial_transfer) {
 
 }
 
-
-
-
 TEST(deployer_v2, interconnect_initial_value) {
 
     nlohmann::json spec_json = nlohmann::json::parse(R"(
@@ -4458,5 +4457,281 @@ TEST(deployer_v2, interconnect_initial_value) {
 
     ASSERT_EQ(ops[21].address[0], 0x4'43c2'0000);
     ASSERT_EQ(ops[21].data[0],1);
+
+}
+
+
+TEST(deployer_v2, multichannel_interconnect_initial_value) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(R"(
+    {
+        "version": 2,
+        "cores": [
+            {
+                "id": "fast_core",
+                "order": 2,
+                "inputs": [
+                    {
+                        "name": "input",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        },
+                        "source": {
+                            "type": "external",
+                            "value": [
+                                32,
+                                64
+                            ]
+                        },
+                        "vector_size": 1,
+                        "is_vector": false
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "out",
+                        "is_vector": false,
+                        "vector_size": 1,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        }
+                    }
+                ],
+                "memory_init": [],
+                "deployment": {
+                    "rom_address": 0,
+                    "has_reciprocal": false,
+                    "control_address": 0
+                },
+                "channels": 2,
+                "program": {
+                    "content": "void main(){\n\n    //inputs\n    float random_in;\n    float gain;\n\n    float out = input + 20.4;\n\n      \n}\n",
+                    "headers": []
+                },
+                "options": {
+                    "comparators": "reducing",
+                    "efi_implementation": "efi_trig"
+                },
+                "sampling_frequency": 100
+            },
+            {
+                "id": "slow_core",
+                "order": 1,
+                "inputs": [
+                    {
+                        "name": "input",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        },
+                        "source": {
+                            "type": "constant",
+                            "value": [
+                                50
+                            ]
+                        },
+                        "vector_size": 1,
+                        "is_vector": false
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "out",
+                        "is_vector": false,
+                        "vector_size": 1,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        }
+                    }
+                ],
+                "memory_init": [],
+                "deployment": {
+                    "rom_address": 0,
+                    "has_reciprocal": false,
+                    "control_address": 0
+                },
+                "channels": 2,
+                "program": {
+                    "content": "void main(){\n\n    //inputs\n    float random_in;\n    float gain;\n\n    float out = input + 20.4;\n\n      \n}\n",
+                    "headers": []
+                },
+                "options": {
+                    "comparators": "reducing",
+                    "efi_implementation": "efi_trig"
+                },
+                "sampling_frequency": 50
+            }
+        ],
+        "interconnect": [
+            {
+                "source": "slow_core.out",
+                "source_channel": -1,
+                "destination": "fast_core.input",
+                "destination_channel": -1
+            }
+        ],
+        "emulation_time": 0.025,
+        "deployment_mode": false
+    }
+    )");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    auto addr_map = get_addr_map_v2();
+    d.set_layout_map(addr_map);
+    d.deploy(spec_json);
+    d.start();
+
+
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
+            0x40003,
+            0xc,
+            0x10001,
+            0x30002,
+            0xc,
+            0xc,
+            0x46,
+            0x41A33333,
+            0x61021,
+            0xc,
+    };
+
+    ASSERT_EQ(ops.size(), 31);
+
+    ASSERT_EQ(ops[0].type, rom_plane_write);
+    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].data, reference_program);
+
+    reference_program = {
+        0x40003,
+        0xc,
+        0x30001,
+        0x10003,
+        0xc,
+        0xc,
+        0x46,
+        0x41A33333,
+        0x61021,
+        0xc,
+};
+
+    ASSERT_EQ(ops[1].type, rom_plane_write);
+    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].data, reference_program);
+    // DMA
+
+    ASSERT_EQ(ops[2].type, control_plane_write);
+    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].data[0], 0x30002);
+
+    ASSERT_EQ(ops[3].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[3].data[0], 0x38);
+
+    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[4].data[0], 0x10041002);
+
+    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[5].data[0], 0x38);
+
+    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[6].data[0], 0x2);
+
+
+    // DMA 2
+    ASSERT_EQ(ops[7].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[7].data[0], 0x10001);
+
+    ASSERT_EQ(ops[8].address[0], 0x4'43c5'1008);
+    ASSERT_EQ(ops[8].data[0], 0x0);
+
+    ASSERT_EQ(ops[9].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[9].data[0], 0x42000000);
+
+    ASSERT_EQ(ops[10].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[10].data[0], 0x38);
+
+    ASSERT_EQ(ops[11].address[0], 0x4'43c5'1010);
+    ASSERT_EQ(ops[11].data[0], 0x10011001);
+
+    ASSERT_EQ(ops[12].address[0], 0x4'43c5'1008);
+    ASSERT_EQ(ops[12].data[0], 0x1);
+
+    ASSERT_EQ(ops[13].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[13].data[0], 0x42800000);
+
+    ASSERT_EQ(ops[14].address[0], 0x4'43c5'1050);
+    ASSERT_EQ(ops[14].data[0], 0x38);
+
+    ASSERT_EQ(ops[15].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[15].data[0], 0x2);
+
+    // MEMORY INITIALIZATION
+
+    // INPUTS
+    ASSERT_EQ(ops[16].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[16].data[0], 0);
+
+    ASSERT_EQ(ops[17].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[17].data[0], 3);
+
+    ASSERT_EQ(ops[18].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[18].data[0], 0x42480000);
+
+    ASSERT_EQ(ops[19].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[19].data[0], 0x10000);
+
+    ASSERT_EQ(ops[20].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[20].data[0], 0x10003);
+
+    ASSERT_EQ(ops[21].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[21].data[0], 0x42480000);
+
+    // SEQUENCER
+
+
+    ASSERT_EQ(ops[22].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[22].data[0], 0);
+
+    ASSERT_EQ(ops[23].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[23].data[0], 121);
+
+    ASSERT_EQ(ops[24].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[24].data[0], 1);
+
+    ASSERT_EQ(ops[25].address[0], 0x4'43c1'000c);
+    ASSERT_EQ(ops[25].data[0], 2);
+
+    ASSERT_EQ(ops[26].address[0], 0x443c10004);
+    ASSERT_EQ(ops[26].data[0], 1000000);
+
+    ASSERT_EQ(ops[27].address[0], 0x443c11000);
+    ASSERT_EQ(ops[27].data[0],3);
+
+    // CORES
+
+    ASSERT_EQ(ops[28].address[0], 0x4'43c4'0000);
+    ASSERT_EQ(ops[28].data[0],11);
+
+    ASSERT_EQ(ops[29].address[0], 0x4'43c5'0000);
+    ASSERT_EQ(ops[29].data[0],11);
+
+    ASSERT_EQ(ops[30].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[30].data[0],1);
 
 }

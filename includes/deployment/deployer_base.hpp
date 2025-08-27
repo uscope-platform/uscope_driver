@@ -163,7 +163,7 @@ protected:
     fpga_bridge hw;
     logic_layout addresses;
 protected:
-    std::unordered_map<std::string, std::unordered_map<std::string, uint32_t>> ivs;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::vector<uint32_t>>> ivs;
     uint32_t active_random_inputs = 0;
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
