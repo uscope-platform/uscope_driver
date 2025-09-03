@@ -35,6 +35,7 @@ struct logic_layout{
         uint64_t cores_control;
         uint64_t cores_inputs;
         uint64_t noise_generator;
+        uint64_t waveform_generator;
         uint64_t controller;
 
         uint64_t scope_mux;
@@ -59,6 +60,7 @@ struct logic_layout{
         bases.controller = obj["bases"]["controller"];
         bases.scope_mux = obj["bases"]["scope_mux"];
         bases.hil_control = obj["bases"]["hil_control"];
+        bases.waveform_generator = obj["bases"]["waveform_generator"];
         bases.noise_generator = obj["bases"]["noise_generator"];
 
         offsets.cores_rom = obj["offsets"]["cores_rom"];
@@ -86,6 +88,8 @@ struct logic_layout{
         ret["bases"]["controller"] = bases.controller;
         ret["bases"]["scope_mux"] = bases.scope_mux;
         ret["bases"]["hil_control"] = bases.hil_control;
+        ret["bases"]["waveform_generator"] = bases.waveform_generator;
+        ret["bases"]["noise_generator"] = bases.noise_generator;
         return ret;
     }
 
@@ -104,6 +108,8 @@ struct logic_layout{
         ret += "HIL CONTROL: BASE " + std::to_string(bases.hil_control) + "\n";
         ret += "SCOPE MUX: BASE " + std::to_string(bases.scope_mux) + "\n";
         ret += "HIL TB: OFFSET " + std::to_string(offsets.hil_tb) + "\n";
+        ret += "NOISE GENERATOR: BASE " + std::to_string(bases.noise_generator) + "\n";
+        ret += "WAVEFORM GENERATOR: BASE " + std::to_string(bases.waveform_generator) + "\n";
         return ret;
     }
     logic_layout_bases bases;

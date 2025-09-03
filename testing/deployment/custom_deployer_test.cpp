@@ -36,6 +36,7 @@ nlohmann::json custom_deployer_get_addr_map(){
     uint64_t controller_tb_offset =   0x1000;
     uint64_t scope_mux_base = 0x4'43c5'0000;
     uint64_t noise_generator = 0x4'43c7'0000;
+    uint64_t waveform_generator = 0x4'43c9'0000;
 
     uint64_t hil_control_base = 0x4'43c0'0000;
     nlohmann::json addr_map, offsets, bases;
@@ -44,7 +45,7 @@ nlohmann::json custom_deployer_get_addr_map(){
     bases["cores_inputs"] = cores_inputs_base_address;
     bases["controller"] = controller_base;
     bases["noise_generator"] = noise_generator;
-
+    bases["waveform_generator"] = waveform_generator;
     bases["scope_mux"] = scope_mux_base;
     bases["hil_control"] = hil_control_base;
 

@@ -27,7 +27,8 @@ constexpr struct {
         uint64_t controller = control_plane + 0x10000;
         uint64_t gpio = control_plane + 0x20000;
         uint64_t noise_generator = control_plane + 0x30000;
-        uint64_t cores_control = control_plane + 0x40000;
+        uint64_t waveform_generator = control_plane + 0x40000;
+        uint64_t cores_control = control_plane + 0x50000;
     }bases;
 
     struct {
