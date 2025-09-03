@@ -35,6 +35,7 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
 
     min_timebase = 0;
+    active_waveforms = 0;
     active_random_inputs = 0;
     inputs_labels.clear();
     bus_labels.clear();
