@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 #include "deployment/hil_emulator.hpp"
 
-#include "../deployment/fpga_bridge_mock.hpp"
 
 
 

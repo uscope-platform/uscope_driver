@@ -15,7 +15,6 @@
 //  limitations under the License.
 
 #include "deployment/custom_deployer.hpp"
-#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 custom_deployer::custom_deployer() {
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");

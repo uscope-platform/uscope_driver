@@ -15,7 +15,6 @@
 //  limitations under the License.
 
 #include "deployment/hil_deployer.hpp"
-#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 
 hil_deployer::hil_deployer() {

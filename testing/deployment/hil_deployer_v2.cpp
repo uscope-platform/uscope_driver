@@ -17,10 +17,10 @@
 #include "deployment/hil_deployer.hpp"
 #include "emulator/emulator_dispatcher.hpp"
 
-#include "../deployment/fpga_bridge_mock.hpp"
+#include "../deployment/hil_addresses.hpp"
 
 
-nlohmann::json get_addr_map_v2(){
+nlohmann::json get_addr_map_v2() {
     std::string map = R"({
         "bases": {
             "controller": 18316591104,
@@ -43,7 +43,6 @@ nlohmann::json get_addr_map_v2(){
 
     return nlohmann::json::parse(map);
 }
-
 
 TEST(deployer_v2, simple_single_core_deployment) {
 
@@ -128,8 +127,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
     auto ops = ba->get_operations();
@@ -159,57 +157,57 @@ TEST(deployer_v2, simple_single_core_deployment) {
     ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
 
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104C);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[7].data[0], 1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[8].data[0], 2);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c40000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[14].data[0],11);
 }
 
@@ -295,14 +293,13 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
-    
+
     std::vector<u_int64_t> reference_program = {
         0x20004,
         0xc,
@@ -318,56 +315,56 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[7].data[0], 1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[8].data[0], 2);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[9].data[0], 4);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c40000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[14].data[0],11);
 
 }
@@ -448,11 +445,10 @@ TEST(deployer_v2, simple_single_core_memory_init) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -471,59 +467,59 @@ TEST(deployer_v2, simple_single_core_memory_init) {
     ASSERT_EQ(ops.size(), 15);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x40003);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x50002);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x60001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x18);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[7].data[0], 3);
 
     // MEMORIES INITIALIZATION
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'0008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 8);
     ASSERT_EQ(ops[8].data[0], 0x41600000);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 4);
     ASSERT_EQ(ops[9].data[0], 12);
 
     // INPUTS
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c40000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[14].data[0],11);
 
 }
@@ -618,11 +614,10 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -640,136 +635,136 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     ASSERT_EQ(ops.size(), 39);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x10031001);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x20042001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1018);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[7].data[0], 0x30053001);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1058);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[9].data[0], 4);
 
     // INPUTS
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[11].data[0], 3);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[12].data[0], 0x41f9999a);
 
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[13].data[0], 0x10000);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[14].data[0], 0x10003);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[15].data[0], 0x4202CCCD);
 
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[16].data[0], 0x20000);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[17].data[0], 0x20003);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[18].data[0], 0x42786666);
 
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[19].data[0], 0x30000);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[20].data[0], 0x30003);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[21].data[0], 0x42800000);
 
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[22].data[0], 1);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[23].data[0], 2);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[24].data[0], 0x40800000);
 
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[25].data[0], 0x10001);
 
-    ASSERT_EQ(ops[26].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[26].data[0], 0x10002);
 
-    ASSERT_EQ(ops[27].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[27].data[0], 0x40000000);
 
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[28].data[0], 0x20001);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[29].data[0], 0x20002);
 
-    ASSERT_EQ(ops[30].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[30].data[0], 0x40C00000);
 
 
-    ASSERT_EQ(ops[31].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[31].data[0], 0x30001);
 
-    ASSERT_EQ(ops[32].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[32].data[0], 0x30002);
 
-    ASSERT_EQ(ops[33].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[33].data[0], 0x41400000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[34].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[34].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[34].data[0], 0);
 
-    ASSERT_EQ(ops[35].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[35].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[35].data[0], 2);
 
-    ASSERT_EQ(ops[36].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[36].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[36].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[37].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[37].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[37].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[38].address[0], 0x443c40000);
+    ASSERT_EQ(ops[38].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[38].data[0],11);
 
 }
@@ -923,11 +918,10 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -944,7 +938,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     ASSERT_EQ(ops.size(), 28);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -960,97 +954,97 @@ TEST(deployer_v2, simple_multi_core_deployment) {
 };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x30002);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[4].data[0], 1);
 
     // DMA 2
-    ASSERT_EQ(ops[5].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[5].data[0], 0x40001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1+ addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[7].data[0], 1);
 
     // INPUTS 1
-    ASSERT_EQ(ops[8].address[0],  0x4'43c4'200c);
+    ASSERT_EQ(ops[8].address[0],  addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[9].data[0], 4);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[10].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[11].data[0], 1);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[12].data[0], 3);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[13].data[0], 0x40800000);
 
 
     // INPUTS 2
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[15].data[0], 4);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[16].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[17].data[0], 1);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[18].data[0], 3);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[19].data[0], 0x40800000);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[20].data[0], 0);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[21].data[0], 2);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[22].data[0], 0);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[23].data[0], 108);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[24].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[25].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[26].address[0], 0x443c40000);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[26].data[0],11);
 
-    ASSERT_EQ(ops[27].address[0], 0x443c50000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[27].data[0],11);
 
 }
@@ -1202,11 +1196,10 @@ TEST(deployer_v2, scalar_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -1228,7 +1221,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     ASSERT_EQ(ops.size(), 26);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -1246,89 +1239,89 @@ TEST(deployer_v2, scalar_interconnect_test) {
             0xc
     };
 
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].address[0],  addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[3].data[0], 0x0);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[4].data[0], 0x0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[5].data[0], 0x18);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
      ASSERT_EQ(ops[6].data[0], 0x40003);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[7].data[0], 0x38);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[8].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(ops[9].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[9].data[0], 0x50002);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[10].data[0], 0x38);
 
 
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[11].data[0], 1);
 
     // INPUTS
 
-    ASSERT_EQ(ops[12].address[0], 0x443c4200c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[13].address[0], 0x443c42008);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[13].data[0], 5);
 
-    ASSERT_EQ(ops[14].address[0], 0x443c42000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[14].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[15].address[0], 0x443c4200c);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[15].data[0], 1);
 
-    ASSERT_EQ(ops[16].address[0], 0x443c42008);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[16].data[0], 4);
 
-    ASSERT_EQ(ops[17].address[0], 0x443c42000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[17].data[0], 0x4202cccd);
     // SEQUENCER
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[19].data[0], 2);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[20].data[0], 0);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[21].data[0], 119);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[22].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[23].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[24].address[0], 0x443c40000);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[24].data[0],11);
 
-    ASSERT_EQ(ops[25].address[0], 0x443c50000);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[25].data[0],11);
 
 }
@@ -1437,11 +1430,10 @@ TEST(deployer_v2, scatter_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -1461,7 +1453,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
     ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -1478,85 +1470,85 @@ TEST(deployer_v2, scatter_interconnect_test) {
     };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[3].data[0], 0x0);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[4].data[0], 0x0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[6].data[0], 0x10010002);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[7].data[0], 0x1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[8].data[0], 0x0);
 
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[9].data[0], 0x38);
 
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[10].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[11].data[0], 0x40003);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[12].data[0], 0x38);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c5'1010);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[13].data[0], 0x10051003);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c5'1050);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[14].data[0], 0x38);
 
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[15].data[0], 2);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[19].data[0], 123);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[20].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[21].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[22].address[0], 0x443c40000);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[22].data[0],11);
 
-    ASSERT_EQ(ops[23].address[0], 0x443c50000);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[23].data[0],11);
 
 }
@@ -1688,11 +1680,10 @@ TEST(deployer_v2, gather_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -1710,7 +1701,7 @@ TEST(deployer_v2, gather_interconnect_test) {
     ASSERT_EQ(ops.size(), 34);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -1727,113 +1718,113 @@ TEST(deployer_v2, gather_interconnect_test) {
     };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[3].data[0], 0x0);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[4].data[0], 0x0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[6].data[0], 0x21001);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[7].data[0], 0x1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[8].data[0], 0x0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[9].data[0], 0x38);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[10].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[11].data[0], 0x40003);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[12].data[0], 0x38);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // INPUTS
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[14].data[0], 0);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[15].data[0], 0x5);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[16].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[17].data[0], 0x10000);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[18].data[0], 0x10005);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[19].data[0], 0x4202CCCD);
 
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[20].data[0], 1);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[21].data[0], 0x4);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[22].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[23].data[0], 0x10001);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[24].data[0], 0x10004);
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[25].data[0], 0x4202CCCD);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[26].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[26].data[0], 0);
 
-    ASSERT_EQ(ops[27].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[27].data[0], 2);
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[28].data[0], 0);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[29].data[0], 108);
 
-    ASSERT_EQ(ops[30].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[30].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[31].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[31].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[32].address[0], 0x443c40000);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[32].data[0],11);
 
-    ASSERT_EQ(ops[33].address[0], 0x443c50000);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[33].data[0],11);
 
 }
@@ -1965,11 +1956,10 @@ TEST(deployer_v2, vector_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -1987,7 +1977,7 @@ TEST(deployer_v2, vector_interconnect_test) {
     ASSERT_EQ(ops.size(), 36);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -2004,121 +1994,121 @@ TEST(deployer_v2, vector_interconnect_test) {
     };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[3].data[0], 0x0);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[4].data[0], 0x0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[6].data[0], 0x10011001);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[7].data[0], 0x1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[8].data[0], 0x0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[9].data[0], 0x38);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[10].data[0], 2);
 
     // DMA 2
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[11].data[0], 0x30002);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[12].data[0], 0x38);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c5'1010);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[13].data[0], 0x10041002);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c5'1050);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[14].data[0], 0x38);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[15].data[0], 2);
 
     // INPUTS
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[17].data[0], 0x4);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[18].data[0], 0x41f9999a);
 
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[19].data[0], 0x10000);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[20].data[0], 0x10004);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[21].data[0], 0x4202CCCD);
 
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[22].data[0], 1);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[23].data[0], 0x3);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[24].data[0], 0x41f9999a);
 
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[25].data[0], 0x10001);
 
-    ASSERT_EQ(ops[26].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[26].data[0], 0x10003);
 
-    ASSERT_EQ(ops[27].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[27].data[0], 0x4202CCCD);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[28].data[0], 0);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[29].data[0], 2);
 
-    ASSERT_EQ(ops[30].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[30].data[0], 0);
 
-    ASSERT_EQ(ops[31].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[31].data[0], 108);
 
-    ASSERT_EQ(ops[32].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[32].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[33].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[33].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[34].address[0], 0x443c40000);
+    ASSERT_EQ(ops[34].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[34].data[0],11);
 
-    ASSERT_EQ(ops[35].address[0], 0x443c50000);
+    ASSERT_EQ(ops[35].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[35].data[0],11);
 
 }
@@ -2230,11 +2220,10 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -2253,7 +2242,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     ASSERT_EQ(ops.size(), 36);
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -2274,118 +2263,118 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA 1
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[3].data[0], 0x0);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[4].data[0], 0x0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[6].data[0], 0x10011001);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[7].data[0], 0x1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[8].data[0], 0x0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[9].data[0], 0x38);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[10].data[0], 0x20002);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[11].data[0], 0x2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[12].data[0], 0x0);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[13].data[0], 0x38);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'1018);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[14].data[0], 0x10021002);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c4'1008);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[15].data[0], 0x3);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'1004);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[16].data[0], 0x0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'1058);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[17].data[0], 0x38);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[18].data[0], 4);
 
     // DMA 2
-    ASSERT_EQ(ops[19].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[19].data[0], 0x50003);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[20].data[0], 0x38);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c5'1010);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[21].data[0], 0x10061003);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c5'1050);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[22].data[0], 0x38);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c5'1014);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[23].data[0], 0x70004);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c5'1054);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[24].data[0], 0x38);
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c5'1018);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[25].data[0], 0x10081004);
 
-    ASSERT_EQ(ops[26].address[0], 0x4'43c5'1058);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[26].data[0], 0x38);
 
-    ASSERT_EQ(ops[27].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[27].data[0], 4);
 
     // MEMORY INITIALIZATIONS
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[28].data[0], 0);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[29].data[0], 2);
 
-    ASSERT_EQ(ops[30].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[30].data[0], 0);
 
-    ASSERT_EQ(ops[31].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[31].data[0], 123);
 
-    ASSERT_EQ(ops[32].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[32].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[33].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[33].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[34].address[0], 0x443c40000);
+    ASSERT_EQ(ops[34].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[34].data[0],11);
 
-    ASSERT_EQ(ops[35].address[0], 0x443c50000);
+    ASSERT_EQ(ops[35].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[35].data[0],11);
 
 }
@@ -2473,8 +2462,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     output_specs_t out;
     out.address = 1,
@@ -2501,86 +2489,86 @@ TEST(deployer_v2, simple_single_core_output_select) {
     ASSERT_EQ(ops.size(), 24);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x10031001);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[5].data[0], 2);
 
     // INPUTS
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[6].data[0], 0);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[7].data[0], 3);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[8].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[9].data[0], 0x10000);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[10].data[0], 0x10003);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[11].data[0], 0x41F9999A);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[12].data[0], 1);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[14].data[0], 0x40800000);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[15].data[0], 65537);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[16].data[0], 65538);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[17].data[0], 0x40800000);
 
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[18].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[19].data[0], 2);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[20].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[21].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[22].address[0], 0x443c40000);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[22].data[0],11);
 
     // select_output
-    ASSERT_EQ(ops[23].address[0], 0x443c00004);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.scope +  scope_mux_regs.ch_1);
     ASSERT_EQ(ops[23].data[0],0x10003);
 
 }
@@ -2667,12 +2655,11 @@ TEST(deployer_v2, simple_single_core_input_set) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.set_input(2,90,"test");
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -2690,65 +2677,65 @@ TEST(deployer_v2, simple_single_core_input_set) {
     ASSERT_EQ(ops.size(), 18);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[7].data[0], 1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[8].data[0], 2);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c40000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[14].data[0],11);
 
-    ASSERT_EQ(ops[15].address[0], 0x443c4200c);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[15].data[0],1);
 
-    ASSERT_EQ(ops[16].address[0], 0x443c42008);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[16].data[0],2);
 
-    ASSERT_EQ(ops[17].address[0], 0x443c42000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[17].data[0],90);
 
 }
@@ -2836,13 +2823,12 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
     d.stop();
 
-    
+
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
@@ -2859,62 +2845,62 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     ASSERT_EQ(ops.size(), 17);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     // DMA
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x20001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[3].data[0], 1);
 
     // INPUTS
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[4].data[0], 0);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[5].data[0], 3);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[6].data[0], 0x41f9999a);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[7].data[0], 1);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[8].data[0], 2);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[9].data[0], 0x40800000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[12].data[0], 100'000'000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[13].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[14].address[0], 0x443c40000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[14].data[0],11);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[15].data[0],1);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[16].data[0],0);
 
 }
@@ -3004,8 +2990,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3104,8 +3089,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3186,8 +3170,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3306,8 +3289,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3334,106 +3316,106 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
     ASSERT_EQ(ops.size(), 30);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     ASSERT_EQ(ops[1].type, control_plane_write);
     // DMA
 
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x30002);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x10041002);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x50001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1018);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[7].data[0], 0x10061001);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1058);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[9].data[0], 4);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 4);
     ASSERT_EQ(ops[10].data[0], 0);
 
     // INPUTS
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[11].data[0], 0);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[12].data[0], 4);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[13].data[0], 0x3f800000);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[14].data[0], 0x10000);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[15].data[0], 0x10004);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[16].data[0], 0x40000000);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[17].data[0], 1);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[18].data[0], 0x3);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[19].data[0], 0x3f800000);
 
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[20].data[0], 0x10001);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[21].data[0], 0x10003);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[22].data[0], 0x40000000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[23].data[0], 0);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[24].data[0], 2);
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[25].data[0], 5000);
 
-    ASSERT_EQ(ops[26].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[26].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[27].address[0], 0x443c40000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[27].data[0],11);
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[28].data[0],1);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[29].data[0],0);
 
 }
@@ -3506,8 +3488,7 @@ TEST(deployer_v2, multichannel_memory_init) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3533,70 +3514,70 @@ TEST(deployer_v2, multichannel_memory_init) {
     ASSERT_EQ(ops.size(), 19);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     ASSERT_EQ(ops[1].type, control_plane_write);
     // DMA
 
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x30002);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x10041002);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x50001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1018);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[7].data[0], 0x10061001);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1058);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[9].data[0], 4);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 4);
     ASSERT_EQ(ops[10].data[0], 0x42C80000);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'0404);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 0x404);
     ASSERT_EQ(ops[11].data[0], 0x43FA0000);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[13].data[0], 2);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[14].data[0], 100000000);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[15].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[16].address[0], 0x443c40000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[16].data[0],11);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[17].data[0],1);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[18].data[0],0);
 
 }
@@ -3700,8 +3681,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3728,84 +3708,84 @@ TEST(deployer_v2, multichannel_random_inputs) {
     ASSERT_EQ(ops.size(), 23);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     ASSERT_EQ(ops[1].type, control_plane_write);
     // DMA
 
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x50004);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x10061004);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x70003);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1018);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*3);
     ASSERT_EQ(ops[7].data[0], 0x10081003);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'1058);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*3);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[9].data[0], 4);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'000c);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 0xc);
     ASSERT_EQ(ops[10].data[0], 0);
 
     // INPUTS
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c3'0004);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.noise_generator + noise_gen_regs.output_dest_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c3'0008);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.noise_generator + noise_gen_regs.output_dest_2);
     ASSERT_EQ(ops[12].data[0], 0x10002);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c3'000c);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.noise_generator + noise_gen_regs.output_dest_3);
     ASSERT_EQ(ops[13].data[0], 1);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c3'0010);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.noise_generator + noise_gen_regs.output_dest_4);
     ASSERT_EQ(ops[14].data[0], 0x10001);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c3'0000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.noise_generator + noise_gen_regs.active_outputs);
     ASSERT_EQ(ops[15].data[0], 4);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[17].data[0], 2);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[18].data[0], 5000);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[19].data[0], 1);
 
     // CORES
 
-    ASSERT_EQ(ops[20].address[0], 0x443c40000);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[20].data[0],11);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[21].data[0],1);
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[22].data[0],0);
 
 }
@@ -3917,8 +3897,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3940,7 +3919,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
     ASSERT_EQ(ops.size(), 20);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -3957,70 +3936,70 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
     };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
 
     // DMA
 
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x10001);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[4].data[0], 1);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[5].data[0], 0x30002);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[6].data[0], 0x18);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[7].data[0], 0x1);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 4);
     ASSERT_EQ(ops[8].data[0], 0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c5'0004);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + 4);
     ASSERT_EQ(ops[9].data[0], 0);
 
     // SEQUENCER
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[11].data[0], 2);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[12].data[0], 0);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'000C);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[13].data[0], 121);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'0004);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[14].data[0], 100000000);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.controller + addr_map.offsets.sequencer);
     ASSERT_EQ(ops[15].data[0], 3);
 
     // CORES
 
-    ASSERT_EQ(ops[16].address[0], 0x443c40000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[16].data[0],11);
 
-    ASSERT_EQ(ops[17].address[0], 0x443c50000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[17].data[0],11);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[18].data[0],1);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[19].data[0],0);
 
 }
@@ -4113,8 +4092,7 @@ TEST(deployer_v2, multichannel_partial_transfer) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
 
@@ -4138,77 +4116,77 @@ TEST(deployer_v2, multichannel_partial_transfer) {
     ASSERT_EQ(ops.size(), 21);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
     // DMA
 
     ASSERT_EQ(ops[1].type, control_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[1].data[0], 0x10010001);
 
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[2].data[0], 0x38);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[3].data[0], 0x30002);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x38);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1014);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*2);
     ASSERT_EQ(ops[5].data[0], 0x10041002);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1054);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*2);
     ASSERT_EQ(ops[6].data[0], 0x38);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[7].data[0], 0x3);
 
     // MEMORY INITIALIZATION
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c4'0004);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + 4);
     ASSERT_EQ(ops[8].data[0], 0);
 
     // INPUTS
-    ASSERT_EQ(ops[9].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[9].data[0], 0);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[10].data[0], 3);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[11].data[0], 0x40A00000);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c4'200c);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[12].data[0], 0x10000);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c4'2008);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[13].data[0], 0x10003);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c4'2000);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[14].data[0], 0x3f800000);
 
     // SEQUENCER
 
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[15].data[0], 0);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[16].data[0], 2);
 
-    ASSERT_EQ(ops[17].address[0], 0x443c10004);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[17].data[0], 100000000);
 
-    ASSERT_EQ(ops[18].address[0], 0x443c11000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
     ASSERT_EQ(ops[18].data[0],1);
 
     // CORES
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'0000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[19].data[0],11);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[20].data[0],1);
 
 }
@@ -4342,8 +4320,7 @@ TEST(deployer_v2, interconnect_initial_value) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
 
@@ -4366,7 +4343,7 @@ TEST(deployer_v2, interconnect_initial_value) {
     ASSERT_EQ(ops.size(), 22);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -4383,79 +4360,79 @@ TEST(deployer_v2, interconnect_initial_value) {
 };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
     // DMA
 
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x30002);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[4].data[0], 0x1);
 
 
     // DMA 2
-    ASSERT_EQ(ops[5].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[5].data[0], 0x10001);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c5'1008);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[6].data[0], 0x0);
 
-    ASSERT_EQ(ops[7].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[7].data[0], 0x42200000);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[8].data[0], 0x38);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[9].data[0], 0x1);
 
     // MEMORY INITIALIZATION
 
     // INPUTS
-    ASSERT_EQ(ops[10].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[10].data[0], 0);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[11].data[0], 3);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[12].data[0], 0x42480000);
 
     // SEQUENCER
 
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[13].data[0], 0);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[14].data[0], 121);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[15].data[0], 1);
 
-    ASSERT_EQ(ops[16].address[0], 0x4'43c1'000c);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[16].data[0], 2);
 
-    ASSERT_EQ(ops[17].address[0], 0x443c10004);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[17].data[0], 1000000);
 
-    ASSERT_EQ(ops[18].address[0], 0x443c11000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
     ASSERT_EQ(ops[18].data[0],3);
 
     // CORES
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c4'0000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[19].data[0],11);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c5'0000);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[20].data[0],11);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[21].data[0],1);
 
 }
@@ -4591,8 +4568,7 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    auto addr_map = get_addr_map_v2();
-    d.set_layout_map(addr_map);
+    d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     d.start();
 
@@ -4615,7 +4591,7 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
     ASSERT_EQ(ops.size(), 31);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
-    ASSERT_EQ(ops[0].address[0], 0x5'0000'0000);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
     ASSERT_EQ(ops[0].data, reference_program);
 
     reference_program = {
@@ -4632,106 +4608,106 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
 };
 
     ASSERT_EQ(ops[1].type, rom_plane_write);
-    ASSERT_EQ(ops[1].address[0], 0x5'1000'0000);
+    ASSERT_EQ(ops[1].address[0], addr_map.cores_rom_plane + addr_map.offsets.rom*1);
     ASSERT_EQ(ops[1].data, reference_program);
     // DMA
 
     ASSERT_EQ(ops[2].type, control_plane_write);
-    ASSERT_EQ(ops[2].address[0], 0x4'43c4'100c);
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[2].data[0], 0x30002);
 
-    ASSERT_EQ(ops[3].address[0], 0x4'43c4'104c);
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[3].data[0], 0x38);
 
-    ASSERT_EQ(ops[4].address[0], 0x4'43c4'1010);
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[4].data[0], 0x10041002);
 
-    ASSERT_EQ(ops[5].address[0], 0x4'43c4'1050);
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[5].data[0], 0x38);
 
-    ASSERT_EQ(ops[6].address[0], 0x4'43c4'1000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[6].data[0], 0x2);
 
 
     // DMA 2
-    ASSERT_EQ(ops[7].address[0], 0x4'43c5'100c);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base);
     ASSERT_EQ(ops[7].data[0], 0x10001);
 
-    ASSERT_EQ(ops[8].address[0], 0x4'43c5'1008);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[8].data[0], 0x0);
 
-    ASSERT_EQ(ops[9].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[9].data[0], 0x42000000);
 
-    ASSERT_EQ(ops[10].address[0], 0x4'43c5'104c);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base);
     ASSERT_EQ(ops[10].data[0], 0x38);
 
-    ASSERT_EQ(ops[11].address[0], 0x4'43c5'1010);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
     ASSERT_EQ(ops[11].data[0], 0x10011001);
 
-    ASSERT_EQ(ops[12].address[0], 0x4'43c5'1008);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_channel);
     ASSERT_EQ(ops[12].data[0], 0x1);
 
-    ASSERT_EQ(ops[13].address[0], 0x4'43c5'1004);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.fill_data);
     ASSERT_EQ(ops[13].data[0], 0x42800000);
 
-    ASSERT_EQ(ops[14].address[0], 0x4'43c5'1050);
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
     ASSERT_EQ(ops[14].data[0], 0x38);
 
-    ASSERT_EQ(ops[15].address[0], 0x4'43c5'1000);
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.dma + dma_regs.channels);
     ASSERT_EQ(ops[15].data[0], 0x2);
 
     // MEMORY INITIALIZATION
 
     // INPUTS
-    ASSERT_EQ(ops[16].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[16].data[0], 0);
 
-    ASSERT_EQ(ops[17].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[17].data[0], 3);
 
-    ASSERT_EQ(ops[18].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[18].data[0], 0x42480000);
 
-    ASSERT_EQ(ops[19].address[0], 0x4'43c5'200c);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.selector);
     ASSERT_EQ(ops[19].data[0], 0x10000);
 
-    ASSERT_EQ(ops[20].address[0], 0x4'43c5'2008);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_dest);
     ASSERT_EQ(ops[20].data[0], 0x10003);
 
-    ASSERT_EQ(ops[21].address[0], 0x4'43c5'2000);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1 + addr_map.offsets.inputs + mc_const.data_lsb);
     ASSERT_EQ(ops[21].data[0], 0x42480000);
 
     // SEQUENCER
 
 
-    ASSERT_EQ(ops[22].address[0], 0x4'43c1'1004);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
     ASSERT_EQ(ops[22].data[0], 0);
 
-    ASSERT_EQ(ops[23].address[0], 0x4'43c1'0008);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
     ASSERT_EQ(ops[23].data[0], 121);
 
-    ASSERT_EQ(ops[24].address[0], 0x4'43c1'1008);
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_2);
     ASSERT_EQ(ops[24].data[0], 1);
 
-    ASSERT_EQ(ops[25].address[0], 0x4'43c1'000c);
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
     ASSERT_EQ(ops[25].data[0], 2);
 
-    ASSERT_EQ(ops[26].address[0], 0x443c10004);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     ASSERT_EQ(ops[26].data[0], 1000000);
 
-    ASSERT_EQ(ops[27].address[0], 0x443c11000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
     ASSERT_EQ(ops[27].data[0],3);
 
     // CORES
 
-    ASSERT_EQ(ops[28].address[0], 0x4'43c4'0000);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
     ASSERT_EQ(ops[28].data[0],11);
 
-    ASSERT_EQ(ops[29].address[0], 0x4'43c5'0000);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*1);
     ASSERT_EQ(ops[29].data[0],11);
 
-    ASSERT_EQ(ops[30].address[0], 0x4'43c2'0000);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.gpio + gpio_regs.out);
     ASSERT_EQ(ops[30].data[0],1);
 
 }

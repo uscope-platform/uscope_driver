@@ -15,7 +15,6 @@
 //  limitations under the License.
 
 #include "deployment/deployer_base.hpp"
-#include "../testing/deployment/fpga_bridge_mock.hpp"
 
 void deployer_base::write_register(uint64_t addr, uint32_t val) {
     spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
