@@ -1646,7 +1646,7 @@ TEST(deployer_v2, gather_interconnect_test) {
                         },
                         "source":{
                             "type": "external",
-                            "value": [0]
+                            "value": [0, 0]
                         }
                 }
             ],
@@ -2186,7 +2186,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
                             },
                             "source":{
                             "type": "external",
-                            "value": [0]
+                            "value": [0, 0]
                         }
                     }
                 ],

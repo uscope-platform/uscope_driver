@@ -234,15 +234,28 @@ void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_progr
                     if(in.name == slot.destination_name) {
 
                         std::vector<uint32_t> data;
-                        for(int i = 0; i<in.data.size(); i++) {
-                            if(std::holds_alternative<std::vector<float>>(in.data[i])) {
-                                auto data_f = std::get<std::vector<float>>(in.data[i]);
-                                auto data_u = fcore::emulator_v2::emulator_backend::float_to_uint32(data_f[0]);
-                                data.push_back(data_u);
-                            } else {
-                                data.push_back(std::get<std::vector<uint32_t>>(in.data[i])[0]);
+                        if(in.data.size() == 1 && p.n_channels >1) {
+                            for(int i = 0; i<p.n_channels; i++) {
+                                if(std::holds_alternative<std::vector<float>>(in.data[0])) {
+                                    auto data_f = std::get<std::vector<float>>(in.data[0]);
+                                    auto data_u = fcore::emulator_v2::emulator_backend::float_to_uint32(data_f[0]);
+                                    data.push_back(data_u);
+                                } else {
+                                    data.push_back(std::get<std::vector<uint32_t>>(in.data[0])[0]);
+                                }
+                            }
+                        } else {
+                            for(int i = 0; i<in.data.size(); i++) {
+                                if(std::holds_alternative<std::vector<float>>(in.data[i])) {
+                                    auto data_f = std::get<std::vector<float>>(in.data[i]);
+                                    auto data_u = fcore::emulator_v2::emulator_backend::float_to_uint32(data_f[0]);
+                                    data.push_back(data_u);
+                                } else {
+                                    data.push_back(std::get<std::vector<uint32_t>>(in.data[i])[0]);
+                                }
                             }
                         }
+
                         ivs[slot.source_id][slot.source_name] = data;
                     }
                 }
