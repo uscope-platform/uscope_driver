@@ -166,11 +166,18 @@ protected:
 
     void update_input_value(uint32_t address, uint32_t value, std::string core);
 
+    void setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
+    void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);
+    void setup_waveform(uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel);
+
+
     fpga_bridge hw;
     logic_layout addresses;
 protected:
     std::unordered_map<std::string, std::unordered_map<std::string, std::vector<uint32_t>>> ivs;
     uint32_t active_random_inputs = 0;
+    uint32_t active_waveforms = 0;
+    double timebase_frequency;
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
     std::map<uint32_t, std::string> bus_labels;
@@ -190,5 +197,17 @@ static constexpr struct {
     uint8_t const_user = 0x18;
 } fcore_constant_engine;
 
+
+static constexpr struct {
+    uint16_t shape_selector = 0;
+    uint16_t channel_selector = 0x4;
+    uint16_t v_on = 0x8;
+    uint16_t v_off = 0xc;
+    uint16_t t_delay = 0x10;
+    uint16_t t_on = 0x14;
+    uint16_t period = 0x18;
+    uint16_t dest_out = 0x1c;
+    uint16_t user_out = 0x20;
+} square_wave_gen;
 
 #endif //USCOPE_DRIVER_DEPLOYER_BASE_HPP

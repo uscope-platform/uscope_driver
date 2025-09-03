@@ -211,6 +211,8 @@ void deployer_base::setup_input(
             bus_labels[address] = core_name + "." + in.name;
         }
 
+    } else if(in.source_type == fcore::waveform_input) {
+        std::visit([&](auto &&arg) { setup_waveform(const_ip_address, arg, target_channel); }, in.waveform_parameters);
     }
 }
 
@@ -225,6 +227,27 @@ void deployer_base::update_input_value(uint32_t address, uint32_t value, std::st
 
         }
     }
+}
+
+void deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel) {
+    uint64_t period = p.period[channel]*timebase_frequency;
+    uint64_t t_on = p.t_on[channel]*timebase_frequency;
+    uint64_t t_delay = p.t_delay[channel]*timebase_frequency;
+    write_register(address + square_wave_gen.channel_selector,  active_waveforms);
+    write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[0]));
+    write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[0]));
+    write_register(address +square_wave_gen.t_delay, t_delay);
+    write_register(address +square_wave_gen.t_on, t_on);
+    write_register(address +square_wave_gen.period, period);
+    active_waveforms++;
+}
+
+void deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {
+    throw std::runtime_error("Not implemented in hardware yet");
+}
+
+void deployer_base::setup_waveform(const uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel) {
+    throw std::runtime_error("Not implemented in hardware yet");
 }
 
 void deployer_base::set_accessor(const std::shared_ptr<bus_accessor> &ba) {

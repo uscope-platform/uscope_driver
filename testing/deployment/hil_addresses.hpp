@@ -111,6 +111,20 @@ constexpr struct {
     uint64_t output_dest_14 = 0x38;
 } noise_gen_regs;
 
-
+constexpr struct {
+    uint64_t shape = 0;
+    uint64_t channel_selector = 0x4;
+    uint64_t parameter_0 = 0x8;
+    uint64_t parameter_1 = 0xc;
+    uint64_t parameter_2 = 0x10;
+    uint64_t parameter_3 = 0x14;
+    uint64_t parameter_4 = 0x18;
+    uint64_t parameter_5 = 0x1c;
+    uint64_t parameter_6 = 0x20;
+    uint64_t parameter_7 = 0x24;
+    uint64_t parameter_8 = 0x28;
+    uint64_t parameter_9 = 0x2c;
+    uint64_t parameter_10 = 0x30;
+} wave_gen_regs;
 
 #endif //USCOPE_DRIVER_HIL_ADDRESSES_HPP

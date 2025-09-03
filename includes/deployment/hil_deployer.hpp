@@ -68,7 +68,6 @@ private:
     std::unordered_map<std::string, uint32_t> n_channels;
     std::unordered_map<std::string, uint32_t> execution_order;
 
-    double timebase_frequency;
     double timebase_divider = 1;
 
     std::shared_ptr<options_repository> options;

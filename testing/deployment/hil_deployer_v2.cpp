@@ -4713,3 +4713,220 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
     ASSERT_EQ(ops[30].data[0],1);
 
 }
+
+
+
+
+TEST(deployer_v2, waveform_inputs) {
+
+    nlohmann::json spec_json = nlohmann::json::parse(R"(
+    {
+        "version": 2,
+        "cores": [
+            {
+                "id": "test core",
+                "order": 1,
+                "inputs": [
+                    {
+                        "name": "in_1",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        },
+                        "source": {
+                            "ton": [0.1,0.1],
+                            "von": [20,20],
+                            "duty": [0,0],
+                            "type": "waveform",
+                            "voff": [10,10],
+                            "phase": [0,0],
+                            "shape": "square",
+                            "value": "",
+                            "period": [0.2,0.2],
+                            "tdelay": [0.01, 0.01],
+                            "amplitude": [ 0,0],
+                            "dc_offset": [0, 0],
+                            "frequency": [0, 0 ]
+                        },
+                        "vector_size": 1,
+                        "is_vector": false
+                    },
+                    {
+                        "name": "in_2",
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        },
+                        "source": {
+                            "ton": [0, 0],
+                            "von": [0,0],
+                            "duty": [0,0],
+                            "type": "waveform",
+                            "voff": [0,0],
+                            "phase": [ 0,3.14 ],
+                            "shape": "sine",
+                            "value": "",
+                            "period": [ 0,0],
+                            "tdelay": [ 0,0],
+                            "amplitude": [ 5,5],
+                            "dc_offset": [ 0,0],
+                            "frequency": [ 100, 100]
+                        },
+                        "vector_size": 1,
+                        "is_vector": false
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "out",
+                        "is_vector": false,
+                        "vector_size": 1,
+                        "metadata": {
+                            "type": "float",
+                            "width": 32,
+                            "signed": true,
+                            "common_io": false
+                        }
+                    }
+                ],
+                "memory_init": [],
+                "deployment": {
+                    "rom_address": 0,
+                    "has_reciprocal": false,
+                    "control_address": 0
+                },
+                "channels": 2,
+                "program": {
+                    "content": "void main(){\n  float in_1, in_2;\n\n  float out = in_1 + in_2;\n  \n}\n",
+                    "headers": []
+                },
+                "options": {
+                    "comparators": "reducing",
+                    "efi_implementation": "efi_trig"
+                },
+                "sampling_frequency": 100000
+            }
+        ],
+        "interconnect": [],
+        "emulation_time": 1,
+        "deployment_mode": false
+    }
+    )");
+
+
+
+    auto ba = std::make_shared<bus_accessor>(true);
+    hil_deployer d;
+    d.set_accessor(ba);
+    d.set_layout_map(get_addr_map_v2());
+    d.deploy(spec_json);
+    d.start();
+
+
+    auto ops = ba->get_operations();
+
+    std::vector<uint64_t> reference_program = {
+            0x20004,
+            0xc,
+            0x10001,
+            0x20002,
+            0x30003,
+            0xc,
+            0xc,
+            0x60841,
+            0xc,
+    };
+
+    ASSERT_EQ(ops.size(), 24);
+
+    ASSERT_EQ(ops[0].type, rom_plane_write);
+    ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
+    ASSERT_EQ(ops[0].data, reference_program);
+
+    // DMA
+
+    ASSERT_EQ(ops[1].type, control_plane_write);
+    ASSERT_EQ(ops[1].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base);
+    ASSERT_EQ(ops[1].data[0], 0x40003);
+
+    ASSERT_EQ(ops[2].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base);
+    ASSERT_EQ(ops[2].data[0], 0x38);
+
+    ASSERT_EQ(ops[3].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.addr_base + 4*1);
+    ASSERT_EQ(ops[3].data[0], 0x10051003);
+
+    ASSERT_EQ(ops[4].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.user_base + 4*1);
+    ASSERT_EQ(ops[4].data[0], 0x38);
+
+    ASSERT_EQ(ops[5].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0 + addr_map.offsets.dma + dma_regs.channels);
+    ASSERT_EQ(ops[5].data[0], 0x2);
+
+
+    // INPUTS
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[6].data[0], 0);
+
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[7].data[0], 0x41A00000);
+
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[8].data[0], 0x41200000);
+
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[9].data[0], 1000);
+
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[10].data[0], 10000);
+
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[11].data[0], 20000);
+
+
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[12].data[0], 1);
+
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[13].data[0], 0x41A00000);
+
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[14].data[0], 0x41200000);
+
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[15].data[0], 1000);
+
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[16].data[0], 10000);
+
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[17].data[0], 20000);
+
+    // SEQUENCER
+
+
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
+    ASSERT_EQ(ops[18].data[0], 0);
+
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
+    ASSERT_EQ(ops[19].data[0], 2);
+
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
+    ASSERT_EQ(ops[20].data[0], 1000);
+
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
+    ASSERT_EQ(ops[21].data[0],1);
+
+    // CORES
+
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
+    ASSERT_EQ(ops[22].data[0],11);
+
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.gpio + gpio_regs.out);
+    ASSERT_EQ(ops[23].data[0],1);
+
+}
+
+

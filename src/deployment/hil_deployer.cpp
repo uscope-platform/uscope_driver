@@ -277,6 +277,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
             uint64_t ip_addr;
             if(in.source_type==fcore::random_input) {
                 ip_addr = this->addresses.bases.noise_generator;
+            } else if(in.source_type == fcore::waveform_input) {
+                ip_addr = this->addresses.bases.waveform_generator;
             } else {
                 ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
             }
@@ -298,7 +300,7 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                         in.data.erase(in.data.begin());
                     }
                 } else {
-                    if(in.source_type == fcore::random_input) {
+                    if(in.source_type == fcore::random_input || in.source_type == fcore::waveform_input) {
                         for(int j = 0; j<p.n_channels; j++) {
                             core_name = p.name + "[" + std::to_string(j)  + "]";
                             this->setup_input(
