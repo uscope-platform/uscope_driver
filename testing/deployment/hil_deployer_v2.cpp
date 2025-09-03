@@ -4727,59 +4727,118 @@ TEST(deployer_v2, waveform_inputs) {
                 "id": "test core",
                 "order": 1,
                 "inputs": [
-                    {
-                        "name": "in_1",
-                        "metadata": {
-                            "type": "float",
-                            "width": 32,
-                            "signed": true,
-                            "common_io": false
-                        },
-                        "source": {
-                            "ton": [0.1,0.1],
-                            "von": [20,20],
-                            "duty": [0,0],
-                            "type": "waveform",
-                            "voff": [10,10],
-                            "phase": [0,0],
-                            "shape": "square",
-                            "value": "",
-                            "period": [0.2,0.2],
-                            "tdelay": [0.01, 0.01],
-                            "amplitude": [ 0,0],
-                            "dc_offset": [0, 0],
-                            "frequency": [0, 0 ]
-                        },
-                        "vector_size": 1,
-                        "is_vector": false
+                     {
+                    "name": "in_1",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true,
+                        "common_io": false
                     },
-                    {
-                        "name": "in_2",
-                        "metadata": {
-                            "type": "float",
-                            "width": 32,
-                            "signed": true,
-                            "common_io": false
-                        },
-                        "source": {
-                            "ton": [0, 0],
-                            "von": [0,0],
-                            "duty": [0,0],
-                            "type": "waveform",
-                            "voff": [0,0],
-                            "phase": [ 0,3.14 ],
-                            "shape": "sine",
-                            "value": "",
-                            "period": [ 0,0],
-                            "tdelay": [ 0,0],
-                            "amplitude": [ 5,5],
-                            "dc_offset": [ 0,0],
-                            "frequency": [ 100, 100]
-                        },
-                        "vector_size": 1,
-                        "is_vector": false
-                    }
-                ],
+                    "source": {
+                        "ton": [
+                            0.1,
+                            0.1
+                        ],
+                        "von": [
+                            20,
+                            20
+                        ],
+                        "duty": [
+                            0,
+                            0
+                        ],
+                        "type": "waveform",
+                        "voff": [
+                            10,
+                            10
+                        ],
+                        "phase": [
+                            0,
+                            0
+                        ],
+                        "shape": "square",
+                        "value": "",
+                        "period": [
+                            0.2,
+                            0.2
+                        ],
+                        "tdelay": [
+                            0.01,
+                            0.01
+                        ],
+                        "amplitude": [
+                            0,
+                            0
+                        ],
+                        "dc_offset": [
+                            0,
+                            0
+                        ],
+                        "frequency": [
+                            0,
+                            0
+                        ]
+                    },
+                    "vector_size": 1,
+                    "is_vector": false
+                },
+                {
+                    "name": "in_2",
+                    "metadata": {
+                        "type": "float",
+                        "width": 32,
+                        "signed": true,
+                        "common_io": false
+                    },
+                    "source": {
+                        "ton": [
+                            0.02,
+                            0.02
+                        ],
+                        "von": [
+                            1,
+                            1
+                        ],
+                        "duty": [
+                            0,
+                            0
+                        ],
+                        "type": "waveform",
+                        "voff": [
+                            -1,
+                            -1
+                        ],
+                        "phase": [
+                            0,
+                            3.14
+                        ],
+                        "shape": "square",
+                        "value": "",
+                        "period": [
+                            0.04,
+                            0.04
+                        ],
+                        "tdelay": [
+                            0,
+                            0.01
+                        ],
+                        "amplitude": [
+                            5,
+                            5
+                        ],
+                        "dc_offset": [
+                            0,
+                            0
+                        ],
+                        "frequency": [
+                            100,
+                            100
+                        ]
+                    },
+                    "vector_size": 1,
+                    "is_vector": false
+                }],
                 "outputs": [
                     {
                         "name": "out",
@@ -4841,7 +4900,7 @@ TEST(deployer_v2, waveform_inputs) {
             0xc,
     };
 
-    ASSERT_EQ(ops.size(), 24);
+    ASSERT_EQ(ops.size(), 36);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
@@ -4904,28 +4963,65 @@ TEST(deployer_v2, waveform_inputs) {
     ASSERT_EQ(ops[17].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
     ASSERT_EQ(ops[17].data[0], 20000);
 
+
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[18].data[0], 2);
+
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[19].data[0], 0x3f800000);
+
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[20].data[0], 0xbf800000);
+
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[21].data[0], 0);
+
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[22].data[0], 2000);
+
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[23].data[0], 4000);
+
+
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[24].data[0], 3);
+
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[25].data[0], 0x3f800000);
+
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[26].data[0], 0xbf800000);
+
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[27].data[0], 1000);
+
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[28].data[0], 2000);
+
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[29].data[0], 4000);
     // SEQUENCER
 
 
-    ASSERT_EQ(ops[18].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
-    ASSERT_EQ(ops[18].data[0], 0);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
+    ASSERT_EQ(ops[30].data[0], 0);
 
-    ASSERT_EQ(ops[19].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
-    ASSERT_EQ(ops[19].data[0], 2);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
+    ASSERT_EQ(ops[31].data[0], 2);
 
-    ASSERT_EQ(ops[20].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
-    ASSERT_EQ(ops[20].data[0], 1000);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
+    ASSERT_EQ(ops[32].data[0], 1000);
 
-    ASSERT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
-    ASSERT_EQ(ops[21].data[0],1);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
+    ASSERT_EQ(ops[33].data[0],1);
 
     // CORES
 
-    ASSERT_EQ(ops[22].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
-    ASSERT_EQ(ops[22].data[0],11);
+    ASSERT_EQ(ops[34].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
+    ASSERT_EQ(ops[34].data[0],11);
 
-    ASSERT_EQ(ops[23].address[0], addr_map.bases.gpio + gpio_regs.out);
-    ASSERT_EQ(ops[23].data[0],1);
+    ASSERT_EQ(ops[35].address[0], addr_map.bases.gpio + gpio_regs.out);
+    ASSERT_EQ(ops[35].data[0],1);
 
 }
 
