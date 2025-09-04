@@ -20,7 +20,7 @@ class BasicConanfile(ConanFile):
         self.requires("antlr4-cppruntime/4.13.2")
         self.requires("asio/1.36.0")
         if self.settings.arch == "x86_64":
-            self.requires("libfuse/3.10.5")
+            self.requires("libfuse/3.16.2")
 
 
     def build_requirements(self):
