@@ -212,7 +212,15 @@ void deployer_base::setup_input(
         }
 
     } else if(in.source_type == fcore::waveform_input) {
-        std::visit([&](auto &&arg) { setup_waveform(const_ip_address, arg, target_channel); }, in.waveform_parameters);
+        uint32_t address =in.address[0] + (target_channel<<16);
+        if(core_name.contains("[")){
+            auto index = stoul(core_name.substr(core_name.find_last_of('[')+1, core_name.find_last_of(']')-core_name.find_last_of('[')-1));
+            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(index) + "]";
+        } else {
+            bus_labels[address] = core_name + "." + in.name;
+        }
+
+        std::visit([&](auto &&arg) { setup_waveform(const_ip_address, arg, address); }, in.waveform_parameters);
     }
 }
 
@@ -229,7 +237,8 @@ void deployer_base::update_input_value(uint32_t address, uint32_t value, std::st
     }
 }
 
-void deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel) {
+void deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t dest) {
+    uint32_t channel = (0xFFF0000 & dest) >>16;
     uint64_t period = p.period[channel]*timebase_frequency;
     uint64_t t_on = p.t_on[channel]*timebase_frequency;
     uint64_t t_delay = p.t_delay[channel]*timebase_frequency;
@@ -238,6 +247,8 @@ void deployer_base::setup_waveform(const uint64_t address, const fcore::square_w
     write_register(address +square_wave_gen.t_delay, t_delay);
     write_register(address +square_wave_gen.t_on, t_on);
     write_register(address +square_wave_gen.period, period);
+    write_register(address +square_wave_gen.dest_out, dest);
+    write_register(address +square_wave_gen.user_out, get_metadata_value(32,true,true));
     write_register(address + square_wave_gen.channel_selector,  active_waveforms);
     active_waveforms++;
 }
