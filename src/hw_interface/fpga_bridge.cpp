@@ -36,7 +36,7 @@ fpga_bridge::fpga_bridge() {
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
 
-    spdlog::info("LOAD BITSTREAM: loading file {0}", bitstream);
+    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream);
     if(!runtime_config.emulate_hw){
         std::ofstream ofs(if_dict.get_fpga_flags_if());
         ofs << "0";

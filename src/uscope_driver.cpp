@@ -82,8 +82,11 @@ int main (int argc, char **argv) {
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
 
-
-    spdlog::set_level(spdlog::level::info);
+    if(log_command) {
+        spdlog::set_level(spdlog::level::info);
+    } else {
+        spdlog::set_level(spdlog::level::warn);
+    }
 
     spdlog::set_pattern("[%l] %v");
 
