@@ -242,18 +242,17 @@ void deployer_base::setup_waveform(const uint64_t address, const fcore::square_w
     uint64_t period = p.period[channel]*timebase_frequency;
     uint64_t t_on = p.t_on[channel]*timebase_frequency;
     uint64_t t_delay = p.t_delay[channel]*timebase_frequency;
+    write_register(address + square_wave_gen.channel_selector, active_waveforms);
     write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[0]));
     write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[0]));
     write_register(address +square_wave_gen.t_delay, t_delay);
     write_register(address +square_wave_gen.t_on, t_on);
     write_register(address +square_wave_gen.period, period);
     write_register(address +square_wave_gen.dest_out, dest);
+    write_register(address + square_wave_gen.shape_selector, 0);
     write_register(address +square_wave_gen.user_out, get_metadata_value(32,true,true));
-    write_register(address + square_wave_gen.channel_selector,  active_waveforms);
     active_waveforms++;
-    uint32_t shape = 0;
-    shape |= (active_waveforms << 16);
-    write_register(address + square_wave_gen.shape_selector, shape);
+    write_register(address + square_wave_gen.active_channels,  active_waveforms);
 }
 
 void deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {

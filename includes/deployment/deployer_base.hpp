@@ -199,15 +199,16 @@ static constexpr struct {
 
 
 static constexpr struct {
-    uint16_t shape_selector = 0;
-    uint16_t channel_selector = 0x4;
-    uint16_t v_on = 0x8;
-    uint16_t v_off = 0xc;
-    uint16_t t_delay = 0x10;
-    uint16_t t_on = 0x14;
-    uint16_t period = 0x18;
-    uint16_t dest_out = 0x1c;
-    uint16_t user_out = 0x20;
+    uint16_t active_channels = 0x0;
+    uint16_t shape_selector = 0x4;
+    uint16_t channel_selector = 0x8;
+    uint16_t v_on = 0xc;
+    uint16_t v_off = 0x10;
+    uint16_t t_delay = 0x14;
+    uint16_t t_on = 0x18;
+    uint16_t period = 0x1c;
+    uint16_t dest_out = 0x20;
+    uint16_t user_out = 0x24;
 } square_wave_gen;
 
 #endif //USCOPE_DRIVER_DEPLOYER_BASE_HPP

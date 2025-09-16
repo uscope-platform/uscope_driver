@@ -39,6 +39,9 @@ fpga_bridge::fpga_bridge() {
         } else {
             spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
         }
+    } else {
+        fpga_loaded = true;
+        spdlog::info("FPGA ALREADY LOADED, AXI ACCESSES ARE SAFE");
     }
 
 }
