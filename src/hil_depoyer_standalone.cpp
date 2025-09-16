@@ -82,21 +82,25 @@ int main (int argc, char **argv) {
     addr_map["offsets"] = offsets;
 
 
-    auto specs = fcore::emulator::emulator_specs(spec);
-    fcore::emulator_manager em(spec, runtime_config.debug_hil);
-    auto programs = em.get_programs();
+
+    fcore::emulator_dispatcher em;
+    em.set_specs(spec);
+    bool custom_deploy = false;
+    if(spec.contains("deployment_mode")) {
+        custom_deploy = spec["deployment_mode"];
+    }
 
     auto ba = std::make_shared<bus_accessor>(true);
-    if(specs.custom_deploy_mode){
+    if(custom_deploy){
         custom_deployer c;
         c.set_accessor(ba);
         c.set_layout_map(addr_map);
-        c.deploy(specs, programs);
+        c.deploy(spec);
     } else {
         hil_deployer d;
         d.set_accessor(ba);
         d.set_layout_map(addr_map);
-        d.deploy(specs, programs);
+        d.deploy(spec);
     }
 
     return 0;
