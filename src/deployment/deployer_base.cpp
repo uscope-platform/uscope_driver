@@ -251,6 +251,9 @@ void deployer_base::setup_waveform(const uint64_t address, const fcore::square_w
     write_register(address +square_wave_gen.user_out, get_metadata_value(32,true,true));
     write_register(address + square_wave_gen.channel_selector,  active_waveforms);
     active_waveforms++;
+    uint32_t shape = 0;
+    shape |= (active_waveforms << 16);
+    write_register(address + square_wave_gen.shape_selector, shape);
 }
 
 void deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {
