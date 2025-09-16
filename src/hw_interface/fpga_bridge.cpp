@@ -29,6 +29,18 @@ fpga_bridge::fpga_bridge() {
     }
     arch = raw_arch;
 
+    if(!runtime_config.emulate_hw) {
+        std::string state;
+        std::ifstream ifs(if_dict.get_fpga_state_if());
+        ifs >> state;
+        if(state == "operating"){
+            fpga_loaded = true;
+            spdlog::info("FPGA ALREADY LOADED, AXI ACCESSES ARE SAFE");
+        } else {
+            spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
+        }
+    }
+
 }
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
@@ -67,6 +79,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
                 spdlog::error("Bitstream load failed to complete in time");
                 return responses::bitstream_load_failed;
             } else{
+                fpga_loaded = true;
                 return responses::ok;
             }
         } else {
@@ -165,15 +178,16 @@ responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
 
 void fpga_bridge::write_direct(uint64_t addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", addr, val);
-    busses->write_register({addr}, val);
+    if(fpga_loaded) busses->write_register({addr}, val);
 }
 
 void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, target_addr, val);
-    busses->write_register({target_addr, proxy_addr}, val);
+    if(fpga_loaded) busses->write_register({target_addr, proxy_addr}, val);
 }
 
 uint32_t fpga_bridge::read_direct(uint64_t address) {
+    if(!fpga_loaded) return 0;
     std::vector<uint64_t> a= {address};
     return busses->read_register(a);
 }

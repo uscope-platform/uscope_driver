@@ -72,7 +72,7 @@ public:
 private:
 
     std::shared_ptr<bus_accessor> busses;
-
+    bool fpga_loaded = false;
 
     std::string arch;
 
