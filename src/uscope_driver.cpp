@@ -96,6 +96,7 @@ int main (int argc, char **argv) {
 
     spdlog::info("Debug mode: {0}", emulate_hw);
     spdlog::info("Logging mode: {0}", log_command);
+    spdlog::info("Log level: {0}", log_level);
 
 
     auto ba = std::make_shared<bus_accessor>(runtime_config.emulate_hw);
