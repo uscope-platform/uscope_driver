@@ -96,6 +96,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(
         spdlog::trace("channel base = {0}", channel_base);
         auto scaling_factor = scaling_factors[channel_base];
         data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
+        spdlog::trace("SCALING DONE");
         if(channel_base < scope_accessor::n_channels) {
             ret_data[channel_base].push_back(data_sample);
         } else {
@@ -126,7 +127,6 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
     if(is_float){
         memcpy(&ret, &raw_sample, sizeof(float));
     }
-    spdlog::trace("SCALING DONE");
     return ret;
 }
 
