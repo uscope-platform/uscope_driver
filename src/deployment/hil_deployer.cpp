@@ -168,14 +168,15 @@ uint32_t hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
 }
 
 void hil_deployer::select_output(uint32_t channel, const output_specs_t& output) {
+
+    auto data = this->get_bus_address(output);
     spdlog::info("HIL SELECT OUTPUT: selected output {0}({1},{2}) from core {3} for scope channel {4}",
                  output.source_output,
-                 output.address,
+                 data.address,
                  output.channel,
                  output.core_name,
                  channel);
 
-    auto data = this->get_bus_address(output);
     auto selector = data.address | (data.channel <<16);
     this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
 }

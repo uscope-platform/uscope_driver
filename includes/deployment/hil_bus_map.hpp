@@ -49,7 +49,6 @@ struct bus_address {
 struct output_specs_t{
     std::string core_name;
     std::string source_output;
-    uint32_t address;
     uint32_t channel;
 };
 

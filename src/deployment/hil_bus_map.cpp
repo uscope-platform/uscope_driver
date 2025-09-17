@@ -93,5 +93,5 @@ bus_address hil_bus_map::translate_output(const output_specs_t &out) {
     throw std::runtime_error(
             "Unable to find requested output: " +
             out.core_name + "." + out.source_output +
-            "(" + std::to_string(out.address) + "," + std::to_string(out.channel) + ")");
+            "[" + std::to_string(out.channel) + "]");
 }
