@@ -98,6 +98,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(
         data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
 
         ret_data[channel_base].push_back(data_sample);
+        spdlog::trace("PUSHED SAMPLE TO OUTPUT ARRAY");
     }
     return ret_data;
 }
@@ -119,10 +120,10 @@ float scope_manager::scale_data(uint32_t raw_sample, unsigned int size, float sc
 
     spdlog::trace("Scale factor: {0}, sample value {1}", scaling_factor, sample);
     ret = scaling_factor*(float)sample;
-    spdlog::trace("SCALING DONE");
     if(is_float){
         memcpy(&ret, &raw_sample, sizeof(float));
     }
+    spdlog::trace("SCALING DONE");
     return ret;
 }
 
