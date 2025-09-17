@@ -173,6 +173,7 @@ void deployer_base::setup_input(
         uint32_t input_value;
         metadata.is_float = in.metadata.type == fcore::type_float;
         metadata.core = core_name;
+        metadata.name = in_name;
         auto selector = const_idx + (target_channel<<16);
         metadata.const_ip_addr = {const_ip_address, selector};
         metadata.dest = address;
@@ -224,10 +225,11 @@ void deployer_base::setup_input(
     }
 }
 
-void deployer_base::update_input_value(uint32_t address, uint32_t value, std::string core) {
+void deployer_base::update_input_value(const std::string &core,  const std::string &name, uint32_t value) {
+    auto address = 0;
     spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
     for(auto &in:inputs){
-        if(in.dest == address && in.core == core){
+        if(in.name == name && in.core == core){
 
             write_register(in.const_ip_addr.first + fcore_constant_engine.const_selector, in.const_ip_addr.second);
             write_register( in.const_ip_addr.first + fcore_constant_engine.const_dest, in.dest);

@@ -43,7 +43,7 @@ public:
     responses::response_code deploy(nlohmann::json &arguments);
 
     void select_output(uint32_t channel, const output_specs_t& output);
-    void set_input(uint32_t address, uint32_t value, std::string core);
+    void set_input(const std::string &core,  const std::string &name, uint32_t value);
     void start();
     void stop();
 

@@ -119,6 +119,7 @@ struct logic_layout{
 
 struct input_metadata_t{
     std::string core;
+    std::string name;
     std::pair<uint64_t, uint32_t> const_ip_addr;
     uint32_t channel;
     uint32_t dest;
@@ -164,7 +165,7 @@ protected:
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
-    void update_input_value(uint32_t address, uint32_t value, std::string core);
+    void update_input_value(const std::string &core,  const std::string &name, uint32_t value);
 
     void setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
     void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);

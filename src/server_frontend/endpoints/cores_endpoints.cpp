@@ -148,10 +148,12 @@ nlohmann::json cores_endpoints::process_hil_select_out(nlohmann::json &arguments
 nlohmann::json cores_endpoints::process_hil_set_in(nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    uint64_t address = arguments["address"][0];
+    auto dbg = arguments.dump();
+
+    std::string name  = arguments["name"];
     uint32_t value = arguments["value"];
     std::string core =  arguments["core"];
-    hil.set_input(address, value, core);
+    hil.set_input(core,  name, value);
     return resp;
 }
 
