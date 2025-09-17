@@ -101,7 +101,6 @@ std::vector<std::vector<float>> scope_manager::shunt_data(
         } else {
             spdlog::error("JUNK DATA DETECTED: sample number {} presents an out of range base {} ( raw data: {})",i, channel_base, raw_sample);
         }
-        ret_data[channel_base].push_back(data_sample);
         spdlog::trace("PUSHED SAMPLE TO OUTPUT ARRAY");
     }
     return ret_data;
