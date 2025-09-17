@@ -83,7 +83,11 @@ int main (int argc, char **argv) {
     runtime_config.debug_hil = debug_hil;
 
     if(log_command) {
-        spdlog::set_level(spdlog::level::info);
+        if(log_level >0) {
+            spdlog::set_level(spdlog::level::trace);
+        } else {
+            spdlog::set_level(spdlog::level::info);
+        }
     } else {
         spdlog::set_level(spdlog::level::warn);
     }
