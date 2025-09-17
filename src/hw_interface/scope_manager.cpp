@@ -79,7 +79,7 @@ std::vector<std::vector<float>> scope_manager::shunt_data(
     for(int i = 0; i<scope_accessor::n_channels; i++){
         ret_data.emplace_back();
     }
-    spdlog::trace("SETUP RESULTS BUFFERS");
+    spdlog::trace("SETUP {0} RESULTS BUFFERS", scope_accessor::n_channels);
     for(int i = 0; i<internal_buffer_size; i++){
 
         spdlog::trace("ACCESSING SAMPLE NUMBER {0}", i);
