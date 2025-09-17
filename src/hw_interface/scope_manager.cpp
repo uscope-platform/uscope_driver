@@ -96,7 +96,11 @@ std::vector<std::vector<float>> scope_manager::shunt_data(
         spdlog::trace("channel base = {0}", channel_base);
         auto scaling_factor = scaling_factors[channel_base];
         data_sample = scale_data(sample, metadata.get_size(), scaling_factor, metadata.is_signed(), metadata.is_float());
-
+        if(channel_base < scope_accessor::n_channels) {
+            ret_data[channel_base].push_back(data_sample);
+        } else {
+            spdlog::error("JUNK DATA DETECTED: sample number {} presents an out of range base {} ( raw data: {})",i, channel_base, raw_sample);
+        }
         ret_data[channel_base].push_back(data_sample);
         spdlog::trace("PUSHED SAMPLE TO OUTPUT ARRAY");
     }
