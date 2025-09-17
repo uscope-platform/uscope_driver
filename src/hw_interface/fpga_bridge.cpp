@@ -35,13 +35,11 @@ fpga_bridge::fpga_bridge() {
         ifs >> state;
         if(state == "operating"){
             fpga_loaded = true;
-            spdlog::info("FPGA ALREADY LOADED, AXI ACCESSES ARE SAFE");
         } else {
             spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
         }
     } else {
         fpga_loaded = true;
-        spdlog::info("FPGA ALREADY LOADED, AXI ACCESSES ARE SAFE");
     }
 
 }
@@ -190,6 +188,7 @@ void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint3
 }
 
 uint32_t fpga_bridge::read_direct(uint64_t address) {
+    spdlog::info("READ SINGLE REGISTER (DIRECT): addr 0x{0:x}", address);
     if(!fpga_loaded) return 0;
     std::vector<uint64_t> a= {address};
     return busses->read_register(a);
