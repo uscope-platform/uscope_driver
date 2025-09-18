@@ -128,4 +128,30 @@ constexpr struct {
     uint64_t parameter_10 = 0x34;
 } wave_gen_regs;
 
+
+static nlohmann::json get_addr_map_v2() {
+    std::string map = R"({
+        "bases": {
+            "controller": 18316591104,
+            "cores_control": 18316853248,
+            "cores_inputs": 8192,
+            "cores_rom": 21474836480,
+            "hil_control": 18316656640,
+            "noise_generator": 18316722176,
+            "waveform_generator": 18316787712,
+            "scope_mux": 18316525568
+        },
+        "offsets": {
+            "controller": 4096,
+            "cores_control": 65536,
+            "cores_inputs": 4096,
+            "cores_rom": 268435456,
+            "dma": 4096,
+            "hil_tb": 0
+        }
+    })";
+
+    return nlohmann::json::parse(map);
+}
+
 #endif //USCOPE_DRIVER_HIL_ADDRESSES_HPP

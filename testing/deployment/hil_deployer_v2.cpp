@@ -17,34 +17,8 @@
 #include "deployment/hil_deployer.hpp"
 #include "emulator/emulator_dispatcher.hpp"
 
-#include "../deployment/hil_addresses.hpp"
+#include "../hil_addresses.hpp"
 
-
-
-nlohmann::json get_addr_map_v2() {
-    std::string map = R"({
-        "bases": {
-            "controller": 18316591104,
-            "cores_control": 18316853248,
-            "cores_inputs": 8192,
-            "cores_rom": 21474836480,
-            "hil_control": 18316656640,
-            "noise_generator": 18316722176,
-            "waveform_generator": 18316787712,
-            "scope_mux": 18316525568
-        },
-        "offsets": {
-            "controller": 4096,
-            "cores_control": 65536,
-            "cores_inputs": 4096,
-            "cores_rom": 268435456,
-            "dma": 4096,
-            "hil_tb": 0
-        }
-    })";
-
-    return nlohmann::json::parse(map);
-}
 
 TEST(deployer_v2, simple_single_core_deployment) {
 
@@ -922,7 +896,6 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     d.set_accessor(ba);
     d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
-
 
     auto ops = ba->get_operations();
 
@@ -3098,6 +3071,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
     auto outputs_ref = "2:test.out[0]\n65539:test.out[1]\n";
     auto rom_ref = "21474836480:131076\n21474836484:12\n21474836488:196609\n21474836492:65538\n21474836496:131075\n21474836500:12\n21474836504:12\n21474836508:395329\n21474836512:12\n";
     auto inputs_ref = "test[0].input_1,18316861440,3,0,0\ntest[0].input_2,18316861440,2,1,0\ntest[1].input_1,18316861440,65539,65536,0\ntest[1].input_2,18316861440,65538,65537,0\n";
+
     EXPECT_EQ(files.control, control_ref);
     EXPECT_EQ(files.outputs, outputs_ref);
     EXPECT_EQ(files.cores, rom_ref);
