@@ -23,6 +23,8 @@ configuration runtime_config;
 
 
 int main(int argc, char **argv) {
+    if_dict.set_arch("zynqmp");
+    runtime_config.emulate_hw = true;
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

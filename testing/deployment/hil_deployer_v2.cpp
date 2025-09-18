@@ -2467,7 +2467,6 @@ TEST(deployer_v2, simple_single_core_output_select) {
     d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
     output_specs_t out;
-    out.address = 1,
     out.channel = 1,
     out.core_name = "test";
     out.source_output = "out";
@@ -2659,7 +2658,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     d.set_accessor(ba);
     d.set_layout_map(get_addr_map_v2());
     d.deploy(spec_json);
-    d.set_input(2,90,"test");
+    d.set_input("test","input_2",90);
 
 
     auto ops = ba->get_operations();
@@ -4900,7 +4899,7 @@ TEST(deployer_v2, waveform_inputs) {
             0xc,
     };
 
-    ASSERT_EQ(ops.size(), 44);
+    ASSERT_EQ(ops.size(), 52);
 
     ASSERT_EQ(ops[0].type, rom_plane_write);
     ASSERT_EQ(ops[0].address[0], addr_map.cores_rom_plane);
@@ -4928,128 +4927,153 @@ TEST(deployer_v2, waveform_inputs) {
     // INPUTS
         // wave 1
 
-    ASSERT_EQ(ops[6].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
-    ASSERT_EQ(ops[6].data[0], 0x41A00000);
+    ASSERT_EQ(ops[6].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[6].data[0], 0);
 
-    ASSERT_EQ(ops[7].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
-    ASSERT_EQ(ops[7].data[0], 0x41200000);
+    ASSERT_EQ(ops[7].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[7].data[0], 0x41A00000);
 
-    ASSERT_EQ(ops[8].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
-    ASSERT_EQ(ops[8].data[0], 1000);
+    ASSERT_EQ(ops[8].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[8].data[0], 0x41200000);
 
-    ASSERT_EQ(ops[9].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
-    ASSERT_EQ(ops[9].data[0], 10000);
+    ASSERT_EQ(ops[9].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[9].data[0], 1000);
 
-    ASSERT_EQ(ops[10].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
-    ASSERT_EQ(ops[10].data[0], 20000);
+    ASSERT_EQ(ops[10].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[10].data[0], 10000);
 
-    ASSERT_EQ(ops[11].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
-    ASSERT_EQ(ops[11].data[0], 2);
+    ASSERT_EQ(ops[11].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[11].data[0], 20000);
 
-    ASSERT_EQ(ops[12].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
-    ASSERT_EQ(ops[12].data[0], 0x38);
+    ASSERT_EQ(ops[12].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
+    ASSERT_EQ(ops[12].data[0], 2);
 
-    ASSERT_EQ(ops[13].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[13].address[0], addr_map.bases.waveform_generator + wave_gen_regs.shape);
     ASSERT_EQ(ops[13].data[0], 0);
+
+    ASSERT_EQ(ops[14].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
+    ASSERT_EQ(ops[14].data[0], 0x38);
+
+    ASSERT_EQ(ops[15].address[0], addr_map.bases.waveform_generator + wave_gen_regs.active_channels);
+    ASSERT_EQ(ops[15].data[0], 0x1);
         // wave 2
 
-    ASSERT_EQ(ops[14].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
-    ASSERT_EQ(ops[14].data[0], 0x41A00000);
+    ASSERT_EQ(ops[16].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[16].data[0], 1);
 
-    ASSERT_EQ(ops[15].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
-    ASSERT_EQ(ops[15].data[0], 0x41200000);
+    ASSERT_EQ(ops[17].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[17].data[0], 0x41A00000);
 
-    ASSERT_EQ(ops[16].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
-    ASSERT_EQ(ops[16].data[0], 1000);
+    ASSERT_EQ(ops[18].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[18].data[0], 0x41200000);
 
-    ASSERT_EQ(ops[17].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
-    ASSERT_EQ(ops[17].data[0], 10000);
+    ASSERT_EQ(ops[19].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[19].data[0], 1000);
 
-    ASSERT_EQ(ops[18].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
-    ASSERT_EQ(ops[18].data[0], 20000);
+    ASSERT_EQ(ops[20].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[20].data[0], 10000);
 
-    ASSERT_EQ(ops[19].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
-    ASSERT_EQ(ops[19].data[0], 0x10002);
+    ASSERT_EQ(ops[21].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[21].data[0], 20000);
 
-    ASSERT_EQ(ops[20].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
-    ASSERT_EQ(ops[20].data[0], 0x38);
+    ASSERT_EQ(ops[22].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
+    ASSERT_EQ(ops[22].data[0], 0x10002);
 
-    ASSERT_EQ(ops[21].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
-    ASSERT_EQ(ops[21].data[0], 1);
+    ASSERT_EQ(ops[23].address[0], addr_map.bases.waveform_generator + wave_gen_regs.shape);
+    ASSERT_EQ(ops[23].data[0], 0);
+
+    ASSERT_EQ(ops[24].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
+    ASSERT_EQ(ops[24].data[0], 0x38);
+
+    ASSERT_EQ(ops[25].address[0], addr_map.bases.waveform_generator + wave_gen_regs.active_channels);
+    ASSERT_EQ(ops[25].data[0], 2);
 
         //wave 3
 
-    ASSERT_EQ(ops[22].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
-    ASSERT_EQ(ops[22].data[0], 0x3f800000);
+    ASSERT_EQ(ops[26].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[26].data[0], 2);
 
-    ASSERT_EQ(ops[23].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
-    ASSERT_EQ(ops[23].data[0], 0xbf800000);
+    ASSERT_EQ(ops[27].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[27].data[0], 0x3f800000);
 
-    ASSERT_EQ(ops[24].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
-    ASSERT_EQ(ops[24].data[0], 0);
+    ASSERT_EQ(ops[28].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[28].data[0], 0xbf800000);
 
-    ASSERT_EQ(ops[25].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
-    ASSERT_EQ(ops[25].data[0], 2000);
+    ASSERT_EQ(ops[29].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[29].data[0], 0);
 
-    ASSERT_EQ(ops[26].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
-    ASSERT_EQ(ops[26].data[0], 4000);
+    ASSERT_EQ(ops[30].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[30].data[0], 2000);
 
-    ASSERT_EQ(ops[27].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
-    ASSERT_EQ(ops[27].data[0], 1);
+    ASSERT_EQ(ops[31].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[31].data[0], 4000);
 
-    ASSERT_EQ(ops[28].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
-    ASSERT_EQ(ops[28].data[0], 0x38);
+    ASSERT_EQ(ops[32].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
+    ASSERT_EQ(ops[32].data[0], 1);
 
-    ASSERT_EQ(ops[29].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
-    ASSERT_EQ(ops[29].data[0], 2);
+    ASSERT_EQ(ops[33].address[0], addr_map.bases.waveform_generator + wave_gen_regs.shape);
+    ASSERT_EQ(ops[33].data[0], 0);
+
+    ASSERT_EQ(ops[34].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
+    ASSERT_EQ(ops[34].data[0], 0x38);
+
+    ASSERT_EQ(ops[35].address[0], addr_map.bases.waveform_generator + wave_gen_regs.active_channels);
+    ASSERT_EQ(ops[35].data[0], 3);
+
 
         //wave 4
 
-    ASSERT_EQ(ops[30].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
-    ASSERT_EQ(ops[30].data[0], 0x3f800000);
+    ASSERT_EQ(ops[36].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
+    ASSERT_EQ(ops[36].data[0], 3);
 
-    ASSERT_EQ(ops[31].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
-    ASSERT_EQ(ops[31].data[0], 0xbf800000);
+    ASSERT_EQ(ops[37].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_0);
+    ASSERT_EQ(ops[37].data[0], 0x3f800000);
 
-    ASSERT_EQ(ops[32].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
-    ASSERT_EQ(ops[32].data[0], 1000);
+    ASSERT_EQ(ops[38].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_1);
+    ASSERT_EQ(ops[38].data[0], 0xbf800000);
 
-    ASSERT_EQ(ops[33].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
-    ASSERT_EQ(ops[33].data[0], 2000);
+    ASSERT_EQ(ops[39].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_2);
+    ASSERT_EQ(ops[39].data[0], 1000);
 
-    ASSERT_EQ(ops[34].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
-    ASSERT_EQ(ops[34].data[0], 4000);
+    ASSERT_EQ(ops[40].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_3);
+    ASSERT_EQ(ops[40].data[0], 2000);
 
-    ASSERT_EQ(ops[35].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
-    ASSERT_EQ(ops[35].data[0], 0x10001);
+    ASSERT_EQ(ops[41].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_4);
+    ASSERT_EQ(ops[41].data[0], 4000);
 
-    ASSERT_EQ(ops[36].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
-    ASSERT_EQ(ops[36].data[0], 0x38);
+    ASSERT_EQ(ops[42].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_5);
+    ASSERT_EQ(ops[42].data[0], 0x10001);
 
-    ASSERT_EQ(ops[37].address[0], addr_map.bases.waveform_generator + wave_gen_regs.channel_selector);
-    ASSERT_EQ(ops[37].data[0], 3);
+    ASSERT_EQ(ops[43].address[0], addr_map.bases.waveform_generator + wave_gen_regs.shape);
+    ASSERT_EQ(ops[43].data[0], 0);
+
+    ASSERT_EQ(ops[44].address[0], addr_map.bases.waveform_generator + wave_gen_regs.parameter_6);
+    ASSERT_EQ(ops[44].data[0], 0x38);
+
+    ASSERT_EQ(ops[45].address[0], addr_map.bases.waveform_generator + wave_gen_regs.active_channels);
+    ASSERT_EQ(ops[45].data[0], 4);
     // SEQUENCER
 
 
-    ASSERT_EQ(ops[38].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
-    ASSERT_EQ(ops[38].data[0], 0);
+    ASSERT_EQ(ops[46].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.divisors_1);
+    ASSERT_EQ(ops[46].data[0], 0);
 
-    ASSERT_EQ(ops[39].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
-    ASSERT_EQ(ops[39].data[0], 2);
+    ASSERT_EQ(ops[47].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_1);
+    ASSERT_EQ(ops[47].data[0], 2);
 
-    ASSERT_EQ(ops[40].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
-    ASSERT_EQ(ops[40].data[0], 1000);
+    ASSERT_EQ(ops[48].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
+    ASSERT_EQ(ops[48].data[0], 1000);
 
-    ASSERT_EQ(ops[41].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
-    ASSERT_EQ(ops[41].data[0],1);
+    ASSERT_EQ(ops[49].address[0], addr_map.bases.controller + addr_map.offsets.sequencer + sequencer_regs.enable);
+    ASSERT_EQ(ops[49].data[0],1);
 
     // CORES
 
-    ASSERT_EQ(ops[42].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
-    ASSERT_EQ(ops[42].data[0],11);
+    ASSERT_EQ(ops[50].address[0], addr_map.bases.cores_control + addr_map.offsets.cores*0);
+    ASSERT_EQ(ops[50].data[0],11);
 
-    ASSERT_EQ(ops[43].address[0], addr_map.bases.gpio + gpio_regs.out);
-    ASSERT_EQ(ops[43].data[0],1);
+    ASSERT_EQ(ops[51].address[0], addr_map.bases.gpio + gpio_regs.out);
+    ASSERT_EQ(ops[51].data[0],1);
 
 }
 
