@@ -33,7 +33,7 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     deployer_base::set_accessor(ba);
 }
 
-responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
+responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
     deployed_hash = std::hash<nlohmann::json>{}(arguments);
     min_timebase = 0;
     active_waveforms = 0;
@@ -196,7 +196,7 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
-hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
+hardware_sim_data_t hil_deployer::get_hardware_sim_data(const nlohmann::json &specs) {
     hardware_sim_data_t sim_data;
     if(deployed_hash != std::hash<nlohmann::json>{}(specs)) {
         hw.disable_bus_access();

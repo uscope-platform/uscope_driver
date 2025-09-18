@@ -41,14 +41,14 @@ public:
     void set_options_repository(std::shared_ptr<options_repository> &rep) {options = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
-    responses::response_code deploy(nlohmann::json &arguments);
+    responses::response_code deploy(const nlohmann::json &arguments);
 
     void select_output(uint32_t channel, const output_specs_t& output);
     void set_input(const std::string &core,  const std::string &name, uint32_t value);
     void start();
     void stop();
 
-    hardware_sim_data_t get_hardware_sim_data(nlohmann::json &specs);
+    hardware_sim_data_t get_hardware_sim_data(const nlohmann::json &specs);
 private:
 
     void setup_interconnect_iv(const std::vector<fcore::deployed_program> &programs);

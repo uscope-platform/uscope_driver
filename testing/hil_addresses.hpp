@@ -129,8 +129,7 @@ constexpr struct {
 } wave_gen_regs;
 
 
-static nlohmann::json get_addr_map_v2() {
-    std::string map = R"({
+static const nlohmann::json addr_map_v2 = nlohmann::json::parse( R"({
         "bases": {
             "controller": 18316591104,
             "cores_control": 18316853248,
@@ -149,9 +148,5 @@ static nlohmann::json get_addr_map_v2() {
             "dma": 4096,
             "hil_tb": 0
         }
-    })";
-
-    return nlohmann::json::parse(map);
-}
-
+    })");
 #endif //USCOPE_DRIVER_HIL_ADDRESSES_HPP

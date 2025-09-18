@@ -27,7 +27,7 @@ custom_deployer::custom_deployer() {
 
 
 
-responses::response_code custom_deployer::deploy(nlohmann::json &arguments) {
+responses::response_code custom_deployer::deploy(const nlohmann::json &arguments) {
 
     if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
     dispatcher.set_specs(arguments);

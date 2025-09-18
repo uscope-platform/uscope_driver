@@ -14,7 +14,7 @@
 
 #include "deployment/hil_emulator.hpp"
 
-emulation_results hil_emulator::emulate(nlohmann::json &specs) {
+emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
     emulation_results ret_val;
     try{
         spdlog::info("EMULATE HIL");
@@ -42,7 +42,7 @@ emulation_results hil_emulator::emulate(nlohmann::json &specs) {
     return ret_val;
 }
 
-std::unordered_map<std::string, fcore::disassembled_program> hil_emulator::disassemble(nlohmann::json &specs) {
+std::unordered_map<std::string, fcore::disassembled_program> hil_emulator::disassemble(const nlohmann::json &specs) {
     emu_manager.set_specs(specs);
     return emu_manager.disassemble();
 }

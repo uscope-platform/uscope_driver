@@ -255,7 +255,7 @@ namespace commands {
         }
     )"_json;
 
-    static bool validate_schema(nlohmann::json &cmd, nlohmann::json &schema, std::string &error){
+    static bool validate_schema(const nlohmann::json &cmd, nlohmann::json &schema, std::string &error){
         schema_validator sv(schema);
         return sv.validate(cmd, error);
     };

@@ -58,8 +58,8 @@ class hil_emulator {
 public:
     void set_options_repository(std::shared_ptr<options_repository> r) {options = std::move(r);};
     std::string run_command(const interactive_command &c);
-    emulation_results emulate(nlohmann::json &specs);
-    std::unordered_map<std::string, fcore::disassembled_program> disassemble(nlohmann::json &specs);
+    emulation_results emulate(const nlohmann::json &specs);
+    std::unordered_map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
 private:
     fcore::emulator_dispatcher emu_manager;
     std::string initialize_emulation(const nlohmann::json &specs);

@@ -21,7 +21,7 @@ cores_endpoints::cores_endpoints() {
 }
 
 
-nlohmann::json cores_endpoints::process_command(const std::string& command_string, nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_command(const std::string& command_string, const nlohmann::json &arguments) {
     if(command_string == "apply_program") {
         return process_apply_program(arguments);
     } else if(command_string=="deploy_hil") {
@@ -64,7 +64,7 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
 /// \param operand_1 address of the fCore Instance to program
 /// \param operand_2 comma delimited list of instructions in the program
 /// \return Success
-nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_apply_program(const nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
     if(!commands::validate_schema(arguments, commands::load_program, error_message)){
@@ -85,7 +85,7 @@ nlohmann::json cores_endpoints::process_apply_program(nlohmann::json &arguments)
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_deploy_hil(const nlohmann::json &arguments) {
     nlohmann::json resp;
     try{
 
@@ -119,7 +119,7 @@ nlohmann::json cores_endpoints::process_deploy_hil(nlohmann::json &arguments) {
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_emulate_hil(const nlohmann::json &arguments) {
 
     nlohmann::json resp;
 
@@ -129,7 +129,7 @@ nlohmann::json cores_endpoints::process_emulate_hil(nlohmann::json &arguments) {
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_hil_select_out(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_hil_select_out(const nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
     auto dbg = arguments.dump();
@@ -145,7 +145,7 @@ nlohmann::json cores_endpoints::process_hil_select_out(nlohmann::json &arguments
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_hil_set_in(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_hil_set_in(const nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
     auto dbg = arguments.dump();
@@ -171,7 +171,7 @@ nlohmann::json cores_endpoints::process_hil_stop() {
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_compile_program(const nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string error_message;
     std::string dbg = arguments.dump();
@@ -196,7 +196,7 @@ nlohmann::json cores_endpoints::process_compile_program(nlohmann::json &argument
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_hil_disassemble(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_hil_disassemble(const nlohmann::json &arguments) {
     std::vector<std::string> results;
     nlohmann::json resp;
 
@@ -205,7 +205,7 @@ nlohmann::json cores_endpoints::process_hil_disassemble(nlohmann::json &argument
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_hil_hardware_sim(const nlohmann::json &arguments) {
     std::vector<std::string> results;
     nlohmann::json resp;
 
@@ -217,7 +217,7 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &argumen
 
 
 
-nlohmann::json cores_endpoints::process_set_hil_address_map(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_set_hil_address_map(const nlohmann::json &arguments) {
     nlohmann::json resp;
     hil.set_layout_map(arguments);
     custom.set_layout_map(arguments);
@@ -225,7 +225,7 @@ nlohmann::json cores_endpoints::process_set_hil_address_map(nlohmann::json &argu
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_get_hil_address_map(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_get_hil_address_map(const nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["data"] = hil.get_layout_map();
     resp["response_code"] = responses::as_integer(responses::ok);
@@ -238,7 +238,7 @@ void cores_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     hw.set_accessor(ba);
 }
 
-nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_hil_debug(const nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string dbg = arguments.dump();
     if(!arguments.contains("command") || !arguments.contains("arguments")){
@@ -282,7 +282,7 @@ nlohmann::json cores_endpoints::process_hil_debug(nlohmann::json &arguments) {
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_set_debugger_option(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_set_debugger_option(const nlohmann::json &arguments) {
     nlohmann::json resp;
     std::string opt_name = arguments["name"];
     nlohmann::json value = arguments["value"];
@@ -291,7 +291,7 @@ nlohmann::json cores_endpoints::process_set_debugger_option(nlohmann::json &argu
     return resp;
 }
 
-nlohmann::json cores_endpoints::process_get_debugger_option(nlohmann::json &arguments) {
+nlohmann::json cores_endpoints::process_get_debugger_option(const nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["data"] = options_rep->get_option(arguments);
     resp["response_code"] = responses::as_integer(responses::ok);

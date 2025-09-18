@@ -25,7 +25,7 @@ schema_validator::schema_validator(nlohmann::json &chosen_schema_doc) {
 }
 
 
-bool schema_validator::validate(nlohmann::json &spec_file, std::string &error) {
+bool schema_validator::validate(const nlohmann::json &spec_file, std::string &error) {
     valijson::Validator validator;
     valijson::ValidationResults results;
     valijson::adapters::NlohmannJsonAdapter myTargetAdapter(spec_file);

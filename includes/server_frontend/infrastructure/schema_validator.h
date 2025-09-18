@@ -33,7 +33,7 @@
 class schema_validator {
     public:
         schema_validator(nlohmann::json &schema);
-        bool validate(nlohmann::json &spec_file, std::string &error);
+        bool validate(const nlohmann::json &spec_file, std::string &error);
     private:
         valijson::Schema schema;
         std::string schema_name;

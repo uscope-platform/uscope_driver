@@ -38,25 +38,25 @@ public:
         hil.set_options_repository(options_rep);
     };
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
-    nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
+    nlohmann::json process_command(const std::string& command_string, const nlohmann::json &arguments);
 private:
-    nlohmann::json process_apply_program(nlohmann::json &arguments);
-    nlohmann::json process_emulate_hil(nlohmann::json &arguments);
-    nlohmann::json process_compile_program(nlohmann::json &arguments);
-    nlohmann::json process_hil_disassemble(nlohmann::json &arguments);
-    nlohmann::json process_hil_hardware_sim(nlohmann::json &arguments);
-    nlohmann::json process_deploy_hil(nlohmann::json &arguments);
-    nlohmann::json process_hil_set_in(nlohmann::json &arguments);
-    nlohmann::json process_hil_select_out(nlohmann::json &arguments);
-    nlohmann::json process_hil_debug(nlohmann::json &arguments);
+    nlohmann::json process_apply_program(const nlohmann::json &arguments);
+    nlohmann::json process_emulate_hil(const nlohmann::json &arguments);
+    nlohmann::json process_compile_program(const nlohmann::json &arguments);
+    nlohmann::json process_hil_disassemble(const nlohmann::json &arguments);
+    nlohmann::json process_hil_hardware_sim(const nlohmann::json &arguments);
+    nlohmann::json process_deploy_hil(const nlohmann::json &arguments);
+    nlohmann::json process_hil_set_in(const nlohmann::json &arguments);
+    nlohmann::json process_hil_select_out(const nlohmann::json &arguments);
+    nlohmann::json process_hil_debug(const nlohmann::json &arguments);
     nlohmann::json process_hil_stop();
     nlohmann::json process_hil_start();
 
-    nlohmann::json process_set_hil_address_map(nlohmann::json &arguments);
-    nlohmann::json process_get_hil_address_map(nlohmann::json &arguments);
+    nlohmann::json process_set_hil_address_map(const nlohmann::json &arguments);
+    nlohmann::json process_get_hil_address_map(const nlohmann::json &arguments);
 
-    nlohmann::json process_set_debugger_option(nlohmann::json &arguments);
-    nlohmann::json process_get_debugger_option(nlohmann::json &arguments);
+    nlohmann::json process_set_debugger_option(const nlohmann::json &arguments);
+    nlohmann::json process_get_debugger_option(const nlohmann::json &arguments);
 
 
 

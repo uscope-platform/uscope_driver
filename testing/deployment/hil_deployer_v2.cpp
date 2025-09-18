@@ -103,7 +103,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
     auto ops = ba->get_operations();
@@ -269,7 +269,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -421,7 +421,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -590,7 +590,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -894,7 +894,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
     auto ops = ba->get_operations();
@@ -1171,7 +1171,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -1405,7 +1405,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -1655,7 +1655,7 @@ TEST(deployer_v2, gather_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -1931,7 +1931,7 @@ TEST(deployer_v2, vector_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -2195,7 +2195,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
 
 
@@ -2437,7 +2437,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     output_specs_t out;
     out.channel = 1,
@@ -2629,7 +2629,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.set_input("test","input_2",90);
 
@@ -2797,7 +2797,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -2964,7 +2964,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3063,7 +3063,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3145,7 +3145,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
 
     auto files = d.get_hardware_sim_data(spec_json);
 
@@ -3264,7 +3264,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3463,7 +3463,7 @@ TEST(deployer_v2, multichannel_memory_init) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3656,7 +3656,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -3872,7 +3872,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
     d.stop();
@@ -4067,7 +4067,7 @@ TEST(deployer_v2, multichannel_partial_transfer) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
 
@@ -4295,7 +4295,7 @@ TEST(deployer_v2, interconnect_initial_value) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
 
@@ -4543,7 +4543,7 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
 
@@ -4854,7 +4854,7 @@ TEST(deployer_v2, waveform_inputs) {
     auto ba = std::make_shared<bus_accessor>(true);
     hil_deployer d;
     d.set_accessor(ba);
-    d.set_layout_map(get_addr_map_v2());
+    d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
     d.start();
 
