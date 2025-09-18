@@ -28,10 +28,11 @@
 #include "deployment/deployer_base.hpp"
 
 struct hardware_sim_data_t {
-    std::string cores;
+    std::string code;
     std::string control;
     std::string outputs;
     std::string inputs;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(hardware_sim_data_t, code, control, outputs, inputs)
 };
 
 class hil_deployer : public deployer_base{
@@ -61,6 +62,7 @@ private:
 
     std::vector<uint32_t> calculate_timebase_shift();
 
+    ssize_t deployed_hash;
 
     std::map<std::string, uint32_t> cores_idx;
     float hil_clock_frequency = 100e6;
@@ -72,7 +74,7 @@ private:
 
     std::shared_ptr<options_repository> options;
 
-    bool full_cores_override;
+    bool full_cores_override = true;
 };
 
 

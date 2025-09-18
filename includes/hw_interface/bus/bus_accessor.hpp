@@ -48,7 +48,7 @@ public:
     uint64_t register_address_to_index(uint64_t address) const;
     uint64_t fcore_address_to_index(uint64_t address) const;
 
-    std::vector<bus_op> get_operations() {return operations;};
+    std::vector<bus_op> get_operations() {return operations;}
     std::pair<std::string, std::string> get_hardware_simulation_data();
 
     void disable_access() {previous_sink_mode = sink_mode; sink_mode = true;}

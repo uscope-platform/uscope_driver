@@ -114,8 +114,6 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 }
 
 
-
-
 /// Read a single register
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put

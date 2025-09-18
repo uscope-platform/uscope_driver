@@ -209,12 +209,8 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(nlohmann::json &argumen
     std::vector<std::string> results;
     nlohmann::json resp;
 
-    auto data =  hil.get_hardware_sim_data(arguments);;
-    resp["data"] = nlohmann::json();
-    resp["data"]["control"] = data.control;
-    resp["data"]["code"] = data.cores;
-    resp["data"]["inputs"] = data.inputs;
-    resp["data"]["outputs"] = data.outputs;
+
+    resp["data"] = hil.get_hardware_sim_data(arguments);
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }

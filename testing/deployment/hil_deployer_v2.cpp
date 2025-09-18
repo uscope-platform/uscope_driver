@@ -2974,7 +2974,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
     auto inputs_ref = "test.input_1,18316861440,3,0,0\ntest.input_2,18316861440,2,1,0\n";
     EXPECT_EQ(files.control, control_ref);
     EXPECT_EQ(files.outputs, outputs_ref);
-    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.code, rom_ref);
     EXPECT_EQ(files.inputs, inputs_ref);
 }
 
@@ -3074,7 +3074,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
 
     EXPECT_EQ(files.control, control_ref);
     EXPECT_EQ(files.outputs, outputs_ref);
-    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.code, rom_ref);
     EXPECT_EQ(files.inputs, inputs_ref);
 }
 
@@ -3153,7 +3153,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
     auto rom_ref = "21474836480:458755\n21474836484:12\n21474836488:4128769\n21474836492:131074\n21474836496:12\n21474836500:12\n21474836504:38\n21474836508:1084856730\n21474836512:8261601\n21474836516:38\n21474836520:1073741824\n21474836524:266211\n21474836528:12\n";
     auto outputs_ref = "3:test.out\n4:test.mem\n";
     auto inputs_ref = "";
-    EXPECT_EQ(files.cores, rom_ref);
+    EXPECT_EQ(files.code, rom_ref);
     EXPECT_EQ(files.outputs, outputs_ref);
     EXPECT_EQ(files.control, control_ref);
     EXPECT_EQ(files.inputs, inputs_ref);

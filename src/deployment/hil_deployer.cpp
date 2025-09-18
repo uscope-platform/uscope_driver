@@ -18,6 +18,7 @@
 
 
 hil_deployer::hil_deployer() {
+    deployed_hash = 0;
     full_cores_override = true; // ONLY FULL CORES ARE USED RIGHT NOW
 
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
@@ -33,7 +34,7 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 }
 
 responses::response_code hil_deployer::deploy(nlohmann::json &arguments) {
-
+    deployed_hash = std::hash<nlohmann::json>{}(arguments);
     min_timebase = 0;
     active_waveforms = 0;
     active_random_inputs = 0;
@@ -197,10 +198,13 @@ void hil_deployer::stop() {
 
 hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
     hardware_sim_data_t sim_data;
-    hw.disable_bus_access();
-    deploy(specs);
-    start();
-    hw.enable_bus_access();
+    if(deployed_hash != std::hash<nlohmann::json>{}(specs)) {
+        hw.disable_bus_access();
+        deploy(specs);
+        start();
+        hw.enable_bus_access();
+    }
+
     auto [rom, control] = hw.get_hardware_simulation_data();
 
     std::string outputs;
@@ -218,7 +222,7 @@ hardware_sim_data_t hil_deployer::get_hardware_sim_data(nlohmann::json &specs) {
 
     sim_data.inputs = inputs;
     sim_data.outputs = outputs;
-    sim_data.cores = rom;
+    sim_data.code = rom;
     sim_data.control = control;
 
     return sim_data;
