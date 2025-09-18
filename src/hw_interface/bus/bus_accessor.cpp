@@ -99,9 +99,8 @@ bus_accessor::bus_accessor(bool sm) {
 }
 
 void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
-    if(sink_mode){
-        operations.push_back({addresses, {data}, control_plane_write});
-    } else {
+    operations.push_back({addresses, {data}, control_plane_write});
+    if(!sink_mode){
         m.lock();
         if(addresses.size() ==1){
             registers[register_address_to_index(addresses[0])] = data;
@@ -114,10 +113,8 @@ void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64
 }
 
 uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
-    if(sink_mode){
         operations.push_back({address, {0}, control_plane_read});
-        return rand()%100;
-    } else {
+    if(!sink_mode){
         uint32_t ret_val;
         m.lock();
         if(address.size()==1){
@@ -129,6 +126,8 @@ uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
         }
         m.unlock();
         return ret_val;
+    } else {
+        return rand()%100;
     }
 }
 
@@ -167,21 +166,24 @@ uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
 }
 
 void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
+
+    std::vector<uint64_t> pn;
+    std::vector<uint64_t> a = {address};
+
     if(sink_mode){
-        std::vector<uint64_t> a = {address};
-        std::vector<uint64_t> pn;
         for (auto &p:program) {
             pn.push_back(p);
         }
-        operations.push_back({a, pn, rom_plane_write});
     } else {
         m.lock();
+        a = {fcore_address_to_index(address)};
         for(int i = 0; i< program.size(); i++){
             fCore[i+fcore_address_to_index(address)] = program[i];
+            pn.push_back(program[i]);
             usleep(1);
         }
-
         m.unlock();
     }
+        operations.push_back({a, pn, rom_plane_write});
 }
 
