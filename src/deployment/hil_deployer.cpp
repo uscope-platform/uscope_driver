@@ -40,6 +40,7 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
     active_random_inputs = 0;
     inputs_labels.clear();
     bus_labels.clear();
+    hw.clear_operations_vector();
 
     if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
     dispatcher.set_specs(arguments);
