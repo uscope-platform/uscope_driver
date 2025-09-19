@@ -57,7 +57,7 @@ static const struct cuse_lowlevel_ops kernel_emulator_ops = {
         .open		= kernel_emulator::open,
         .read		= kernel_emulator::read,
         .write		= kernel_emulator::write,
-        .ioctl		= kernel_emulator::ioctl,
+        .ioctl		= kernel_emulator::ioctl
 };
 
 #endif //USCOPE_DRIVER_KERNEL_EMULATOR_HPP

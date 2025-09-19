@@ -140,4 +140,42 @@ target_link_libraries(test_hil_deployer PRIVATE
 )
 
 target_include_directories(test_hil_deployer PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
+execute_process(COMMAND uname -r
+        OUTPUT_VARIABLE KERNEL_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+set(KERNEL_DIR /usr/src/linux-headers-6.8.1-1031-realtime)
+set(MODULE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/module_build)
+
+file(MAKE_DIRECTORY ${MODULE_BUILD_DIR})
+
+# Copy mock_module.c with dependency tracking
+add_custom_command(
+        OUTPUT ${MODULE_BUILD_DIR}/mock_module.c
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/mock_module.c ${MODULE_BUILD_DIR}/mock_module.c
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/mock_module.c
+        COMMENT "Copying mock_module.c to build folder"
+)
+
+# Copy Makefile with dependency tracking (if needed)
+add_custom_command(
+        OUTPUT ${MODULE_BUILD_DIR}/Makefile
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/Makefile ${MODULE_BUILD_DIR}/Makefile
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/Makefile
+        COMMENT "Copying Makefile to build folder"
+)
+
+# Dummy target so CLion sees the sources
+add_custom_target(mock_dev_sources ALL
+        DEPENDS ${MODULE_BUILD_DIR}/mock_module.c ${MODULE_BUILD_DIR}/Makefile
+        COMMENT "Adding mock_module sources to a target for CLion"
+)
+
+# Build the kernel module
+add_custom_target(mock_dev_ko ALL
+        COMMAND ${CMAKE_MAKE_PROGRAM} -C ${KERNEL_DIR} M=${MODULE_BUILD_DIR} modules
+        WORKING_DIRECTORY ${MODULE_BUILD_DIR}
+        COMMENT "Building mock_module.ko"
+)
+
+add_dependencies(mock_dev_ko mock_dev_sources)
