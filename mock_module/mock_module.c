@@ -295,15 +295,15 @@ static int __init ucube_lkm_init(void) {
     }
 
     /* SETUP PLATFORM DRIVER */
-    platform_rc = platform_driver_register_simple(&ucube_lkm_platform_driver);
+    platform_rc = platform_driver_register(&ucube_lkm_platform_driver);
     if (platform_rc) {
         pr_err("%s: Failed to initialize platform driver\nError:%d\n", __func__, platform_rc);
         return platform_rc;
     }
 
-  	test_pdev = platform_device_register_simple("ucube_lkm", -1, NULL, 0);
+  	int test_pdev = platform_device_register_simple("ucube_lkm", -1, NULL, 0);
     if (IS_ERR(test_pdev)) {
-        rc = PTR_ERR(test_pdev);
+        int rc = PTR_ERR(test_pdev);
         platform_driver_unregister(&ucube_lkm_platform_driver);
         class_destroy(uCube_class);
         unregister_chrdev_region(device_number, N_MINOR_NUMBERS);
@@ -315,7 +315,6 @@ static int __init ucube_lkm_init(void) {
     pr_warn("%s: Allocated dma buffer at: %u\n", __func__, dev_data->physaddr);
     /*SETUP AND ALLOCATE DATA BUFFER*/
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
-
 
     return 0;
 }
@@ -354,11 +353,7 @@ int ucube_lkm_probe(struct platform_device *pdev){
 
     pr_info("%s: In platform probe\n", __func__);
 
-
-    of_property_read_string(pdev->dev.of_node, "ucubever", &driver_mode);
-
-    pr_info("%s: driver target is %s\n", __func__, driver_mode);
-    dev_data->is_zynqmp = strncmp(driver_mode, "zynqmp", 6)==0;
+ 	int rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
 
     return 0;
 }
@@ -366,6 +361,7 @@ int ucube_lkm_probe(struct platform_device *pdev){
 int ucube_lkm_remove(struct platform_device *pdev){
     pr_info("%s: In platform remove\n", __func__);
 
+    sysfs_remove_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
     return 0;
 }
 
