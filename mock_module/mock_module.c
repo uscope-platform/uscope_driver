@@ -62,6 +62,7 @@ int ucube_lkm_remove(struct platform_device *dev);
 static dev_t device_number;
 static struct class *uCube_class;
 static struct scope_device_data *dev_data;
+static struct platform_device *test_pdev;
 
 /* STRUCTURE FOR THE DEVICE SPECIFIC DATA*/
 struct scope_device_data {
@@ -124,7 +125,7 @@ const struct attribute_group uscope_lkm_attr_group = {
 };
 
 static struct of_device_id ucube_lkm_match_table[] = {
-     {.compatible = "ucube_lkm"},
+     {.compatible = "fclk"},
      {}
 };
 
@@ -301,7 +302,7 @@ static int __init ucube_lkm_init(void) {
         return platform_rc;
     }
 
-  	int test_pdev = platform_device_register_simple("ucube_lkm", -1, NULL, 0);
+    test_pdev = platform_device_register_simple("fclk", -1, NULL, 0);
     if (IS_ERR(test_pdev)) {
         int rc = PTR_ERR(test_pdev);
         platform_driver_unregister(&ucube_lkm_platform_driver);
@@ -329,7 +330,7 @@ static void __exit ucube_lkm_exit(void) {
     vfree(dev_data->read_data_buffer);
 
     platform_driver_unregister(&ucube_lkm_platform_driver);
-
+	platform_device_unregister(test_pdev);
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
         int device = MKDEV(major, i);
@@ -353,7 +354,7 @@ int ucube_lkm_probe(struct platform_device *pdev){
 
     pr_info("%s: In platform probe\n", __func__);
 
- 	int rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
+ 	rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
 
     return 0;
 }
