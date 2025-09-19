@@ -23,7 +23,6 @@
 #define KERNEL_BUFFER_LENGTH 6144
 #define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*4
 
-#define IRQ_NUMBER 22
 
 #define IOCTL_NEW_DATA_AVAILABLE 1
 
@@ -56,15 +55,10 @@ static ssize_t ucube_lkm_write(struct file *, const char *, size_t, loff_t *);
 static long ucube_lkm_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 static int ucube_lkm_mmap(struct file *filp, struct vm_area_struct *vma);
 static __poll_t ucube_lkm_poll(struct file *, struct poll_table_struct *);
-int ucube_lkm_probe(struct platform_device *dev);
-int ucube_lkm_remove(struct platform_device *dev);
-
 
 static dev_t device_number;
 static struct class *uCube_class;
 static struct scope_device_data *dev_data;
-
-static int irq_line;
 
 /* STRUCTURE FOR THE DEVICE SPECIFIC DATA*/
 struct scope_device_data {
@@ -130,24 +124,6 @@ static struct of_device_id ucube_lkm_match_table[] = {
      {.compatible = "ucube_lkm"},
      {}
 };
-
-static struct platform_driver ucube_lkm_platform_driver = {
-        .probe = ucube_lkm_probe,
-        .remove = ucube_lkm_remove,
-        .driver = {
-                .name = "ucube_lkm",
-                .owner = THIS_MODULE,
-                .of_match_table = of_match_ptr(ucube_lkm_match_table),
-        },
-};
-
-
-static irqreturn_t ucube_lkm_irq(int irq, void *dev_id)
-{
-    memcpy(dev_data->read_data_buffer, dev_data->dma_buffer, KERNEL_BUFFER_SIZE);
-    dev_data->new_data_available = 1;
-    return IRQ_RETVAL(1);
-}
 
 
 static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * poll_struct){
@@ -258,7 +234,7 @@ static struct file_operations file_ops = {
 
 
 static int __init ucube_lkm_init(void) {
-    int dev_rc, platform_rc, irq_rc;
+    int dev_rc;
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
@@ -305,11 +281,6 @@ static int __init ucube_lkm_init(void) {
     }
 
     /* SETUP PLATFORM DRIVER */
-    platform_rc = platform_driver_register(&ucube_lkm_platform_driver);
-    if (platform_rc) {
-        pr_err("%s: Failed to initialize platform driver\nError:%d\n", __func__, platform_rc);
-        return platform_rc;
-    }
 
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dma_set_coherent_mask(&dev_data->devs[0], DMA_BIT_MASK(32));
@@ -319,11 +290,13 @@ static int __init ucube_lkm_init(void) {
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
 
 
-    rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
-    if(rc){
-        pr_err("%s: Failed to create sysfs group\n", __func__);
-    }
-    return irq_rc;
+    int rc = sysfs_create_group(&dev_data->devs[0].kobj, &uscope_lkm_attr_group);
+	if (rc) {
+    	pr_err("%s: Failed to create sysfs group\n", __func__);
+	}
+
+
+    return rc;
 }
 
 static void __exit ucube_lkm_exit(void) {
@@ -331,13 +304,10 @@ static void __exit ucube_lkm_exit(void) {
 	int major = MAJOR(device_number);
 
     pr_info("%s: In exit\n", __func__);
-    free_irq(irq_line, NULL);
+	sysfs_remove_group(&dev_data->devs[0].kobj, &uscope_lkm_attr_group);
 
     dma_free_coherent(&dev_data->devs[0],KERNEL_BUFFER_LENGTH*sizeof(int),dev_data->dma_buffer, dev_data->physaddr);
     vfree(dev_data->read_data_buffer);
-
-    platform_driver_unregister(&ucube_lkm_platform_driver);
-
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
         int device = MKDEV(major, i);
@@ -352,29 +322,6 @@ static void __exit ucube_lkm_exit(void) {
     if (mock_page)
         free_page((unsigned long)mock_page);
 
-}
-
-int ucube_lkm_probe(struct platform_device *pdev){
-    int rc;
-	char const * driver_mode;
-    struct device_node *local_node;
-
-    pr_info("%s: In platform probe\n", __func__);
-
-    irq_line = platform_get_irq(pdev, 0);
-
-    of_property_read_string(pdev->dev.of_node, "ucubever", &driver_mode);
-
-    pr_info("%s: driver target is %s\n", __func__, driver_mode);
-    dev_data->is_zynqmp = strncmp(driver_mode, "zynqmp", 6)==0;
-
-    return 0;
-}
-
-int ucube_lkm_remove(struct platform_device *pdev){
-    pr_info("%s: In platform remove\n", __func__);
-
-    return 0;
 }
 
 
