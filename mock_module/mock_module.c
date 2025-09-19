@@ -18,7 +18,7 @@
 #include <linux/clk.h>
 #include <linux/device.h>
 
-#define N_MINOR_NUMBERS	3
+#define N_MINOR_NUMBERS	2
 
 #define KERNEL_BUFFER_LENGTH 6144
 #define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*4
@@ -79,6 +79,53 @@ struct scope_device_data {
 };
 
 
+static char *mock_page;
+
+static vm_fault_t ucube_lkm_fault(struct vm_fault *vmf)
+{
+    if (!mock_page) {
+        mock_page = (char *)__get_free_page(GFP_KERNEL);
+        if (!mock_page)
+            return VM_FAULT_OOM;
+    }
+    memset(mock_page, 0, PAGE_SIZE);
+    get_page(virt_to_page(mock_page));
+    vmf->page = virt_to_page(mock_page);
+    return 0;
+}
+
+static const struct vm_operations_struct mock_vm_ops = {
+    .fault = ucube_lkm_fault,
+};
+
+
+static ssize_t fclk_show(struct device *dev, struct device_attribute *mattr, char *data) {
+    unsigned long freq = 1e6;
+    return sprintf(data, "%lu\n", freq);
+}
+
+static ssize_t fclk_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t len) {
+    return len;
+}
+
+static DEVICE_ATTR(fclk_0, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+static DEVICE_ATTR(fclk_1, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+static DEVICE_ATTR(fclk_2, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+static DEVICE_ATTR(fclk_3, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+
+
+static struct attribute *uscope_lkm_attrs[] = {
+	&dev_attr_fclk_0.attr,
+	&dev_attr_fclk_1.attr,
+	&dev_attr_fclk_2.attr,
+	&dev_attr_fclk_3.attr,
+	NULL,
+};
+
+const struct attribute_group uscope_lkm_attr_group = {
+	.attrs = uscope_lkm_attrs,
+};
+
 static struct of_device_id ucube_lkm_match_table[] = {
      {.compatible = "ucube_lkm"},
      {}
@@ -115,57 +162,7 @@ static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * po
 
 
 static int ucube_lkm_mmap(struct file *filp, struct vm_area_struct *vma){
-    uint64_t mapping_start_address = vma->vm_pgoff << PAGE_SHIFT;
-    uint32_t mapping_size = vma->vm_end - vma->vm_start;
-    uint64_t mapping_stop_address = mapping_start_address +  mapping_size;
-
-    int minor = MINOR(filp->f_inode->i_rdev);
-    uint64_t mapping_limit_base_0, mapping_limit_top_0;
-    uint64_t mapping_limit_base_1, mapping_limit_top_1;
-
-    if(dev_data->is_zynqmp){
-        mapping_limit_base_0 = ZYNQMP_BUS_0_ADDRESS_BASE;
-        mapping_limit_top_0 = ZYNQMP_BUS_0_ADDRESS_TOP;
-        mapping_limit_base_1 = ZYNQMP_BUS_1_ADDRESS_BASE;
-        mapping_limit_top_1 = ZYNQMP_BUS_1_ADDRESS_TOP;
-    } else {
-        mapping_limit_base_0 = ZYNQ_BUS_0_ADDRESS_BASE;
-        mapping_limit_top_0 = ZYNQ_BUS_0_ADDRESS_TOP;
-        mapping_limit_base_1 = ZYNQ_BUS_1_ADDRESS_BASE;
-        mapping_limit_top_1 = ZYNQ_BUS_1_ADDRESS_TOP;
-    }
-    switch (minor) {
-        case 0:
-            return -1;
-            pr_err("%s: mmapping of data memory is not supported\n", __func__);
-            break;
-        case 1:
-            if( mapping_start_address < mapping_limit_base_0 ){
-                pr_err("%s: attempting to map memory below the control bus address range (%x)\n", __func__, mapping_start_address);
-                return -2;
-            }
-            if( mapping_stop_address > mapping_limit_top_0){
-                pr_err("%s: attempting to map memory above the control bus address range (%x)\n", __func__, mapping_stop_address);
-                return -2;
-            }
-            break;
-        case 2:
-            if( mapping_start_address < mapping_limit_base_1 ){
-                pr_err("%s: attempting to map memory below the core bus address range (%x)\n", __func__, mapping_start_address);
-                return -2;
-            }
-            if( mapping_stop_address > mapping_limit_top_1){
-                pr_err("%s: attempting to map memory above the core bus address range (%x)\n", __func__, mapping_stop_address);
-                return -2;
-            }
-            break;
-    }
-
-    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-    if (remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, mapping_size ,vma->vm_page_prot))
-    return -EAGAIN;
-
-    pr_info("%s: Mapped emmory from %llx to %llx\n", __func__, mapping_start_address, mapping_stop_address);
+    vma->vm_ops = &mock_vm_ops;
     return 0;
 }
 
@@ -263,9 +260,9 @@ static struct file_operations file_ops = {
 static int __init ucube_lkm_init(void) {
     int dev_rc, platform_rc, irq_rc;
     int major;
-    int cdev_rcs[3];
-    dev_t devices[3];
-    const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1"};
+    int cdev_rcs[N_MINOR_NUMBERS];
+    dev_t devices[N_MINOR_NUMBERS];
+    const char* const device_names[] = { "uscope_BUS_0", "uscope_BUS_1"};
 
     /* DYNAMICALLY ALLOCATE DEVICE NUMBERS, CLASSES, ETC.*/
     pr_info("%s: In init\n", __func__);\
@@ -278,7 +275,7 @@ static int __init ucube_lkm_init(void) {
     }
 
     major = MAJOR(device_number);
-    uCube_class = class_create(THIS_MODULE, "uCube_scope");
+    uCube_class = class_create("uCube_scope");
 
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
@@ -304,6 +301,7 @@ static int __init ucube_lkm_init(void) {
             device_create(uCube_class, NULL, devices[i], NULL, device_names[i]);
         }
         pr_info("%s: finished setup for endpoint: %s\n", __func__, device_names[i]);
+        pr_info("%s: finished setup for endpoint: %s\n", __func__, device_names[i]);
     }
 
     /* SETUP PLATFORM DRIVER */
@@ -321,11 +319,10 @@ static int __init ucube_lkm_init(void) {
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
 
 
-    /* SETUP INTERRUPT HANDLER*/
-    pr_warn("%s: setup interrupts\n", __func__);
-    irq_rc = request_irq(irq_line, ucube_lkm_irq, 0, "ucube_lkm", NULL);
-    //pr_warn("%s: unassigned irqs: %lu\n", __func__, probe_irq_on());
-
+    rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
+    if(rc){
+        pr_err("%s: Failed to create sysfs group\n", __func__);
+    }
     return irq_rc;
 }
 
@@ -352,6 +349,8 @@ static void __exit ucube_lkm_exit(void) {
 
 	class_destroy(uCube_class);
 	unregister_chrdev_region(device_number, N_MINOR_NUMBERS);
+    if (mock_page)
+        free_page((unsigned long)mock_page);
 
 }
 
