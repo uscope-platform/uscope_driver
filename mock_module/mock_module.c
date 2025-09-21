@@ -55,21 +55,17 @@ static ssize_t ucube_lkm_write(struct file *, const char *, size_t, loff_t *);
 static long ucube_lkm_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 static int ucube_lkm_mmap(struct file *filp, struct vm_area_struct *vma);
 static __poll_t ucube_lkm_poll(struct file *, struct poll_table_struct *);
-int ucube_lkm_probe(struct platform_device *dev);
-int ucube_lkm_remove(struct platform_device *dev);
 
 
 static dev_t device_number;
 static struct class *uCube_class;
 static struct scope_device_data *dev_data;
-static struct platform_device *test_pdev;
+static struct platform_device *fclk_devs[4];
 
 /* STRUCTURE FOR THE DEVICE SPECIFIC DATA*/
 struct scope_device_data {
-    struct device devs[3];
-    struct cdev cdevs[3];
-    u32 *read_data_buffer;
-    u32 *dma_buffer;
+    struct device devs[N_MINOR_NUMBERS];
+    struct cdev cdevs[N_MINOR_NUMBERS];
     dma_addr_t physaddr;
     int new_data_available;
     struct clk *fclk[4];
@@ -106,39 +102,7 @@ static ssize_t fclk_store(struct device *dev, struct device_attribute *attr, con
     return len;
 }
 
-static DEVICE_ATTR(fclk_0, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
-static DEVICE_ATTR(fclk_1, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
-static DEVICE_ATTR(fclk_2, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
-static DEVICE_ATTR(fclk_3, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
-
-
-static struct attribute *uscope_lkm_attrs[] = {
-	&dev_attr_fclk_0.attr,
-	&dev_attr_fclk_1.attr,
-	&dev_attr_fclk_2.attr,
-	&dev_attr_fclk_3.attr,
-	NULL,
-};
-
-const struct attribute_group uscope_lkm_attr_group = {
-	.attrs = uscope_lkm_attrs,
-};
-
-static struct of_device_id ucube_lkm_match_table[] = {
-     {.compatible = "fclk"},
-     {}
-};
-
-static struct platform_driver ucube_lkm_platform_driver = {
-        .probe = ucube_lkm_probe,
-        .remove = ucube_lkm_remove,
-        .driver = {
-                .name = "ucube_lkm",
-                .owner = THIS_MODULE,
-                .of_match_table = ucube_lkm_match_table,
-        },
-};
-
+static DEVICE_ATTR(set_rate, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
 
 
 static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * poll_struct){
@@ -192,22 +156,6 @@ static int ucube_lkm_release(struct inode *inode, struct file *file) {
 }
 
 static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, loff_t *offset) {
-    int minor = MINOR(flip->f_inode->i_rdev);
-    if(minor == 0){
-        size_t datalen = KERNEL_BUFFER_SIZE;
-
-        pr_info("%s: In read\n", __func__);
-
-        if (count > datalen) {
-            count = datalen;
-        }
-
-        if (copy_to_user(buffer, dev_data->read_data_buffer, count)) {
-            return -EFAULT;
-        }
-        dev_data->new_data_available = 0;
-        return count;
-    }
     return 0;
 }
 
@@ -249,7 +197,7 @@ static struct file_operations file_ops = {
 
 
 static int __init ucube_lkm_init(void) {
-    int dev_rc, platform_rc;
+    int dev_rc;
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
@@ -295,27 +243,24 @@ static int __init ucube_lkm_init(void) {
         pr_info("%s: finished setup for endpoint: %s\n", __func__, device_names[i]);
     }
 
-    /* SETUP PLATFORM DRIVER */
-    platform_rc = platform_driver_register(&ucube_lkm_platform_driver);
-    if (platform_rc) {
-        pr_err("%s: Failed to initialize platform driver\nError:%d\n", __func__, platform_rc);
-        return platform_rc;
-    }
+    char name[16];
 
-    test_pdev = platform_device_register_simple("fclk", -1, NULL, 0);
-    if (IS_ERR(test_pdev)) {
-        int rc = PTR_ERR(test_pdev);
-        platform_driver_unregister(&ucube_lkm_platform_driver);
-        class_destroy(uCube_class);
-        unregister_chrdev_region(device_number, N_MINOR_NUMBERS);
-        return rc;
-    }
+	for(int i = 0; i< 4; i++){
+        snprintf(name, sizeof(name), "fclk%d", i);
+	    fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
+        if (IS_ERR(fclk_devs[0])) {
+            int rc = PTR_ERR(fclk_devs[0]);
+            class_destroy(uCube_class);
+            unregister_chrdev_region(device_number, N_MINOR_NUMBERS);
+            return rc;
+        }
+
+        int rc = device_create_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
+	}
+
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dma_set_coherent_mask(&dev_data->devs[0], DMA_BIT_MASK(32));
-    dev_data->dma_buffer = dma_alloc_coherent(&dev_data->devs[0], KERNEL_BUFFER_LENGTH*sizeof(int), &(dev_data->physaddr), GFP_KERNEL ||GFP_ATOMIC);
-    pr_warn("%s: Allocated dma buffer at: %u\n", __func__, dev_data->physaddr);
-    /*SETUP AND ALLOCATE DATA BUFFER*/
-    dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
+    pr_warn("%s: Allocated dma buffer at: %u\n", __func__, dev_data->physaddr);;
 
     return 0;
 }
@@ -326,11 +271,13 @@ static void __exit ucube_lkm_exit(void) {
 
     pr_info("%s: In exit\n", __func__);
 
-    dma_free_coherent(&dev_data->devs[0],KERNEL_BUFFER_LENGTH*sizeof(int),dev_data->dma_buffer, dev_data->physaddr);
-    vfree(dev_data->read_data_buffer);
 
-    platform_driver_unregister(&ucube_lkm_platform_driver);
-	platform_device_unregister(test_pdev);
+  for (int i = 0; i < 4; i++) {
+		device_remove_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
+        if (!IS_ERR_OR_NULL(fclk_devs[i])) {
+            platform_device_unregister(fclk_devs[i]);
+        }
+    }
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
         int device = MKDEV(major, i);
@@ -347,27 +294,7 @@ static void __exit ucube_lkm_exit(void) {
 
 }
 
-int ucube_lkm_probe(struct platform_device *pdev){
-    int rc;
-	char const * driver_mode;
-    struct device_node *local_node;
 
-    pr_info("%s: In platform probe\n", __func__);
-
- 	rc = sysfs_create_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
-
-    return 0;
-}
-
-int ucube_lkm_remove(struct platform_device *pdev){
-    pr_info("%s: In platform remove\n", __func__);
-
-    sysfs_remove_group(&pdev->dev.kobj, &uscope_lkm_attr_group);
-    return 0;
-}
-
-
-MODULE_DEVICE_TABLE(of, ucube_lkm_match_table);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Filippo Savi");
 MODULE_DESCRIPTION("uScope dma handler");
