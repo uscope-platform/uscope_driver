@@ -20,6 +20,7 @@
 class configuration {
 public:
     bool debug_hil;
+    bool fpga_loaded = false;
     unsigned int server_port;
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;

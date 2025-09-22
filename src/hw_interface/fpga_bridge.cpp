@@ -18,6 +18,8 @@
 
 using namespace std::chrono_literals;
 
+std::atomic<bool> fpga_bridge::fpga_loaded{false};
+
 fpga_bridge::fpga_bridge() {
 
 

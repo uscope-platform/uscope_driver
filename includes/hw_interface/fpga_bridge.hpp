@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <chrono>
 #include <thread>
+#include <atomic>
 
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -80,7 +81,7 @@ public:
 private:
 
     std::shared_ptr<bus_accessor> busses;
-    bool fpga_loaded = false;
+    static std::atomic<bool> fpga_loaded;
 
     std::string arch;
 
