@@ -144,7 +144,7 @@ execute_process(COMMAND uname -r
         OUTPUT_VARIABLE KERNEL_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set(KERNEL_DIR /usr/src/linux-headers-6.8.1-1031-realtime)
+set(KERNEL_DIR /usr/src/linux-headers-${KERNEL_VERSION})
 set(MODULE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/module_build)
 
 file(MAKE_DIRECTORY ${MODULE_BUILD_DIR})
