@@ -22,7 +22,6 @@
 /// \param driver_file Path of the driver file
 /// \param buffer_size Size of the capture buffer
 scope_manager::scope_manager() : data_gen(scope_accessor::buffer_size){
-    spdlog::trace("Scope handler emulate_control mode: {0}",runtime_config.emulate_hw);
     spdlog::info("Scope Handler initialization started");
 
     first_load = true;

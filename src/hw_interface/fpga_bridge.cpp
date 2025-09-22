@@ -29,17 +29,13 @@ fpga_bridge::fpga_bridge() {
     }
     arch = raw_arch;
 
-    if(!runtime_config.emulate_hw) {
-        std::string state;
-        std::ifstream ifs(if_dict.get_fpga_state_if());
-        ifs >> state;
-        if(state == "operating"){
-            fpga_loaded = true;
-        } else {
-            spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
-        }
-    } else {
+    std::string state;
+    std::ifstream ifs(if_dict.get_fpga_state_if());
+    ifs >> state;
+    if(state == "operating"){
         fpga_loaded = true;
+    } else {
+        spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
     }
 
 }
@@ -48,47 +44,46 @@ fpga_bridge::fpga_bridge() {
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
-
-    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream);
-    if(!runtime_config.emulate_hw){
-        std::ofstream ofs(if_dict.get_fpga_flags_if());
-        ofs << "0";
-        ofs.flush();
-
-        spdlog::info("LOAD BITSTREAM: flags setup done", bitstream);
-        std::string prefix = if_dict.get_firmware_store();
-        std::string file = bitstream.substr(prefix.length());
-
-        if(std::filesystem::exists(bitstream)){
-            ofs = std::ofstream(if_dict.get_fpga_bitstream_if());
-            ofs << file;
-            ofs.flush();
-            spdlog::info("LOAD BITSTREAM: bitstream loading_started", bitstream);
-
-            std::string state;
-            std::ifstream ifs(if_dict.get_fpga_state_if());
-            int timeout_counter = 700;
-            do {
-                std::this_thread::sleep_for(5ms);
-                ifs >> state;
-                timeout_counter--;
-            } while (state != "operating" && timeout_counter>=0);
-
-            spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
-
-            if(timeout_counter <0){
-                spdlog::error("Bitstream load failed to complete in time");
-                return responses::bitstream_load_failed;
-            } else{
-                fpga_loaded = true;
-                return responses::ok;
-            }
-        } else {
-            spdlog::error("Bitstream not found {0}", file);
-            return responses::bitstream_not_found;
-        }
-    } else{
+    if constexpr(!on_target) {
+        fpga_loaded = true;
         return responses::ok;
+    }
+    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream);
+    std::ofstream ofs(if_dict.get_fpga_flags_if());
+    ofs << "0";
+    ofs.flush();
+
+    spdlog::info("LOAD BITSTREAM: flags setup done", bitstream);
+    std::string prefix = if_dict.get_firmware_store();
+    std::string file = bitstream.substr(prefix.length());
+
+    if(std::filesystem::exists(bitstream)){
+        ofs = std::ofstream(if_dict.get_fpga_bitstream_if());
+        ofs << file;
+        ofs.flush();
+        spdlog::info("LOAD BITSTREAM: bitstream loading_started", bitstream);
+
+        std::string state;
+        std::ifstream ifs(if_dict.get_fpga_state_if());
+        int timeout_counter = 700;
+        do {
+            std::this_thread::sleep_for(5ms);
+            ifs >> state;
+            timeout_counter--;
+        } while (state != "operating" && timeout_counter>=0);
+
+        spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
+
+        if(timeout_counter <0){
+            spdlog::error("Bitstream load failed to complete in time");
+            return responses::bitstream_load_failed;
+        } else{
+            fpga_loaded = true;
+            return responses::ok;
+        }
+    } else {
+        spdlog::error("Bitstream not found {0}", file);
+        return responses::bitstream_not_found;
     }
 }
 
@@ -142,11 +137,9 @@ responses::response_code fpga_bridge::apply_program(uint64_t address, std::vecto
 responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
     spdlog::info("APPLY FILTER: address: 0x{0:x}  N. Filter Taps {1}", address, taps.size());
 
-    if(!runtime_config.emulate_hw) {
-        for(int i = 0; i< taps.size(); i++){
-            write_direct(address, taps[i]);
-            write_direct(address + 4, i);
-        }
+    for(int i = 0; i< taps.size(); i++){
+        write_direct(address, taps[i]);
+        write_direct(address + 4, i);
     }
 
     return responses::ok;
@@ -163,12 +156,8 @@ std::string fpga_bridge::get_hardware_version() {
 responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
     uint64_t buffer;
 
-    if(!runtime_config.emulate_hw){
-        std::ifstream fs(if_dict.get_buffer_address_if());
-        fs >> buffer;
-    } else {
-        buffer = 0xFFCCFFCC;
-    }
+    std::ifstream fs(if_dict.get_buffer_address_if());
+    fs >> buffer;
 
     spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, addr);
     write_direct(addr, buffer);

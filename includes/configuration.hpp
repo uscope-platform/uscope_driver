@@ -19,7 +19,6 @@
 
 class configuration {
 public:
-    bool emulate_hw;
     bool debug_hil;
     unsigned int server_port;
     static constexpr int n_channels = 6;

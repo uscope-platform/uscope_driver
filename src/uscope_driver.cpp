@@ -40,7 +40,6 @@ int main (int argc, char **argv) {
 
     CLI::App app{"Low level Driver for the uScope interface system"};
 
-    bool emulate_hw = false;
     bool debug_hil = false;
     bool external_emu = false;
     bool log_command = false;
@@ -49,7 +48,6 @@ int main (int argc, char **argv) {
     int log_level = 0;
 
     app.add_flag("--external_emulator", external_emu, "Use external kernel emulator");
-    app.add_flag("--debug", emulate_hw, "Enable debug features to allow running off target");
     app.add_flag("--debug_hil", debug_hil, "Write intermediate steps for hil deployment debugging");
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
     app.add_option("--log_level", log_level, "Log the received commands on the standard output");
@@ -69,16 +67,10 @@ int main (int argc, char **argv) {
     signal(SIGKILL,intHandler);
 
 
-    if(emulate_hw){
-        if_dict.set_arch("emulate");
-
-    } else{
-        auto arch = std::getenv("ARCH");
-        if_dict.set_arch(arch);
-    }
+    auto arch = std::getenv("ARCH");
+    if_dict.set_arch(arch);
 
 
-    runtime_config.emulate_hw = emulate_hw;
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
 
@@ -94,12 +86,11 @@ int main (int argc, char **argv) {
 
     spdlog::set_pattern("[%l] %v");
 
-    spdlog::info("Debug mode: {0}", emulate_hw);
     spdlog::info("Logging mode: {0}", log_command);
     spdlog::info("Log level: {0}", log_level);
 
 
-    auto ba = std::make_shared<bus_accessor>(runtime_config.emulate_hw);
+    auto ba = std::make_shared<bus_accessor>();
     auto sa = std::make_shared<scope_accessor>();
 
 

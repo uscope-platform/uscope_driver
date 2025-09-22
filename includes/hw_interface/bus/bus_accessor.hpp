@@ -40,7 +40,7 @@ struct bus_op{
 
 class bus_accessor {
 public:
-    bus_accessor(bool sm);
+    bus_accessor();
     void load_program(uint64_t address, const std::vector<uint32_t> program);
     void write_register(const std::vector<uint64_t>& addresses, uint64_t data);
     uint32_t read_register(const std::vector<uint64_t>& address);
@@ -60,7 +60,7 @@ private:
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
-    bool sink_mode;
+    bool sink_mode = false;
     std::vector<bus_op> operations;
 };
 
