@@ -141,7 +141,6 @@ public:
 
     void set_layout_map(const nlohmann::json &obj){
         spdlog::info("SETUP HIL ADDRESS MAP");
-        auto dbg = obj.dump(4);
         addresses.parse_layout_object(obj);
         spdlog::trace(addresses.dump());
     };

@@ -169,7 +169,7 @@ void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> pr
         }
     } else {
         m.lock();
-        a = {fcore_address_to_index(address)};
+        a = {address};
         for(int i = 0; i< program.size(); i++){
             fCore[i+fcore_address_to_index(address)] = program[i];
             pn.push_back(program[i]);
