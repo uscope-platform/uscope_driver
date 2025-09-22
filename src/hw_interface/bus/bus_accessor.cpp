@@ -17,6 +17,7 @@
 
 std::mutex m;
 
+std::atomic<bool> bus_accessor::sink_mode{false};
 
 
 void sigsegv_handler(int dummy) {

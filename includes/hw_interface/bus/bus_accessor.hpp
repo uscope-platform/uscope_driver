@@ -60,7 +60,7 @@ private:
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;
-    bool sink_mode = false;
+    static std::atomic<bool> sink_mode;
     std::vector<bus_op> operations;
 };
 
