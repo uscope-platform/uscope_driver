@@ -18,7 +18,7 @@
 #include <linux/clk.h>
 #include <linux/device.h>
 
-#define N_MINOR_NUMBERS	2
+#define N_MINOR_NUMBERS	3
 
 #define KERNEL_BUFFER_LENGTH 6144
 #define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*4
@@ -66,6 +66,7 @@ static struct platform_device *fclk_devs[4];
 struct scope_device_data {
     struct device devs[N_MINOR_NUMBERS];
     struct cdev cdevs[N_MINOR_NUMBERS];
+    u32 *read_data_buffer;
     dma_addr_t physaddr;
     int new_data_available;
     struct clk *fclk[4];
@@ -156,15 +157,42 @@ static int ucube_lkm_release(struct inode *inode, struct file *file) {
 }
 
 static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, loff_t *offset) {
+    int minor = iminor(flip->f_inode);
+    if(minor == 0){
+        size_t datalen = KERNEL_BUFFER_SIZE;
+
+        pr_info("%s: In read\n", __func__);
+
+        if (count > datalen) {
+            count = datalen;
+        }
+
+        if (copy_to_user(buffer, dev_data->read_data_buffer, count)) {
+            return -EFAULT;
+        }
+        dev_data->new_data_available = 0;
+        return count;
+    }
     return 0;
 }
 
 
 static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len, loff_t *offset) {
-    int minor = MINOR(flip->f_inode->i_rdev);
+    int minor = iminor(flip->f_inode);
+    size_t to_copy;
     pr_info("%s: In write with minor number %d\n", __func__, minor);
+    if(minor >0) return len;
 
-    return len;
+
+    if (len > KERNEL_BUFFER_SIZE)
+        len = KERNEL_BUFFER_SIZE;
+
+    to_copy = len;
+
+    if (copy_from_user(dev_data->read_data_buffer, buffer, to_copy))
+        return -EFAULT;
+
+    return to_copy;
 }
 
 
@@ -201,7 +229,7 @@ static int __init ucube_lkm_init(void) {
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
-    const char* const device_names[] = { "uscope_BUS_0", "uscope_BUS_1"};
+    const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1"};
 
     /* DYNAMICALLY ALLOCATE DEVICE NUMBERS, CLASSES, ETC.*/
     pr_info("%s: In init\n", __func__);\
@@ -259,7 +287,7 @@ static int __init ucube_lkm_init(void) {
 	}
 
     /*SETUP AND ALLOCATE DMA BUFFER*/
-    dma_set_coherent_mask(&dev_data->devs[0], DMA_BIT_MASK(32));
+    dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
     pr_warn("%s: Allocated dma buffer at: %u\n", __func__, dev_data->physaddr);;
 
     return 0;
@@ -271,8 +299,8 @@ static void __exit ucube_lkm_exit(void) {
 
     pr_info("%s: In exit\n", __func__);
 
-
-  for (int i = 0; i < 4; i++) {
+    vfree(dev_data->read_data_buffer);
+    for (int i = 0; i < 4; i++) {
 		device_remove_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
         if (!IS_ERR_OR_NULL(fclk_devs[i])) {
             platform_device_unregister(fclk_devs[i]);
