@@ -164,7 +164,7 @@ protected:
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
-    void update_input_value(const std::string &core,  const std::string &name, uint32_t value);
+    void update_input_value(const std::string &core,  const std::string &name, double value);
 
     void setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
     void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);

@@ -44,7 +44,7 @@ public:
     responses::response_code deploy(const nlohmann::json &arguments);
 
     void select_output(uint32_t channel, const output_specs_t& output);
-    void set_input(const std::string &core,  const std::string &name, uint32_t value);
+    void set_input(const std::string &core,  const std::string &name, double value);
     void start();
     void stop();
 

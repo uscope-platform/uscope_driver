@@ -151,7 +151,7 @@ nlohmann::json cores_endpoints::process_hil_set_in(const nlohmann::json &argumen
     auto dbg = arguments.dump();
 
     std::string name  = arguments["name"];
-    uint32_t value = arguments["value"];
+    double value = arguments["value"];
     std::string core =  arguments["core"];
     hil.set_input(core,  name, value);
     return resp;

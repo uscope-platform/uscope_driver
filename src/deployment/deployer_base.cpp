@@ -225,12 +225,13 @@ void deployer_base::setup_input(
     }
 }
 
-void deployer_base::update_input_value(const std::string &core,  const std::string &name, uint32_t value) {
+void deployer_base::update_input_value(const std::string &core,  const std::string &name, double raw_value) {
     auto address = 0;
-    spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", value, address, core);
+    spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", raw_value, address, core);
     for(auto &in:inputs){
         if(in.name == name && in.core == core){
-
+            uint32_t value = raw_value;
+            if(in.is_float) value = float_to_uint32(raw_value);
             write_register(in.const_ip_addr.first + fcore_constant_engine.const_selector, in.const_ip_addr.second);
             write_register( in.const_ip_addr.first + fcore_constant_engine.const_dest, in.dest);
             write_register( in.const_ip_addr.first + fcore_constant_engine.const_lsb, value);
