@@ -242,9 +242,9 @@ void deployer_base::update_input_value(const std::string &core,  const std::stri
 
 void deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t dest) {
     uint32_t channel = (0xFFF0000 & dest) >>16;
-    uint64_t period = p.period[channel]*timebase_frequency;
-    uint64_t t_on = p.t_on[channel]*timebase_frequency;
-    uint64_t t_delay = p.t_delay[channel]*timebase_frequency;
+    uint64_t period = p.period[channel]*hil_clock_frequency;
+    uint64_t t_on = p.t_on[channel]*hil_clock_frequency;
+    uint64_t t_delay = p.t_delay[channel]*hil_clock_frequency;
     write_register(address + square_wave_gen.channel_selector, active_waveforms);
     write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[0]));
     write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[0]));
