@@ -187,7 +187,7 @@ responses::response_code scope_manager::set_acquisition(const acquisition_metada
     if(data.level_type =="float"){
         trg_lvl = float_to_uint32(data.trigger_level);
     } else {
-        trg_lvl = data.trigger_level;
+        trg_lvl = float_to_uint32(data.trigger_level);
     }
     hw.write_direct(scope_internal_addr + am.scope_int.trg_lvl, trg_lvl);
 
