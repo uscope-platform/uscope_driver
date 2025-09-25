@@ -99,7 +99,7 @@ TEST(cores_endpoints, hil_sim_data) {
     )");
 
 
-    auto ba = std::make_shared<bus_accessor>(true);
+    auto ba = std::make_shared<bus_accessor>();
 
 
     cores_endpoints ep;
@@ -204,7 +204,7 @@ TEST(cores_endpoints, deployed_hil_sim_data) {
     )");
 
 
-    auto ba = std::make_shared<bus_accessor>(true);
+    auto ba = std::make_shared<bus_accessor>();
 
 
     cores_endpoints ep;
@@ -310,7 +310,7 @@ TEST(cores_endpoints, cache_invalidation_hil_sim_data) {
     )");
 
 
-    auto ba = std::make_shared<bus_accessor>(true);
+    auto ba = std::make_shared<bus_accessor>();
 
 
     cores_endpoints ep;

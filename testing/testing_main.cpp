@@ -24,7 +24,6 @@ configuration runtime_config;
 
 int main(int argc, char **argv) {
     if_dict.set_arch("zynqmp");
-    runtime_config.emulate_hw = true;
     testing::InitGoogleTest(&argc, argv);
 
     // Get the test framework's listener collection
@@ -33,7 +32,6 @@ int main(int argc, char **argv) {
     // Create a listener that resets globals before each test
     class ResetListener : public ::testing::EmptyTestEventListener {
         void OnTestStart(const ::testing::TestInfo&) override {
-            runtime_config.emulate_hw = true;
             runtime_config.debug_hil = false;
             runtime_config.server_port = 6666;
 

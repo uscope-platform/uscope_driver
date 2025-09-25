@@ -52,6 +52,8 @@ void sigbus_handler(int dummy);
 class fpga_bridge {
 public:
     fpga_bridge();
+
+    explicit fpga_bridge(const bool already_loaded) {fpga_loaded = already_loaded;}
     void set_accessor(const std::shared_ptr<bus_accessor>& bus_acc) {busses = bus_acc;}
 
     void clear_operations_vector(){busses->clear_operations();}

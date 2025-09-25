@@ -170,6 +170,7 @@ protected:
     void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);
     void setup_waveform(uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel);
 
+    explicit deployer_base(bool already_deployed) :hw(already_deployed) {}
 
     fpga_bridge hw;
     logic_layout addresses;

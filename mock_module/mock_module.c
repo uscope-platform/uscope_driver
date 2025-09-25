@@ -118,6 +118,8 @@ static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * po
 
 
 static int ucube_lkm_mmap(struct file *filp, struct vm_area_struct *vma){
+
+    pr_info("%s: In mmap\n", __func__);
     vma->vm_ops = &mock_vm_ops;
     return 0;
 }
