@@ -246,8 +246,8 @@ void deployer_base::setup_waveform(const uint64_t address, const fcore::square_w
     uint64_t t_on = p.t_on[channel]*hil_clock_frequency;
     uint64_t t_delay = p.t_delay[channel]*hil_clock_frequency;
     write_register(address + square_wave_gen.channel_selector, active_waveforms);
-    write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[0]));
-    write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[0]));
+    write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[channel]));
+    write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[channel]));
     write_register(address +square_wave_gen.t_delay, t_delay);
     write_register(address +square_wave_gen.t_on, t_on);
     write_register(address +square_wave_gen.period, period);
