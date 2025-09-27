@@ -29,8 +29,9 @@ scope_accessor::~scope_accessor() {
 
 std::array<uint64_t, scope_accessor::n_channels*scope_accessor::buffer_size>  scope_accessor::get_scope_data() {
 
-    std::array<uint64_t, scope_accessor::n_channels*scope_accessor::buffer_size> ret_val{};
-    ssize_t read_data = read(fd_data,ret_val.data(), ret_val.size()*sizeof(uint64_t));
+    std::array<uint64_t, n_channels*buffer_size> ret_val{};
+    auto read_size = ret_val.size()*sizeof(uint64_t);
+    ssize_t read_data = read(fd_data,ret_val.data(), read_size);
     if(read_data==0) throw std::runtime_error("nothing to read");
     if(read_data<0) {
         spdlog::critical(std::strerror(errno));

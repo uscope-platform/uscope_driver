@@ -109,11 +109,9 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 if(NOT ${EXCLUDE_KERNEL_EMU})
 
-    find_package(libfuse REQUIRED)
-    add_executable(kernel_emulator testing/kernel_emulator_standalone.cpp src/hw_emulation/kernel_emulator.cpp)
-    target_link_libraries(kernel_emulator PRIVATE pthread rt
-            libfuse::libfuse
-    )
+add_executable(kernel_emulator testing/kernel_emulator_standalone.cpp)
+target_link_libraries(kernel_emulator PRIVATE rt)
+
 endif(NOT ${EXCLUDE_KERNEL_EMU})
 
 install(TARGETS uscope_driver DESTINATION ${CMAKE_INSTALL_BINDIR})

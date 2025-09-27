@@ -20,8 +20,9 @@
 
 #define N_MINOR_NUMBERS	3
 
-#define KERNEL_BUFFER_LENGTH 6144
-#define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*4
+#define N_CHANNELS 6
+#define KERNEL_BUFFER_LENGTH 1024
+#define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*N_CHANNELS*8
 
 
 #define IOCTL_NEW_DATA_AVAILABLE 1
@@ -163,8 +164,6 @@ static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, lof
     if(minor == 0){
         size_t datalen = KERNEL_BUFFER_SIZE;
 
-        pr_info("%s: In read\n", __func__);
-
         if (count > datalen) {
             count = datalen;
         }
@@ -182,7 +181,6 @@ static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, lof
 static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len, loff_t *offset) {
     int minor = iminor(flip->f_inode);
     size_t to_copy;
-    pr_info("%s: In write with minor number %d\n", __func__, minor);
     if(minor >0) return len;
 
 
