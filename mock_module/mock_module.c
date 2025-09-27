@@ -231,7 +231,7 @@ static int __init ucube_lkm_init(void) {
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
-    const char* const device_names[] = { "uscope_data_new", "uscope_BUS_0", "uscope_BUS_1"};
+    const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1"};
 
     /* DYNAMICALLY ALLOCATE DEVICE NUMBERS, CLASSES, ETC.*/
     pr_info("%s: In init\n", __func__);\
@@ -286,11 +286,15 @@ static int __init ucube_lkm_init(void) {
         }
 
         int rc = device_create_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
+		if (rc) {
+      		pr_err("%s: Failed to create fclk interface\nError:%d\n", __func__, rc);
+       		return dev_rc;
+    	}
 	}
 
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
-    pr_warn("%s: Allocated dma buffer at: %u\n", __func__, dev_data->physaddr);;
+    pr_warn("%s: Allocated dma buffer at: %llu\n", __func__, dev_data->physaddr);;
 
     return 0;
 }
