@@ -183,8 +183,8 @@ void hil_deployer::select_output(uint32_t channel, const output_specs_t& output)
     this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
 }
 
-void hil_deployer::set_input(const std::string &core,  const std::string &name, double value) {
-    this->update_input_value(core,name, value);
+void hil_deployer::set_input(const std::string &core,  const std::string &name, uint16_t channel, double value) {
+    this->update_input_value(core,name, channel, value);
 }
 
 void hil_deployer::start() {

@@ -153,7 +153,8 @@ nlohmann::json cores_endpoints::process_hil_set_in(const nlohmann::json &argumen
     std::string name  = arguments["name"];
     double value = arguments["value"];
     std::string core =  arguments["core"];
-    hil.set_input(core,  name, value);
+    uint16_t channel = arguments["channel"];
+    hil.set_input(core, name, channel, value);
     return resp;
 }
 

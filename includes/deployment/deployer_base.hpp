@@ -164,7 +164,7 @@ protected:
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
-    void update_input_value(const std::string &core,  const std::string &name, double value);
+    void update_input_value(const std::string &core,  const std::string &name, uint16_t channel, double value);
 
     void setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
     void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);
@@ -182,6 +182,7 @@ protected:
     double timebase_frequency = 0;
     fcore::emulator_dispatcher dispatcher;
     hil_bus_map bus_map;
+    std::unordered_map<std::string, std::vector<uint32_t>> inputs_addresses;
     std::map<uint32_t, std::string> bus_labels;
     std::map<std::string, tb_input_addresses_t> inputs_labels;
 private:
