@@ -18,12 +18,12 @@
 #include <linux/clk.h>
 #include <linux/device.h>
 
-#define N_MINOR_NUMBERS	3
+#define N_MINOR_NUMBERS	4
 
 #define N_CHANNELS 6
 #define KERNEL_BUFFER_LENGTH 1024
 #define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*N_CHANNELS*8
-
+#define BITSTREAM_SIZE  44549344>>3
 
 #define IOCTL_NEW_DATA_AVAILABLE 1
 
@@ -74,6 +74,7 @@ struct scope_device_data {
     bool is_zynqmp;
 };
 
+static char *bitstream_buffer;
 
 static char *mock_page;
 
@@ -181,18 +182,23 @@ static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, lof
 static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len, loff_t *offset) {
     int minor = iminor(flip->f_inode);
     size_t to_copy;
-    if(minor >0) return len;
+	if(minor == 0){
+ 		if (len > KERNEL_BUFFER_SIZE)
+        	len = KERNEL_BUFFER_SIZE;
 
+    	to_copy = len;
 
-    if (len > KERNEL_BUFFER_SIZE)
-        len = KERNEL_BUFFER_SIZE;
+    	if (copy_from_user(dev_data->read_data_buffer, buffer, to_copy))
+        	return -EFAULT;
 
-    to_copy = len;
-
-    if (copy_from_user(dev_data->read_data_buffer, buffer, to_copy))
-        return -EFAULT;
-
-    return to_copy;
+    	return to_copy;
+	}else if(minor ==3){
+		pr_info("%s: Receiving bitstream\n", __func__);
+        //TODO: copy bitstream to buffer, hash it, compare it with ioctl hash and program FPGA if necessary
+	    return len;
+	} else {
+		return len;
+	}
 }
 
 
@@ -229,7 +235,7 @@ static int __init ucube_lkm_init(void) {
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
-    const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1"};
+    const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1", "uscope_bitstream"};
 
     /* DYNAMICALLY ALLOCATE DEVICE NUMBERS, CLASSES, ETC.*/
     pr_info("%s: In init\n", __func__);\
@@ -292,6 +298,7 @@ static int __init ucube_lkm_init(void) {
 
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
+	bitstream_buffer = vmalloc(BITSTREAM_SIZE);
     pr_warn("%s: Allocated dma buffer at: %llu\n", __func__, dev_data->physaddr);;
 
     return 0;
@@ -304,6 +311,7 @@ static void __exit ucube_lkm_exit(void) {
     pr_info("%s: In exit\n", __func__);
 
     vfree(dev_data->read_data_buffer);
+	vfree(bitstream_buffer);
     for (int i = 0; i < 4; i++) {
 		device_remove_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
         if (!IS_ERR_OR_NULL(fclk_devs[i])) {
