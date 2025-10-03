@@ -58,6 +58,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
     bitstream_buf.resize(size);
 
 
+    spdlog::warn("LOAD BITSTREAM: loaded file");
     std::ifstream file(bitstream_path, std::ios::binary);
     int fd = open("/dev/uscope_bitstream", O_WRONLY);
 
@@ -66,6 +67,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
 
     write(fd, bitstream.data(), bitstream.size());
 
+    spdlog::warn("LOAD BITSTREAM: written file");
     auto ret = ioctl(fd, 3);
 
     if(ret <0) return responses::bitstream_load_failed;
