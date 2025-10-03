@@ -46,7 +46,7 @@ fpga_bridge::fpga_bridge() {
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
-    auto bitstream_path = "/lib/firmware/" + bitstream;
+    auto bitstream_path = bitstream;
     spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream_path);
 
     if constexpr (!on_target) {
