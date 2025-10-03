@@ -58,7 +58,7 @@ public:
     void set_accessor(const std::shared_ptr<bus_accessor>& bus_acc) {busses = bus_acc;}
 
     void clear_operations_vector(){busses->clear_operations();}
-    responses::response_code load_bitstream(const std::string& bitstream);
+    responses::response_code load_bitstream(const std::vector<uint8_t>& bitstream);
     responses::response_code single_write_register(const nlohmann::json &write_obj);
     nlohmann::json single_read_register(uint64_t address);
     responses::response_code apply_program(uint64_t address, std::vector<uint32_t> program);

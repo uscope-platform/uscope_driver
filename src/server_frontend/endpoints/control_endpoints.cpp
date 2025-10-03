@@ -84,11 +84,12 @@ nlohmann::json control_endpoints::process_load_bitstream(nlohmann::json &argumen
     nlohmann::json resp;
     if(arguments.type() !=nlohmann::detail::value_t::string) {
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
-        resp["data"] = "DRIVER ERROR: The load bitstream command must be a string";
+        resp["data"] = "DRIVER ERROR: The bitstream data must be a base 64 encoded string";
         return resp;
     }
-    std::string bitstram_name = arguments;
-    resp["response_code"] = hw.load_bitstream(bitstram_name);
+
+    std::vector<uint8_t> decoded_data = cppcodec::base64_rfc4648::decode(static_cast<std::string>(arguments));
+    resp["response_code"] = hw.load_bitstream(decoded_data);
     return resp;
 }
 

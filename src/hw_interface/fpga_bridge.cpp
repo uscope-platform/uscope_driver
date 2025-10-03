@@ -45,43 +45,26 @@ fpga_bridge::fpga_bridge() {
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
-responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
-    auto bitstream_path = bitstream;
-    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream_path);
+responses::response_code fpga_bridge::load_bitstream(const std::vector<uint8_t>& bitstream) {
 
+    spdlog::warn("LOAD BITSTREAM: loading file");
+    auto driver = if_dict.get_fpga_bitstream_if();
+    const int fd = open(driver.c_str(), O_RDWR);
 
-    std::vector<uint8_t> bitstream_buf;
-    ssize_t size = std::filesystem::file_size(bitstream_path);
-    bitstream_buf.resize(size);
-
-
-    spdlog::warn("LOAD BITSTREAM: loaded file");
-    std::ifstream file(bitstream_path, std::ios::binary);
-    int fd = open("/dev/uscope_bitstream", O_WRONLY);
-
-    file.read(reinterpret_cast<char*>(bitstream_buf.data()), size);
-    file.close();
-
-    write(fd, bitstream_buf.data(), bitstream_buf.size());
+    write(fd, bitstream.data(), bitstream.size());
 
     spdlog::warn("LOAD BITSTREAM: written file");
+
     auto ret = ioctl(fd, 3);
 
     if(ret <0) return responses::bitstream_load_failed;
 
+    char status;
+    read(fd, &status, 1);
 
-    std::string state;
-    std::ifstream ifs(if_dict.get_fpga_state_if());
-    int timeout_counter = 700;
-    do {
-        std::this_thread::sleep_for(5ms);
-        ifs >> state;
-        timeout_counter--;
-    } while (state != "operating" && timeout_counter>=0);
+    if(status == '0') return responses::bitstream_load_failed;
 
-    if(timeout_counter<0) return responses::bitstream_load_failed;
-
-    spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
+    spdlog::info("LOAD BITSTREAM: bitstream loaded");
 
     fpga_loaded = true;
     return responses::ok;

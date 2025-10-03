@@ -19,6 +19,7 @@ class BasicConanfile(ConanFile):
         self.requires("spdlog/1.15.3")
         self.requires("antlr4-cppruntime/4.13.2")
         self.requires("asio/1.36.0")
+        self.requires("cppcodec/0.2")
 
     def build_requirements(self):
         pass

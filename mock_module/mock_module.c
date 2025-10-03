@@ -78,6 +78,8 @@ static char *bitstream_buffer;
 
 static char *mock_page;
 
+static bool fpga_loaded;
+
 static vm_fault_t ucube_lkm_fault(struct vm_fault *vmf)
 {
     if (!mock_page) {
@@ -174,6 +176,10 @@ static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, lof
         }
         dev_data->new_data_available = 0;
         return count;
+    } else if(minor == 3){
+        char result = fpga_loaded ?'1' : '0';
+        if (copy_to_user(buffer, &result, 1)) return -EFAULT;
+        return 1;
     }
     return 0;
 }
@@ -194,7 +200,7 @@ static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len
     	return to_copy;
 	}else if(minor ==3){
 		pr_info("%s: Receiving bitstream\n", __func__);
-        //TODO: copy bitstream to buffer, hash it, compare it with ioctl hash and program FPGA if necessary
+	    fpga_loaded = true;
 	    return len;
 	} else {
 		return len;
@@ -236,7 +242,7 @@ static int __init ucube_lkm_init(void) {
     int cdev_rcs[N_MINOR_NUMBERS];
     dev_t devices[N_MINOR_NUMBERS];
     const char* const device_names[] = { "uscope_data", "uscope_BUS_0", "uscope_BUS_1", "uscope_bitstream"};
-
+    fpga_loaded = false;
     /* DYNAMICALLY ALLOCATE DEVICE NUMBERS, CLASSES, ETC.*/
     pr_info("%s: In init\n", __func__);\
 

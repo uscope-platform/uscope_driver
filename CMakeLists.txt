@@ -37,6 +37,7 @@ find_package(valijson REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(GTest REQUIRED)
+find_package(cppcodec REQUIRED)
 
 # compiles code files from ./src folder
 file(GLOB INC_SOURCES "includes/*.h*")
@@ -77,6 +78,7 @@ target_link_libraries(uscope_driver PRIVATE
         ValiJSON::valijson
         nlohmann_json::nlohmann_json
         CLI11::CLI11
+        cppcodec::cppcodec
         fcore_cc_lib
         fcore_emu_lib_gp
         fcore_emu_lib

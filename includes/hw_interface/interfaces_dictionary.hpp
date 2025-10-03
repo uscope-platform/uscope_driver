@@ -25,17 +25,18 @@ public:
         arch = a;
     };
     std::string get_control_bus() const {
-        if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
+        if(arch == "trap") throw std::runtime_error("Attempted access to configuration bus before architecture selection");
         return control_bus_if.at(arch);
     };
     std::string get_cores_bus() const{
-        if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
+        if(arch == "trap") throw std::runtime_error("Attempted access to cores bus before architecture selection");
         return cores_bus_if.at(arch);
     };
     std::string get_data_bus() const {
-        if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
+        if(arch == "trap") throw std::runtime_error("Attempted access to data bus before architecture selection");
         return data_bus_if.at(arch);
     };
+
     std::string get_clock_if(uint8_t clock_number) const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         if(clock_number >3) throw std::invalid_argument("The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
@@ -61,18 +62,9 @@ public:
         return fpga_manager_state_if.at(arch);
     };
 
-    std::string get_firmware_store() const {
-        return fpga_firmware_store.at(arch);
-    }
+
 
 private:
-
-    std::unordered_map<std::string, std::string> fpga_firmware_store = {
-            {"zynq", "/lib/firmware/"},
-            {"zynqmp", "/lib/firmware/"},
-            {"emulate", "/dev/zero"},
-            {"testing", "/tmp/"}
-    };
 
     std::unordered_map<std::string, std::string> fpga_manager_state_if = {
             {"zynq", "/sys/class/fpga_manager/fpga0/state"},
@@ -82,8 +74,8 @@ private:
     };
 
     std::unordered_map<std::string, std::string> fpga_manager_bitstream_if = {
-            {"zynq", "/sys/class/fpga_manager/fpga0/firmware"},
-            {"zynqmp", "/sys/class/fpga_manager/fpga0/firmware"},
+            {"zynq", "/dev/uscope_bitstream"},
+            {"zynqmp", "/dev/uscope_bitstream"},
             {"emulate", "/dev/zero"},
             {"testing", "/tmp/fpga_bitstream_if"}
     };
@@ -113,6 +105,7 @@ private:
             {"emulate", "/dev/uscope_data"},
             {"testing", "/tmp/data_bus_if"}
     };
+
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
             {"zynqmp", "/sys/devices/platform/fclk"},

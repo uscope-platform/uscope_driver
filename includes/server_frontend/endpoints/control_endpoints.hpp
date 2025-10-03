@@ -19,6 +19,8 @@
 
 #include <nlohmann/json.hpp>
 #include "options_repository.hpp"
+#include <cppcodec/base64_rfc4648.hpp>
+
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
