@@ -17,6 +17,7 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         fcore_cc_lib
         fcore_emu_lib
         fcore_emu_lib_gp
+        cppcodec::cppcodec
         nlohmann_json::nlohmann_json
         GTest::gtest
         GTest::gtest_main

@@ -2631,7 +2631,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
     d.deploy(spec_json);
-    d.set_input("test","input_2",90);
+    d.set_input("test","input_2",0,90);
 
 
     auto ops = ba->get_operations();

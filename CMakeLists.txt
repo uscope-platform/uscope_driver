@@ -134,6 +134,7 @@ target_link_libraries(test_hil_deployer PRIVATE
         nlohmann_json::nlohmann_json
         ValiJSON::valijson
         fcore_cc_lib
+        cppcodec::cppcodec
         fcore_emu_lib_gp
         fcore_emu_lib
         CLI11::CLI11
