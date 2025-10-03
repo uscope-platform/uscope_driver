@@ -46,47 +46,32 @@ fpga_bridge::fpga_bridge() {
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
 responses::response_code fpga_bridge::load_bitstream(const std::string& bitstream) {
-    if constexpr(!on_target) {
-        fpga_loaded = true;
+    auto bitstream_path = "/lib/firmware/" + bitstream;
+    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream_path);
+
+    if constexpr (!on_target) {
         return responses::ok;
     }
-    spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream);
-    std::ofstream ofs(if_dict.get_fpga_flags_if());
-    ofs << "0";
-    ofs.flush();
 
-    spdlog::info("LOAD BITSTREAM: flags setup done", bitstream);
-    std::string prefix = if_dict.get_firmware_store();
-    std::string file = bitstream.substr(prefix.length());
+    std::vector<uint8_t> bitstream_buf;
+    ssize_t size = std::filesystem::file_size(bitstream_path);
+    bitstream_buf.resize(size);
 
-    if(std::filesystem::exists(bitstream)){
-        ofs = std::ofstream(if_dict.get_fpga_bitstream_if());
-        ofs << file;
-        ofs.flush();
-        spdlog::info("LOAD BITSTREAM: bitstream loading_started", bitstream);
 
-        std::string state;
-        std::ifstream ifs(if_dict.get_fpga_state_if());
-        int timeout_counter = 700;
-        do {
-            std::this_thread::sleep_for(5ms);
-            ifs >> state;
-            timeout_counter--;
-        } while (state != "operating" && timeout_counter>=0);
+    std::ifstream file(bitstream_path, std::ios::binary);
+    int fd = open("/dev/uscope_bitstream", O_WRONLY);
 
-        spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
+    file.read(reinterpret_cast<char*>(bitstream_buf.data()), size);
+    file.close();
 
-        if(timeout_counter <0){
-            spdlog::error("Bitstream load failed to complete in time");
-            return responses::bitstream_load_failed;
-        } else{
-            fpga_loaded = true;
-            return responses::ok;
-        }
-    } else {
-        spdlog::error("Bitstream not found {0}", file);
-        return responses::bitstream_not_found;
-    }
+    write(fd, bitstream.data(), bitstream.size());
+
+    auto ret = ioctl(fd, 3);
+
+    if(ret <0) return responses::bitstream_load_failed;
+
+    return responses::ok;
+
 }
 
 /// Write to a single register

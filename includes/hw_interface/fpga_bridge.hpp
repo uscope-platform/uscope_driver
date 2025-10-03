@@ -26,6 +26,7 @@
 #include <thread>
 #include <atomic>
 
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 
