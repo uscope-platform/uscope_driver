@@ -82,6 +82,8 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
         timeout_counter--;
     } while (state != "operating" && timeout_counter>=0);
 
+    if(timeout_counter<0) return responses::bitstream_load_failed;
+
     spdlog::info("LOAD BITSTREAM: bitstream loaded in {0} ms",5*(700-timeout_counter));
 
     fpga_loaded = true;
