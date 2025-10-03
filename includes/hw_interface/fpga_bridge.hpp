@@ -39,12 +39,6 @@
 #include "configuration.hpp"
 
 
-#if defined(__aarch64__) || defined(_M_ARM64)
-    constexpr bool on_target = true;
-#elif defined(__x86_64__) || defined(_M_X64)
-    constexpr bool on_target = false;
-#endif
-
 #include "bus/bus_accessor.hpp"
 
 void sigsegv_handler(int dummy);
