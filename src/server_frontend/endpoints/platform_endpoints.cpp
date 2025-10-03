@@ -101,6 +101,8 @@ nlohmann::json platform_endpoints::process_get_version(nlohmann::json &arguments
     std::string component = arguments;
     if(component == "driver"){
         resp["data"] = uscope_driver_versions;
+    } else if(component == "toolchain"){
+        resp["data"] = uscope_toolchain_versions;
     } else if(component == "module"){
         resp["data"] = hw.get_module_version();
     } else if(component == "hardware"){
