@@ -49,9 +49,6 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
     auto bitstream_path = bitstream;
     spdlog::warn("LOAD BITSTREAM: loading file {0}", bitstream_path);
 
-    if constexpr (!on_target) {
-        return responses::ok;
-    }
 
     std::vector<uint8_t> bitstream_buf;
     ssize_t size = std::filesystem::file_size(bitstream_path);
@@ -65,7 +62,7 @@ responses::response_code fpga_bridge::load_bitstream(const std::string& bitstrea
     file.read(reinterpret_cast<char*>(bitstream_buf.data()), size);
     file.close();
 
-    write(fd, bitstream.data(), bitstream.size());
+    write(fd, bitstream_buf.data(), bitstream_buf.size());
 
     spdlog::warn("LOAD BITSTREAM: written file");
     auto ret = ioctl(fd, 3);
