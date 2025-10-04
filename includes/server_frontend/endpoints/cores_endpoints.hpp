@@ -32,6 +32,7 @@
 class cores_endpoints {
 public:
     cores_endpoints();
+    explicit cores_endpoints(bool fpga_already_loaded):hil(fpga_already_loaded){};
     void set_options_repository(std::shared_ptr<options_repository> &rep) {
         options_rep = rep;
         emulator.set_options_repository(options_rep);

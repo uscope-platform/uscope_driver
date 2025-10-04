@@ -38,7 +38,7 @@ struct hardware_sim_data_t {
 class hil_deployer : public deployer_base{
 public:
     hil_deployer();
-    hil_deployer(bool fpga_already_deployed) :deployer_base(fpga_already_deployed){}
+    explicit hil_deployer(bool fpga_already_deployed) :deployer_base(fpga_already_deployed){}
     void set_options_repository(std::shared_ptr<options_repository> &rep) {options = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 

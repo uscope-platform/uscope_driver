@@ -299,7 +299,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                             ip_addr,
                             input_progressive,
                             j,
-                            core_name
+                            p.name,
+                            true
                         );
                         if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
@@ -314,7 +315,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                                 ip_addr,
                                 input_progressive,
                                 j,
-                                core_name
+                                p.name,
+                                true
                             );
                         }
                     }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
@@ -326,7 +328,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                                     ip_addr,
                                     input_progressive,
                                     j,
-                                    core_name
+                                    p.name,
+                                    true
                                 );
                                 if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
@@ -339,7 +342,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                                     ip_addr,
                                     input_progressive,
                                     j,
-                                    core_name
+                                    p.name,
+                                    true
                                 );
                                 if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
@@ -357,7 +361,8 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                         ip_addr,
                         input_progressive,
                         0,
-                        core_name
+                        p.name,
+                        false
                 );
             }
             if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;

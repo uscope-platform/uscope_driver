@@ -160,11 +160,11 @@ void deployer_base::setup_input(
     uint64_t const_ip_address,
     uint32_t const_idx,
     uint32_t target_channel,
-    std::string core_name
+    std::string core_name,
+    bool is_multichannel
 ) {
 
     if(in.source_type ==fcore::constant_input || in.source_type == fcore::time_series_input){
-        std::string in_name = in.name;
         uint32_t address =in.address[0] + (target_channel<<16);
 
 
@@ -173,7 +173,7 @@ void deployer_base::setup_input(
         uint32_t input_value;
         metadata.is_float = in.metadata.type == fcore::type_float;
         metadata.core = core_name;
-        metadata.name = in_name;
+        metadata.name = in.name;
         auto selector = const_idx + (target_channel<<16);
         metadata.const_ip_addr = {const_ip_address, selector};
         metadata.dest = address;
@@ -186,8 +186,13 @@ void deployer_base::setup_input(
             input_value = std::get<std::vector<uint32_t >>(in.data[0])[0];
         }
 
-        spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in_name, address, core_name);
-        auto input_path = core_name + "." + in_name;
+        spdlog::info("set default value {0} for input {1} at address {2} on core {3}",input_value, in.name, address, core_name);
+        std::string input_path;
+        if(is_multichannel) {
+            input_path = core_name + "[" + std::to_string(target_channel) + "]" + "." + in.name;
+        } else {
+            input_path = core_name + "." + in.name;
+        }
 
         inputs_labels[input_path] = {
             metadata.const_ip_addr.first + fcore_constant_engine.const_lsb,
@@ -205,18 +210,16 @@ void deployer_base::setup_input(
         write_register( const_ip_address + (active_random_inputs+1)*4, address);
         active_random_inputs++;
 
-        if(core_name.contains("[")){
-            auto index = stoul(core_name.substr(core_name.find_last_of('[')+1, core_name.find_last_of(']')-core_name.find_last_of('[')-1));
-            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(index) + "]";
+        if(is_multichannel){
+            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(target_channel) + "]";
         } else {
             bus_labels[address] = core_name + "." + in.name;
         }
 
     } else if(in.source_type == fcore::waveform_input) {
         uint32_t address =in.address[0] + (target_channel<<16);
-        if(core_name.contains("[")){
-            auto index = stoul(core_name.substr(core_name.find_last_of('[')+1, core_name.find_last_of(']')-core_name.find_last_of('[')-1));
-            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(index) + "]";
+        if(is_multichannel){
+            bus_labels[address] = core_name.substr(0, core_name.find_last_of('[')) + "." + in.name +  + "[" + std::to_string(target_channel) + "]";
         } else {
             bus_labels[address] = core_name + "." + in.name;
         }

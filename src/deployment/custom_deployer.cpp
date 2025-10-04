@@ -76,9 +76,8 @@ responses::response_code custom_deployer::deploy(const nlohmann::json &arguments
         for(int i = 0; i<inputs.size(); i++)  {
             uint64_t complex_base_addr = 1; // this->addresses.bases.cores_control + this->addresses.offsets.cores_control*p.index;
 
-            auto in = inputs[i];
             uint64_t ip_addr;
-            if(in.source_type==fcore::random_input) {
+            if(inputs[i].source_type==fcore::random_input) {
                 ip_addr = complex_base_addr + this->addresses.bases.noise_generator;
             } else {
                 ip_addr = complex_base_addr + this->addresses.bases.cores_inputs;
@@ -87,21 +86,23 @@ responses::response_code custom_deployer::deploy(const nlohmann::json &arguments
             if(inputs[i].data.size()>1 && p.n_channels >1) {
                 for(int j = 0; j<inputs[i].data.size(); j++) {
                     this->setup_input(
-                        in,
+                        inputs[i],
                         ip_addr,
                         i,
                         j,
-                        p.name + "[" + std::to_string(j)  + "]"
+                        p.name,
+                        true
                     );
-                    in.data.erase(in.data.begin());
+                    inputs[i].data.erase(inputs[i].data.begin());
                 }
             } else {
                 this->setup_input(
-                        in,
+                        inputs[i],
                         ip_addr,
                         i,
                         0,
-                        p.name
+                        p.name,
+                        false
                 );
             }
         }

@@ -122,7 +122,6 @@ nlohmann::json cores_endpoints::process_emulate_hil(const nlohmann::json &argume
 nlohmann::json cores_endpoints::process_hil_select_out(const nlohmann::json &arguments) {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    auto dbg = arguments.dump();
     output_specs_t out;
     if(arguments.contains("output")){
         out.core_name = arguments["output"]["core"];
