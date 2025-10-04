@@ -49,7 +49,6 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
     bus_map.clear();
 
     bus_map.set_map(dispatcher.get_interconnect_slots());
-    bus_map.check_conflicts();
 
 
     if(programs.size()>32){

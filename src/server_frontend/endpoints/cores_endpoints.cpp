@@ -96,16 +96,6 @@ nlohmann::json cores_endpoints::process_deploy_hil(const nlohmann::json &argumen
         } else {
             resp["response_code"] = hil.deploy(arguments);
         }
-    } catch (std::domain_error &e) {
-
-        nlohmann::json data;
-        data["response_code"] = responses::as_integer(responses::ok);
-
-        resp["error_code"] = responses::as_integer(responses::hil_bus_conflict_warning);
-        data["error"] = std::string("HIL BUS CONFLICT DETECTED\n");
-        data["duplicates"] = e.what();
-        resp["data"] = data;
-
     } catch (std::runtime_error &e){
 
         nlohmann::json data;

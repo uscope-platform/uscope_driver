@@ -336,3 +336,102 @@ TEST(cores_endpoints, cache_invalidation_hil_sim_data) {
     EXPECT_EQ(inputs_res, inputs_ref);
     EXPECT_EQ(control_res, control_ref);
 }
+
+
+TEST(cores_endpoints, emulate_hil) {
+
+    nlohmann::json command = nlohmann::json::parse(R"(
+    {
+        "version":2,
+        "cores": [
+            {
+                "id": "test",
+                "order": 1,
+                "inputs": [
+                    {
+                        "name": "input_1",
+                        "is_vector": false,
+                        "metadata":{
+                            "type": "float",
+                            "width":16,
+                            "signed":true,
+                            "common_io":false
+                        },
+                        "source": {
+                            "type": "constant",
+                            "value": [
+                                31.2
+                            ]
+                        }
+                    },
+                    {
+                        "name": "input_2",
+                        "is_vector": false,
+                        "metadata":{
+                            "type": "float",
+                            "width":16,
+                            "signed":true,
+                            "common_io":false
+                        },
+                        "source": {
+                            "type": "constant",
+                            "value": [
+                                4
+                            ]
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "out",
+                        "is_vector": false,
+                        "metadata":{
+                            "type": "float",
+                            "width":16,
+                            "signed":true,
+                            "common_io":false
+                        }
+                    }
+                ],
+                "memory_init": [],
+                "channels": 2,
+                "options": {
+                    "comparators": "reducing",
+                    "efi_implementation": "none"
+                },
+                "program": {
+                    "content": "int main(){\n  float input_1;\n  float input_2;\n  float out = input_1 + input_2;\n}",
+                    "headers": []
+                },
+                "sampling_frequency": 1,
+                "deployment": {
+                    "has_reciprocal": false,
+                    "control_address": 18316525568,
+                    "rom_address": 17179869184
+                }
+            }
+        ],
+        "interconnect": [],
+        "emulation_time": 2,
+        "deployment_mode": false
+    }
+    )");
+
+
+    auto ba = std::make_shared<bus_accessor>();
+
+
+    cores_endpoints ep;
+    ep.set_accessor(ba);
+    ep.process_command("emulate-hil", addr_map_v2);
+    auto resp = ep.process_command("emulate_hil", command);
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    std::string raw_result = resp["data"]["results"];
+    auto emulation_result = nlohmann::json::parse(raw_result);
+    auto dbg = emulation_result.dump(4);
+    auto data = emulation_result["test"]["outputs"]["out"]["0"][0];
+    std::vector<float> expected_data = {35.2, 35.2};
+    EXPECT_EQ(data, expected_data);
+    data = emulation_result["test"]["outputs"]["out"]["1"][0];
+    EXPECT_EQ(data, expected_data);
+}

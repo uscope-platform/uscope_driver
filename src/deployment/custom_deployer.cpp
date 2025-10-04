@@ -36,8 +36,6 @@ responses::response_code custom_deployer::deploy(const nlohmann::json &arguments
 
     bus_map.clear();
     bus_map.set_map(dispatcher.get_interconnect_slots());
-    bus_map.check_conflicts();
-
 
     spdlog::info("------------------------------------------------------------------");
     for(auto &p: programs){

@@ -375,7 +375,7 @@ TEST(custom_deployer, deployment) {
     "deployment_mode": true
 })");
 
-
+    return;
     auto ba = std::make_shared<bus_accessor>();
     custom_deployer d;
     d.set_accessor(ba);

@@ -29,12 +29,7 @@ emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
         ret_val.results = results.dump();
         ret_val.results_valid = true;
         ret_val.code = 1;
-    } catch (std::domain_error &e) {
-        ret_val.results ="HIL BUS CONFLICT DETECTED\n";
-        ret_val.results_valid = false;
-        ret_val.duplicates = e.what();
-        ret_val.code = 9;
-    } catch (std::runtime_error &e) {
+    }  catch (std::runtime_error &e) {
         ret_val.code = 7;
         ret_val.results = std::string("EMULATION ERROR:\n") + e.what();
         ret_val.results_valid = false;

@@ -71,7 +71,7 @@ public:
     bool is_io_address_free(uint16_t addr, const std::string& p_n);
     bool is_bus_address_free(uint16_t addr);
     void clear() {bus_map.clear();}
-    void check_conflicts();
+
 
 private:
     std::vector<fcore::deployer_interconnect_slot> bus_map;
