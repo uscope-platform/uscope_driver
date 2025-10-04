@@ -48,10 +48,6 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_set_hil_address_map(arguments);
     }else if(command_string == "get_hil_address_map") {
         return process_get_hil_address_map(arguments);
-    }else if(command_string == "set_debugger_option"){
-        return process_set_debugger_option(arguments);
-    }else if(command_string == "get_debugger_option"){
-        return process_get_debugger_option(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_erorr);
@@ -271,20 +267,3 @@ nlohmann::json cores_endpoints::process_hil_debug(const nlohmann::json &argument
     resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
-
-nlohmann::json cores_endpoints::process_set_debugger_option(const nlohmann::json &arguments) {
-    nlohmann::json resp;
-    std::string opt_name = arguments["name"];
-    nlohmann::json value = arguments["value"];
-    options_rep->set_option(opt_name, value);
-    resp["response_code"] = responses::as_integer(responses::ok);
-    return resp;
-}
-
-nlohmann::json cores_endpoints::process_get_debugger_option(const nlohmann::json &arguments) {
-    nlohmann::json resp;
-    resp["data"] = options_rep->get_option(arguments);
-    resp["response_code"] = responses::as_integer(responses::ok);
-    return resp;
-}
-

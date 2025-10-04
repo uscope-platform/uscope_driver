@@ -20,7 +20,6 @@
 #include <spdlog/spdlog.h>
 #include <bitset>
 
-#include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "emulator/emulator_dispatcher.hpp"
 #include "fCore_isa.hpp"
@@ -39,7 +38,6 @@ class hil_deployer : public deployer_base{
 public:
     hil_deployer();
     explicit hil_deployer(bool fpga_already_deployed) :deployer_base(fpga_already_deployed){}
-    void set_options_repository(std::shared_ptr<options_repository> &rep) {options = rep;};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
     responses::response_code deploy(const nlohmann::json &arguments);
@@ -71,8 +69,6 @@ private:
     std::unordered_map<std::string, uint32_t> execution_order;
 
     double timebase_divider = 1;
-
-    std::shared_ptr<options_repository> options;
 
     bool full_cores_override = true;
 };

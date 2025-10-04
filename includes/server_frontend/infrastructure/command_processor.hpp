@@ -17,7 +17,6 @@
 #include <sstream>
 #include <thread>
 
-#include "options_repository.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "response.hpp"
 #include "command.hpp"
@@ -30,14 +29,13 @@
 
 class command_processor {
 public:
-    command_processor();
+    command_processor() = default;
     void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:
     nlohmann::json process_null();
 
-    std::shared_ptr<options_repository> options_rep;
 
     fpga_bridge hw;
     control_endpoints control_ep;

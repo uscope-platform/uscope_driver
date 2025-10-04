@@ -19,7 +19,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "options_repository.hpp"
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/fpga_bridge.hpp"
@@ -33,11 +32,6 @@ class cores_endpoints {
 public:
     cores_endpoints();
     explicit cores_endpoints(bool fpga_already_loaded):hil(fpga_already_loaded){};
-    void set_options_repository(std::shared_ptr<options_repository> &rep) {
-        options_rep = rep;
-        emulator.set_options_repository(options_rep);
-        hil.set_options_repository(options_rep);
-    };
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, const nlohmann::json &arguments);
 private:
@@ -71,7 +65,6 @@ private:
     };
 
     fpga_bridge hw;
-    std::shared_ptr<options_repository> options_rep;
     hil_deployer hil;
     custom_deployer custom;
 

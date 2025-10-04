@@ -14,14 +14,6 @@
 // limitations under the License.
 #include "server_frontend/infrastructure/command_processor.hpp"
 
-command_processor::command_processor() {
-    options_rep = std::make_shared<options_repository>();
-    cores_ep.set_options_repository(options_rep);
-    scope_ep.set_options_repository(options_rep);
-    control_ep.set_options_repository(options_rep);
-    platform_ep.set_options_repository(options_rep);
-}
-
 /// This function, core of the driver operation, is called upon message reception and parsing, acts as a dispatcher,
 /// sending the command to one of several other functions that will further parse the operands and further call
 /// appropriate functions in the fpga_bridge.c or scope_handler.c files. Process_command also populates

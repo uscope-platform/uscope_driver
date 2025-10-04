@@ -97,7 +97,7 @@ std::string hil_emulator::initialize_emulation(const nlohmann::json &specs) {
 }
 
 std::string hil_emulator::run_emulation() {
-    emu_manager.set_multichannel_debug(options->get_bool_option("multichannel_debug"));
+    emu_manager.set_multichannel_debug(false);
     auto res = emu_manager.emulate();
     if(res.has_value()){
         nlohmann::json val = res.value();

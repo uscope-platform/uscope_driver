@@ -23,7 +23,6 @@
 #include <cstdint>
 #include <utility>
 
-#include "options_repository.hpp"
 #include "emulator/emulator_dispatcher.hpp"
 
 struct emulation_results{
@@ -56,7 +55,6 @@ void to_json(nlohmann::json& j, const emulation_results& p);
 
 class hil_emulator {
 public:
-    void set_options_repository(std::shared_ptr<options_repository> r) {options = std::move(r);};
     std::string run_command(const interactive_command &c);
     emulation_results emulate(const nlohmann::json &specs);
     std::unordered_map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
@@ -70,7 +68,6 @@ private:
     std::string get_breakpoints(const std::string &core_id);
     std::string continue_execution();
 
-    std::shared_ptr<options_repository> options;
 
 };
 
