@@ -333,3 +333,61 @@ TEST(cores_endpoints, select_output) {
     EXPECT_EQ(ops[23].address[0], 0x443c00010);
     EXPECT_EQ(ops[23].data[0], 2);
 }
+
+
+TEST(cores_endpoints, get_address_map) {
+    nlohmann::json command = nlohmann::json::parse(default_hil_spec);
+
+
+    auto ba = std::make_shared<bus_accessor>();
+
+
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+    ep.process_command("set_hil_address_map", addr_map_v2);
+    auto resp = ep.process_command("get_hil_address_map", {});
+
+    auto dbg = resp.dump(4);
+
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    EXPECT_EQ(resp["data"], addr_map_v2);
+}
+
+TEST(cores_endpoints, hil_debug) {
+
+    nlohmann::json spec = nlohmann::json::parse(default_hil_spec);
+
+
+    auto ba = std::make_shared<bus_accessor>();
+
+
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+    ep.process_command("set_hil_address_map", addr_map_v2);
+
+    nlohmann::json payload;
+    payload["command"] = "initialize";
+    payload["arguments"] = spec;
+    auto resp = ep.process_command("hil_debug", payload);
+    auto dbg = resp.dump(4);
+    EXPECT_EQ(resp["response_code"], responses::ok);
+}
+
+
+TEST(cores_endpoints, hil_disassemble) {
+
+    nlohmann::json command = nlohmann::json::parse(default_hil_spec);
+
+
+    auto ba = std::make_shared<bus_accessor>();
+
+
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+    ep.process_command("set_hil_address_map", addr_map_v2);
+    auto resp = ep.process_command("hil_disassemble", command);
+    auto out = resp.dump(0);
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    auto expected_out = "{\n\"data\": {\n\"test\": {\n\"common_io_translation_table\": [],\n\"program\": \"add r2, r1, r3\\nstop\\n\",\n\"translation_table\": [\n[\n1,\n{\n\"address\": 3,\n\"name\": \"out\"\n}\n],\n[\n2,\n{\n\"address\": 1,\n\"name\": \"input_2\"\n}\n],\n[\n3,\n{\n\"address\": 2,\n\"name\": \"input_1\"\n}\n]\n]\n}\n},\n\"response_code\": 1\n}";
+    EXPECT_EQ(out, expected_out);
+}
