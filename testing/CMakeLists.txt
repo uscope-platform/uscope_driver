@@ -5,6 +5,7 @@ set(TEST_SOURCES
         deployment/emulation.cpp
         deployment/fpga_bridge.cpp
         endpoints/cores_endpoints.cpp
+        endpoints/control_endpoints.cpp
         )
 
 set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)

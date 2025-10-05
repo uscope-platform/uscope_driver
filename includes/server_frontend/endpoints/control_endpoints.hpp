@@ -27,6 +27,7 @@
 class control_endpoints {
 public:
     control_endpoints() = default;
+    explicit control_endpoints(bool fpga_already_loaded):hw(fpga_already_loaded){}
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, nlohmann::json &arguments);
 private:

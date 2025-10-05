@@ -208,6 +208,24 @@ TEST(cores_endpoints, deploy_hil) {
 };
 
 
+TEST(cores_endpoints, deploy_hil_error) {
+    nlohmann::json command = nlohmann::json::parse(default_hil_spec);
+
+    command["cores"][0]["order"] = "fs";
+
+    auto ba = std::make_shared<bus_accessor>();
+
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+    ep.process_command("set_hil_address_map", addr_map_v2);
+    auto resp = ep.process_command("deploy_hil", command);
+
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    EXPECT_EQ(resp["data"]["error"], "HIL DEPLOYMENT ERROR:\nFailed to validate emulator schema");
+    EXPECT_EQ(resp["data"]["error_code"], responses::deployment_error);
+};
+
+
 TEST(cores_endpoints, emulate_hil) {
 
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
