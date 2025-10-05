@@ -33,7 +33,7 @@ nlohmann::json platform_endpoints::process_command(const std::string &command_st
         return process_get_debug_level(arguments);
     } else {
         nlohmann::json resp;
-        resp["response_code"] = responses::as_integer(responses::internal_erorr);
+        resp["response_code"] = responses::as_integer(responses::internal_error);
         resp["data"] = "DRIVER ERROR: Internal driver error\n";
         return resp;
     }

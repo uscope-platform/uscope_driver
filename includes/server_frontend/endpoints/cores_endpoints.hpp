@@ -30,7 +30,7 @@
 
 class cores_endpoints {
 public:
-    cores_endpoints();
+    cores_endpoints() = default;
     explicit cores_endpoints(bool fpga_already_loaded):hil(fpga_already_loaded){};
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
     nlohmann::json process_command(const std::string& command_string, const nlohmann::json &arguments);

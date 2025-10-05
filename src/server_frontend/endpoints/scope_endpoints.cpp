@@ -33,7 +33,7 @@ nlohmann::json scope_endpoints::process_command(std::string command_string, nloh
         return process_set_scope_address(arguments);
     }else {
         nlohmann::json resp;
-        resp["response_code"] = responses::as_integer(responses::internal_erorr);
+        resp["response_code"] = responses::as_integer(responses::internal_error);
         resp["data"] = "DRIVER ERROR: Internal driver error\n";
         return resp;
     }

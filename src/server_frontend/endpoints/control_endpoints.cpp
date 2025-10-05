@@ -29,7 +29,7 @@ nlohmann::json control_endpoints::process_command(const std::string& command_str
         return process_apply_filter(arguments);
     } else {
         nlohmann::json resp;
-        resp["response_code"] = responses::as_integer(responses::internal_erorr);
+        resp["response_code"] = responses::as_integer(responses::internal_error);
         resp["data"] = "DRIVER ERROR: Internal driver error\n";
         return resp;
     }

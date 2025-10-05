@@ -17,8 +17,6 @@
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 
 
-cores_endpoints::cores_endpoints() {
-}
 
 
 nlohmann::json cores_endpoints::process_command(const std::string& command_string, const nlohmann::json &arguments) {
@@ -50,7 +48,7 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_get_hil_address_map(arguments);
     } else {
         nlohmann::json resp;
-        resp["response_code"] = responses::as_integer(responses::internal_erorr);
+        resp["response_code"] = responses::as_integer(responses::internal_error);
         resp["data"] = "DRIVER ERROR: Internal driver error\n";
         return resp;
     }
