@@ -46,7 +46,7 @@ public:
     void set_input(const std::string &core,  const std::string &name, uint16_t channel, double value);
     void start();
     void stop();
-
+    float get_sampling_frequency() const;
     hardware_sim_data_t get_hardware_sim_data(const nlohmann::json &specs);
 private:
 

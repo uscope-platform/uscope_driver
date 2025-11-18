@@ -46,6 +46,8 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_set_hil_address_map(arguments);
     }else if(command_string == "get_hil_address_map") {
         return process_get_hil_address_map(arguments);
+    } else if(command_string == "get_sampling_frequency") {
+        return process_get_sampling_frequency();
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_error);
@@ -145,6 +147,13 @@ nlohmann::json cores_endpoints::process_hil_start() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
     hil.start();
+    return resp;
+}
+
+nlohmann::json cores_endpoints::process_get_sampling_frequency() {
+    nlohmann::json resp;
+    resp["response_code"] = responses::ok;
+    resp["data"] = hil.get_sampling_frequency();
     return resp;
 }
 

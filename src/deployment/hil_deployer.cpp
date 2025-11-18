@@ -196,6 +196,10 @@ void hil_deployer::stop() {
     this->write_register(this->addresses.bases.hil_control, 0);
 }
 
+float hil_deployer::get_sampling_frequency() const {
+    return timebase_frequency == 0 ? timebase_frequency : timebase_frequency;
+}
+
 hardware_sim_data_t hil_deployer::get_hardware_sim_data(const nlohmann::json &specs) {
     hardware_sim_data_t sim_data;
     if(deployed_hash != std::hash<nlohmann::json>{}(specs)) {

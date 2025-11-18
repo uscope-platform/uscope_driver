@@ -46,12 +46,11 @@ private:
     nlohmann::json process_hil_debug(const nlohmann::json &arguments);
     nlohmann::json process_hil_stop();
     nlohmann::json process_hil_start();
+    nlohmann::json process_get_sampling_frequency();
 
     nlohmann::json process_set_hil_address_map(const nlohmann::json &arguments);
     nlohmann::json process_get_hil_address_map(const nlohmann::json &arguments);
 
-    nlohmann::json process_set_debugger_option(const nlohmann::json &arguments);
-    nlohmann::json process_get_debugger_option(const nlohmann::json &arguments);
 
 
 
