@@ -57,7 +57,7 @@ class hil_emulator {
 public:
     std::string run_command(const interactive_command &c);
     emulation_results emulate(const nlohmann::json &specs);
-    std::unordered_map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
+    std::map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
 private:
     fcore::emulator_dispatcher emu_manager;
     std::string initialize_emulation(const nlohmann::json &specs);

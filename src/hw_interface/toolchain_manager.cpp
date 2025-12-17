@@ -29,7 +29,8 @@ toolchain_manager::compile(std::string content, nlohmann::json h, nlohmann::json
     fcore::fcore_cc cc(c, headers);
     auto map = fcore::fcore_cc::load_iom_map(io);
     cc.set_dma_map(map);
-    if(!cc.compile()){
+    //TODO: EVALUATE WHETHER TO PLUmb this in or to kick it out
+    if(!cc.compile(1)){
         throw std::runtime_error(cc.get_errors());
     }
     return cc.get_executable();

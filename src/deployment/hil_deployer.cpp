@@ -153,9 +153,9 @@ uint32_t hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
             if(skip_next){
                 skip_next = false;
                 continue;
-            } if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["ldc"]){
+            } if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes[fcore::opcode_ldc]){
                 skip_next = true;
-            }if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes["rec"]) {
+            }if((instr & ((1<<fcore::fcore_opcode_width)-1)) == fcore::fcore_opcodes[fcore::opcode_rec]) {
                 rec_present = true;
             }
         }

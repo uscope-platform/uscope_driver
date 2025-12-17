@@ -36,8 +36,13 @@ bus_accessor::bus_accessor() {
 
     signal(SIGSEGV,sigsegv_handler);
     signal(SIGBUS,sigbus_handler);
-
-    std::string arch = std::getenv("ARCH");
+    std::string arch;
+    if (const char * env_val = std::getenv("ARCH")) {
+        arch = env_val;
+    } else {
+        spdlog::error("The architecture must be selected with the ARCH environment variable");
+        exit(-1);
+    }
     if(arch == "zynqmp"){
         control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
         core_addr = ZYNQMP_FCORE_BASE_ADDR;

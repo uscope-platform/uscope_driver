@@ -25,6 +25,7 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
         GTest::gmock
         GTest::gmock_main
         CLI11::CLI11
+        asio::asio
         )
 
 target_include_directories(test_target PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)

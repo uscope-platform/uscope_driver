@@ -37,7 +37,7 @@ emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
     return ret_val;
 }
 
-std::unordered_map<std::string, fcore::disassembled_program> hil_emulator::disassemble(const nlohmann::json &specs) {
+std::map<std::string, fcore::disassembled_program> hil_emulator::disassemble(const nlohmann::json &specs) {
     emu_manager.set_specs(specs);
     return emu_manager.disassemble();
 }
