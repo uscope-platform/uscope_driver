@@ -69,6 +69,24 @@ set(DRIVER_SOURCES /
         includes/hw_interface/bus/scope_accessor.hpp
 )
 
+set(DRIVER_VERSION_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/generated/driver_version.cpp)
+
+# Generate a single translation unit holding the build version strings. The
+# script only rewrites the file when its content changes (preserving the mtime),
+# so rebuilding after a commit recompiles just this one TU instead of every TU
+# that includes the stable driver_version.h header. Runs for all build types so
+# the Debug build works out of the box too.
+add_custom_target(driver_version_generation ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/generated
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py ${DRIVER_VERSION_SOURCE} ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    BYPRODUCTS ${DRIVER_VERSION_SOURCE}
+    COMMENT "Generating driver version source"
+    VERBATIM
+)
+
+set_source_files_properties(${DRIVER_VERSION_SOURCE} PROPERTIES GENERATED TRUE)
+
 
 
 add_executable(uscope_driver src/uscope_driver.cpp ${DRIVER_SOURCES})
@@ -86,26 +104,13 @@ target_link_libraries(uscope_driver PRIVATE
 
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
 
+target_sources(uscope_driver PRIVATE ${DRIVER_VERSION_SOURCE})
+add_dependencies(uscope_driver driver_version_generation)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
 else()
     enable_testing()
     add_subdirectory(testing)
-endif(CMAKE_BUILD_TYPE STREQUAL "Release")
-
-add_custom_target(update_version
-    COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Version Header Update"
-)
-
-add_custom_command(
-        TARGET update_version
-        PRE_BUILD
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/update_version.py  ${CMAKE_SOURCE_DIR}/includes/driver_version.h
-        VERBATIM
-)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_dependencies(uscope_driver update_version)
 endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 if(NOT ${EXCLUDE_KERNEL_EMU})

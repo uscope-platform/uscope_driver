@@ -30,5 +30,9 @@ target_link_libraries(test_target PUBLIC ${GTEST_LIBRARIES}
 
 target_include_directories(test_target PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
 
+set_source_files_properties(${DRIVER_VERSION_SOURCE} PROPERTIES GENERATED TRUE)
+target_sources(test_target PRIVATE ${DRIVER_VERSION_SOURCE})
+add_dependencies(test_target driver_version_generation)
+
 include(GoogleTest)
 gtest_discover_tests(test_target)

@@ -73,8 +73,8 @@ CMakeFiles/
 
 CMakeUserPresets.json
 
-includes/driver_version.h
-
 cmake-build-release/
 
 cmake-build-debug-llvm/
+
+generated/
