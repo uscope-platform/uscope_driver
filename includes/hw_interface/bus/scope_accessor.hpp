@@ -16,6 +16,7 @@
 #define USCOPE_DRIVER_SCOPE_ACCESSOR_HPP
 
 #include <spdlog/spdlog.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include "hw_interface/interfaces_dictionary.hpp"
 

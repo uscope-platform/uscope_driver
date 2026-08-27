@@ -99,7 +99,7 @@ std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::s
         std::error_code error;
         cur_size = s.read_some(asio::buffer(chunk_buffer), error);
         if(error)  {
-            if(error == asio::stream_errc::eof) throw std::system_error();
+            if(error == asio::stream_errc::eof) throw std::system_error(asio::error::make_error_code(asio::stream_errc::eof));
             throw std::runtime_error(error.message());
         }
         std::ranges::copy(chunk_buffer, message_buffer.begin() + transfer_progressive);
@@ -131,7 +131,7 @@ void server_connector::wait_ack(asio::ip::tcp::socket &s) {
         std::error_code error;
         cur_size += s.read_some(asio::buffer(raw_command_size, 1), error);
         if(error) {
-            if(error == asio::stream_errc::eof) throw std::system_error();
+            if(error == asio::stream_errc::eof) throw std::system_error(asio::error::make_error_code(asio::stream_errc::eof));
             throw std::runtime_error(error.message());
         }
     }

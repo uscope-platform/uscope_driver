@@ -20,6 +20,7 @@
 #include <csignal>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include <spdlog/spdlog.h>
 
 #include "hw_interface/interfaces_dictionary.hpp"
