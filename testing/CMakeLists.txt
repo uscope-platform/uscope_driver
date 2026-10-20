@@ -6,6 +6,7 @@ set(TEST_SOURCES
         deployment/fpga_bridge.cpp
         endpoints/cores_endpoints.cpp
         endpoints/control_endpoints.cpp
+        endpoints/server_connector.cpp
         )
 
 set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)
@@ -35,4 +36,8 @@ target_sources(test_target PRIVATE ${DRIVER_VERSION_SOURCE})
 add_dependencies(test_target driver_version_generation)
 
 include(GoogleTest)
-gtest_discover_tests(test_target)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+    gtest_discover_tests(test_target DISCOVERY_MODE PRE_TEST)
+else()
+    gtest_discover_tests(test_target)
+endif()

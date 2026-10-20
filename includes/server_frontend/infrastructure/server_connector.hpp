@@ -36,7 +36,10 @@
 #include "configuration.hpp"
 
 
-constexpr uint32_t max_msg_size = 1 << 16;
+// Hard upper bound for a single incoming message. Large enough for any command
+// payload (e.g. base64-encoded bitstreams) while remaining a finite, checkable
+// limit. The receive buffer is sized on demand, not pre-allocated to this size.
+constexpr uint32_t max_msg_size = 1 << 30;
 
 class server_connector {
 public:
@@ -48,7 +51,6 @@ public:
     void ack_message(asio::ip::tcp::socket &s);
     void wait_ack(asio::ip::tcp::socket &s);
 private:
-    uint32_t  max_msg_size = 1 << 30;
     command_processor core_processor;
     std::array<char, 65536> chunk_buffer;
     std::vector<char> message_buffer;
