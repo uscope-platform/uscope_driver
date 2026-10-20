@@ -1327,7 +1327,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
     EXPECT_EQ(ops[20].data[0], 0);
 
     EXPECT_EQ(ops[21].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.threshold_2);
-    EXPECT_EQ(ops[21].data[0], 185);
+    EXPECT_EQ(ops[21].data[0], 174);
 
     EXPECT_EQ(ops[22].address[0], addr_map.bases.controller + addr_map.offsets.timebase + enable_gen_regs.period);
     EXPECT_EQ(ops[22].data[0], 100'000'000);
@@ -3329,7 +3329,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0xF0005,
+            0xE0005,
             0xc,
             0x20001,
             0x3F0002,
@@ -3340,7 +3340,6 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
             0x61021,
             0, 0, 0,
             0x7E1FE1,
-            0,
             0x26,
             0x40000000,
             0, 0,
@@ -3726,7 +3725,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
     auto ops = ba->get_operations();
 
     std::vector<uint64_t> reference_program = {
-            0xf0005,
+            0xe0005,
             0xc,
             0x10001,
             0x20002,
@@ -3737,7 +3736,6 @@ TEST(deployer_v2, multichannel_random_inputs) {
             0x61021,
             0, 0, 0,
             0x7E1FE1,
-            0,
             0x26,
             0x40000000,
             0, 0,
