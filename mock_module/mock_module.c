@@ -69,6 +69,7 @@ struct scope_device_data {
     struct cdev cdevs[N_MINOR_NUMBERS];
     u32 *read_data_buffer;
     dma_addr_t physaddr;
+    wait_queue_head_t poll_queue;
     int new_data_available;
     struct clk *fclk[4];
     bool is_zynqmp;
@@ -114,7 +115,9 @@ static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * po
     int minor = MINOR(flip->f_inode->i_rdev);
     if(minor == 0){
         __poll_t mask = 0;
-        mask |= POLLIN | POLLRDNORM;
+        poll_wait(flip, &dev_data->poll_queue, poll_struct);
+        if (READ_ONCE(dev_data->new_data_available))
+            mask |= EPOLLIN | EPOLLRDNORM;
         return mask;
     }
     return 0;
@@ -194,9 +197,11 @@ static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len
 
     	to_copy = len;
 
+
     	if (copy_from_user(dev_data->read_data_buffer, buffer, to_copy))
         	return -EFAULT;
-
+	    WRITE_ONCE(dev_data->new_data_available,1);
+	    wake_up_interruptible(&dev_data->poll_queue);
     	return to_copy;
 	}else if(minor ==3){
 		pr_info("%s: Receiving bitstream\n", __func__);
@@ -236,7 +241,8 @@ static struct file_operations file_ops = {
 
 
 
-static int __init ucube_lkm_init(void) {
+static int __init ucube_lkm_init(void)
+{
     int dev_rc;
     int major;
     int cdev_rcs[N_MINOR_NUMBERS];
@@ -262,6 +268,7 @@ static int __init ucube_lkm_init(void) {
     }
 
     dev_data = kzalloc(sizeof(*dev_data), GFP_KERNEL);
+    init_waitqueue_head(&dev_data->poll_queue);
     dev_data->new_data_available = 0;
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
@@ -273,8 +280,8 @@ static int __init ucube_lkm_init(void) {
         cdev_init(&dev_data->cdevs[i], &file_ops);
         cdev_rcs[i] = cdev_add(&dev_data->cdevs[i], devices[i], 1);
         if (cdev_rcs[i]) {
-        pr_info("%s: Failed in adding cdev[%d] to subsystem "
-                "retval:%d\n", __func__, i, cdev_rcs[i]);
+            pr_info("%s: Failed in adding cdev[%d] to subsystem "
+                    "retval:%d\n", __func__, i, cdev_rcs[i]);
         }
         else {
             device_create(uCube_class, NULL, devices[i], NULL, device_names[i]);
@@ -285,9 +292,9 @@ static int __init ucube_lkm_init(void) {
 
     char name[16];
 
-	for(int i = 0; i< 4; i++){
+    for(int i = 0; i< 4; i++){
         snprintf(name, sizeof(name), "fclk%d", i);
-	    fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
+        fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
         if (IS_ERR(fclk_devs[0])) {
             int rc = PTR_ERR(fclk_devs[0]);
             class_destroy(uCube_class);
@@ -296,17 +303,17 @@ static int __init ucube_lkm_init(void) {
         }
 
         int rc = device_create_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
-		if (rc) {
-      		pr_err("%s: Failed to create fclk interface\nError:%d\n", __func__, rc);
-       		return dev_rc;
-    	}
-	}
+        if (rc) {
+            pr_err("%s: Failed to create fclk interface\nError:%d\n", __func__, rc);
+            return dev_rc;
+        }
+    }
 
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
-	bitstream_buffer = vmalloc(BITSTREAM_SIZE);
+    bitstream_buffer = vmalloc(BITSTREAM_SIZE);
     pr_warn("%s: Allocated dma buffer at: %llu\n", __func__, dev_data->physaddr);;
-
+    /*SETUP POLL WAIT QUEUE*/
     return 0;
 }
 
