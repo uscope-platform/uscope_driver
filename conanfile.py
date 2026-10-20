@@ -10,6 +10,7 @@ class BasicConanfile(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeToolchain", "CMakeDeps"
+    default_options = {"boost/*:header_only": True}
 
     def requirements(self):
         self.requires("cli11/2.5.0")
@@ -20,6 +21,7 @@ class BasicConanfile(ConanFile):
         self.requires("antlr4-cppruntime/4.13.2")
         self.requires("asio/1.36.0")
         self.requires("cppcodec/0.2")
+        self.requires("boost/1.88.0")
 
     def build_requirements(self):
         pass

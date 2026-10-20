@@ -38,6 +38,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(GTest REQUIRED)
 find_package(cppcodec REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
 
 # compiles code files from ./src folder
 file(GLOB INC_SOURCES "includes/*.h*")
@@ -100,6 +101,7 @@ target_link_libraries(uscope_driver PRIVATE
         fcore_emu_lib_gp
         fcore_emu_lib
         asio::asio
+        Boost::headers
 )
 
 target_include_directories(uscope_driver PRIVATE ${fCore_toolchain_SOURCE_DIR}/includes)
@@ -178,7 +180,7 @@ add_custom_target(mock_dev_sources ALL
 
 # Build the kernel module
 add_custom_target(mock_dev_ko ALL
-        COMMAND ${CMAKE_MAKE_PROGRAM} -C ${KERNEL_DIR} M=${MODULE_BUILD_DIR} modules
+        COMMAND make -C ${KERNEL_DIR} M=${MODULE_BUILD_DIR} modules
         WORKING_DIRECTORY ${MODULE_BUILD_DIR}
         COMMENT "Building mock_module.ko"
 )

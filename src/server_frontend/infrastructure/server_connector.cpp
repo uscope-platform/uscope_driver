@@ -34,11 +34,11 @@ void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, c
 void server_connector::start_server() {
 
 
-    asio::io_context io_context;
-    asio::ip::tcp::acceptor a(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::tcp::v4(), runtime_config.server_port));
+    boost::asio::io_context io_context;
+    boost::asio::ip::tcp::acceptor a(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::tcp::v4(), runtime_config.server_port));
 
     while (!server_stop_req){
-        asio::ip::tcp::socket s(io_context);
+        boost::asio::ip::tcp::socket s(io_context);
         spdlog::info("The server is ready to accept connections");
         a.accept(s);
 
@@ -78,15 +78,15 @@ void server_connector::start_server() {
 }
 
 
-std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::socket &s) {
+std::optional<nlohmann::json> server_connector::receive_command(boost::asio::ip::tcp::socket &s) {
 
     uint32_t message_size;
     do{
         std::array<uint8_t, 4> raw_command_size{};
-        std::error_code error;
-        asio::read(s, asio::buffer(raw_command_size), error);
+        boost::system::error_code error;
+        boost::asio::read(s, boost::asio::buffer(raw_command_size), error);
         if(error){
-            if(error == asio::error::eof) return {};
+            if(error == boost::asio::error::eof) return {};
             throw std::runtime_error(error.message());
         }
         ack_message(s);
@@ -107,10 +107,10 @@ std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::s
 
     size_t transfer_progressive = 0;
     while(transfer_progressive < message_size){
-        std::error_code error;
-        size_t cur_read = s.read_some(asio::buffer(chunk_buffer), error);
+        boost::system::error_code error;
+        size_t cur_read = s.read_some(boost::asio::buffer(chunk_buffer), error);
         if(error)  {
-            if(error == asio::stream_errc::eof) throw std::system_error(asio::error::make_error_code(asio::stream_errc::eof));
+            if(error == boost::asio::stream_errc::eof) throw std::system_error(boost::asio::error::make_error_code(boost::asio::stream_errc::eof));
             throw std::runtime_error(error.message());
         }
         if(cur_read == 0) throw std::runtime_error("Connection closed while receiving message payload");
@@ -124,26 +124,26 @@ std::optional<nlohmann::json> server_connector::receive_command(asio::ip::tcp::s
     return nlohmann::json::from_msgpack(message);
 }
 
-void server_connector::send_response(asio::ip::tcp::socket &s, const nlohmann::json &j) {
+void server_connector::send_response(boost::asio::ip::tcp::socket &s, const nlohmann::json &j) {
     auto raw_response = nlohmann::json::to_msgpack(j);
     uint32_t resp_size = raw_response.size();
     std::array<uint8_t, 4> raw_resp_size{};
     std::memcpy(raw_resp_size.data(), &resp_size, sizeof(resp_size));
-    s.send(asio::buffer(raw_resp_size));
+    s.send(boost::asio::buffer(raw_resp_size));
     wait_ack(s);
-    s.send(asio::buffer(raw_response));
+    s.send(boost::asio::buffer(raw_response));
 }
 
-void server_connector::ack_message(asio::ip::tcp::socket &s) {
-    s.send(asio::buffer("k",1));
+void server_connector::ack_message(boost::asio::ip::tcp::socket &s) {
+    s.send(boost::asio::buffer("k",1));
 }
 
-void server_connector::wait_ack(asio::ip::tcp::socket &s) {
+void server_connector::wait_ack(boost::asio::ip::tcp::socket &s) {
     std::array<uint8_t, 1> raw_command_size{};
-    std::error_code error;
-    asio::read(s, asio::buffer(raw_command_size), error);
+    boost::system::error_code error;
+    boost::asio::read(s, boost::asio::buffer(raw_command_size), error);
     if(error) {
-        if(error == asio::error::eof) throw std::system_error(asio::error::make_error_code(asio::error::eof));
+        if(error == boost::asio::error::eof) throw std::system_error(boost::asio::error::make_error_code(boost::asio::error::eof));
         throw std::runtime_error(error.message());
     }
 }

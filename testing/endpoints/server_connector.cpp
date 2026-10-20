@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 #include <gtest/gtest.h>
-#include <asio.hpp>
+#include <boost/asio.hpp>
 #include <array>
 #include <cstring>
 #include <cstdlib>
@@ -21,9 +21,9 @@
 #include "server_frontend/infrastructure/server_connector.hpp"
 
 
-static void setup_socket_pair(asio::io_context &io, asio::ip::tcp::socket &server_side, asio::ip::tcp::socket &client_side) {
-    asio::ip::tcp::acceptor acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 0));
-    acceptor.async_accept(server_side, [](const asio::error_code &) {});
+static void setup_socket_pair(boost::asio::io_context &io, boost::asio::ip::tcp::socket &server_side, boost::asio::ip::tcp::socket &client_side) {
+    boost::asio::ip::tcp::acceptor acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 0));
+    acceptor.async_accept(server_side, [](const boost::system::error_code &) {});
     client_side.connect(acceptor.local_endpoint());
     io.run();
 }
@@ -31,9 +31,9 @@ static void setup_socket_pair(asio::io_context &io, asio::ip::tcp::socket &serve
 
 TEST(server_connector, oversized_message_rejected) {
     setenv("ARCH", "zynqmp", 1);
-    asio::io_context io;
-    asio::ip::tcp::socket server_side(io);
-    asio::ip::tcp::socket client_side(io);
+    boost::asio::io_context io;
+    boost::asio::ip::tcp::socket server_side(io);
+    boost::asio::ip::tcp::socket client_side(io);
     setup_socket_pair(io, server_side, client_side);
 
     server_connector sc;
@@ -41,7 +41,7 @@ TEST(server_connector, oversized_message_rejected) {
     uint32_t oversized = max_msg_size + 1;
     std::array<uint8_t, 4> raw_len{};
     std::memcpy(raw_len.data(), &oversized, sizeof(oversized));
-    client_side.send(asio::buffer(raw_len));
+    client_side.send(boost::asio::buffer(raw_len));
 
     EXPECT_THROW(sc.receive_command(server_side), std::runtime_error);
 
@@ -51,9 +51,9 @@ TEST(server_connector, oversized_message_rejected) {
 
 TEST(server_connector, clean_disconnect_during_length_read) {
     setenv("ARCH", "zynqmp", 1);
-    asio::io_context io;
-    asio::ip::tcp::socket server_side(io);
-    asio::ip::tcp::socket client_side(io);
+    boost::asio::io_context io;
+    boost::asio::ip::tcp::socket server_side(io);
+    boost::asio::ip::tcp::socket client_side(io);
     setup_socket_pair(io, server_side, client_side);
 
     server_connector sc;
@@ -67,9 +67,9 @@ TEST(server_connector, clean_disconnect_during_length_read) {
 
 TEST(server_connector, valid_message_received) {
     setenv("ARCH", "zynqmp", 1);
-    asio::io_context io;
-    asio::ip::tcp::socket server_side(io);
-    asio::ip::tcp::socket client_side(io);
+    boost::asio::io_context io;
+    boost::asio::ip::tcp::socket server_side(io);
+    boost::asio::ip::tcp::socket client_side(io);
     setup_socket_pair(io, server_side, client_side);
 
     server_connector sc;
@@ -79,8 +79,8 @@ TEST(server_connector, valid_message_received) {
     uint32_t size = payload.size();
     std::array<uint8_t, 4> raw_len{};
     std::memcpy(raw_len.data(), &size, sizeof(size));
-    client_side.send(asio::buffer(raw_len));
-    client_side.send(asio::buffer(payload));
+    client_side.send(boost::asio::buffer(raw_len));
+    client_side.send(boost::asio::buffer(payload));
 
     auto received = sc.receive_command(server_side);
     ASSERT_TRUE(received.has_value());
