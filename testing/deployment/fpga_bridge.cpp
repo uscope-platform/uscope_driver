@@ -244,7 +244,7 @@ TEST(fpga_bridge, fpga_loading) {
 
     std::ofstream o("/tmp/test.bit");
     o = std::ofstream(if_dict.get_fpga_state_if());
-    o << "operating"<<std::endl;
+    o << "1"<<std::endl;
     o.close();
     auto resp = bridge.load_bitstream("/tmp/test.bit");
 

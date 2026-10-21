@@ -31,10 +31,8 @@ fpga_bridge::fpga_bridge() {
     }
     arch = raw_arch;
 
-    std::string state;
     std::ifstream ifs(if_dict.get_fpga_state_if());
-    ifs >> state;
-    if(state == "operating"){
+    if(ifs.get() == '1'){
         fpga_loaded = true;
     } else {
         spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");

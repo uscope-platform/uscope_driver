@@ -67,8 +67,8 @@ public:
 private:
 
     std::unordered_map<std::string, std::string> fpga_manager_state_if = {
-            {"zynq", "/sys/class/fpga_manager/fpga0/state"},
-            {"zynqmp", "/sys/class/fpga_manager/fpga0/state"},
+            {"zynq", "/dev/uscope_bitstream"},
+            {"zynqmp", "/dev/uscope_bitstream"},
             {"emulate", "/dev/zero"},
             {"testing", "/tmp/fpga_manager_state"}
     };
