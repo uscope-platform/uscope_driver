@@ -27,7 +27,11 @@ public:
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
     std::array<uint64_t, n_channels*buffer_size> get_scope_data();
+    /// Blocks for at most timeout_ms waiting for the kernel module to signal a new buffer
+    /// \return true if a new buffer is available to be read
+    bool wait_for_data(int timeout_ms);
 private:
+    static constexpr unsigned long ioctl_new_data_available = 1;
     static constexpr  int internal_buffer_size = n_channels*buffer_size;
     volatile int fd_data;
 };
