@@ -40,7 +40,12 @@ void server_connector::start_server() {
     while (!server_stop_req){
         boost::asio::ip::tcp::socket s(io_context);
         spdlog::info("The server is ready to accept connections");
-        a.accept(s);
+        boost::system::error_code accept_error;
+        a.accept(s, accept_error);
+        if(accept_error){
+            if(accept_error == boost::asio::error::interrupted) continue;
+            throw boost::system::system_error(accept_error);
+        }
 
         auto  remote_ep = s.remote_endpoint();
         auto remote_ad = remote_ep.address();

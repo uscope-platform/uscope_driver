@@ -24,13 +24,10 @@ configuration runtime_config;
 
 interfaces_dictionary if_dict;
 
-/// Handler for SIGINT in order to stop the event loop on CTRL+C
+/// Handler for SIGINT/SIGTERM, only requests the server to stop so that main can return and tear everything down
 /// \param args
 void intHandler(int args) {
-    if (emulator_fd != nullptr) {
-        pclose(emulator_fd);
-    }
-    exit(0);
+    server_stop_req = true;
 }
 
 
@@ -63,9 +60,13 @@ int main (int argc, char **argv) {
     }
 
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT, intHandler);
-    signal(SIGTERM,intHandler);
-    signal(SIGKILL,intHandler);
+
+    // no SA_RESTART: the blocking accept/read in the server must be interrupted by the signal
+    struct sigaction stop_action{};
+    stop_action.sa_handler = intHandler;
+    sigemptyset(&stop_action.sa_mask);
+    sigaction(SIGINT, &stop_action, nullptr);
+    sigaction(SIGTERM, &stop_action, nullptr);
 
 
     if (const char * arch = std::getenv("ARCH")) {
@@ -106,6 +107,10 @@ int main (int argc, char **argv) {
 
     connector.set_interfaces(ba, sa);
     connector.start_server();
+
+    if (emulator_fd != nullptr) {
+        pclose(emulator_fd);
+    }
 
 
     return 0;

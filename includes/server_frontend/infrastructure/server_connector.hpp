@@ -17,6 +17,7 @@
 #define USCOPE_DRIVER_SERVER_HANDLER_HPP
 
 #include <cstdint>
+#include <atomic>
 
 
 #include <iostream>
@@ -40,6 +41,9 @@
 // payload (e.g. base64-encoded bitstreams) while remaining a finite, checkable
 // limit. The receive buffer is sized on demand, not pre-allocated to this size.
 constexpr uint32_t max_msg_size = 1 << 30;
+
+/// Set (also from signal handlers) to make the server loop return
+extern std::atomic_bool server_stop_req;
 
 class server_connector {
 public:
