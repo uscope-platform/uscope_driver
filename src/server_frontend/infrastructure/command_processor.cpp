@@ -28,8 +28,6 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
 
     if(commands::control_commands.contains(command_string)){
         response_obj["body"] = control_ep.process_command(command_string, arguments);
-    } else if(commands::scope_commands.contains(command_string)){
-        response_obj["body"] = scope_ep.process_command(command_string, arguments);
     } else if(commands::core_commands.contains(command_string)) {
         response_obj["body"] = cores_ep.process_command(command_string, arguments);
     } else if(commands::platform_commands.contains(command_string)){
@@ -37,6 +35,8 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
     } else if(commands::infrastructure_commands.contains(command_string)){
         if(command_string == "null"){
             response_obj["body"] = process_null();
+        } else if(command_string == "scope_ticket_add"){
+            response_obj["body"] = process_scope_ticket_add(arguments);
         }
     } else{
         response_obj["body"] = nlohmann::json();
@@ -54,9 +54,36 @@ nlohmann::json command_processor::process_null() {
     return resp;
 }
 
-void command_processor::setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
+/// Registers the one time ticket that lets a client open the scope websocket
+/// \param arguments object with the ticket (string), the role of the user (string) and optionally ttl (seconds)
+nlohmann::json command_processor::process_scope_ticket_add(nlohmann::json &arguments) {
+    nlohmann::json resp;
+    constexpr size_t min_ticket_length = 16;
+    constexpr int default_ttl = 60;
+    constexpr int max_ttl = 300;
 
-    scope_ep.set_accessor(ba,sa);
+    if(!arguments.is_object() || !arguments.contains("ticket") || !arguments["ticket"].is_string()
+       || !arguments.contains("role") || !arguments["role"].is_string()
+       || (arguments.contains("ttl") && !arguments["ttl"].is_number())){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The scope ticket command needs a ticket and a role (strings) and optionally a ttl in seconds\n";
+        return resp;
+    }
+    std::string ticket = arguments["ticket"];
+    if(ticket.size() < min_ticket_length){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The scope ticket is too short\n";
+        return resp;
+    }
+    int ttl = std::clamp<int>(arguments.value("ttl", default_ttl), 1, max_ttl);
+    tickets->add(ticket, arguments["role"], std::chrono::seconds(ttl));
+    resp["response_code"] = responses::ok;
+    return resp;
+}
+
+void command_processor::setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_tickets> &tickets) {
+
+    this->tickets = tickets;
     control_ep.set_accessor(ba);
     cores_ep.set_accessor(ba);
     platform_ep.set_accessor(ba);

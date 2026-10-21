@@ -28,7 +28,10 @@ namespace beast = boost::beast;
 namespace websocket = boost::beast::websocket;
 using asio::ip::tcp;
 
-scope_server::scope_server(int port, std::shared_ptr<scope_accessor> sa) : port(port), scope_if(std::move(sa)) {
+scope_server::scope_server(int port, std::shared_ptr<bus_accessor> ba, std::shared_ptr<scope_accessor> sa,
+                           std::shared_ptr<scope_tickets> tickets)
+    : port(port), scope_if(std::move(sa)), scaling(std::make_shared<scope_scaling>()), tickets(std::move(tickets)),
+      controller(std::make_shared<scope_controller>(std::move(ba), scaling)) {
 
 }
 
@@ -48,9 +51,9 @@ asio::awaitable<void> scope_server::listen() {
         // the data is latency sensitive, so keep the amount of stale data buffered by the kernel small
         socket.set_option(tcp::no_delay(true));
         socket.set_option(asio::socket_base::send_buffer_size(
-            static_cast<int>(2 * (sizeof(scope_frame_header) + scope_accessor::n_channels * scope_accessor::buffer_size * sizeof(uint64_t)))));
+            static_cast<int>(2 * (sizeof(scope_frame_header) + scope_accessor::n_channels * scope_accessor::buffer_size * sizeof(float)))));
 
-        auto session = std::make_shared<scope_session>(std::move(socket));
+        auto session = std::make_shared<scope_session>(std::move(socket), tickets, controller);
         std::erase_if(sessions, [](const auto &s){ return s.expired(); });
         sessions.push_back(session);
         asio::co_spawn(executor, scope_session::run(session), asio::detached);
@@ -102,7 +105,7 @@ void scope_server::run(std::stop_token stop) {
     });
 
     // stopped (and joined) when this function returns, whatever the reason the event loop ended
-    scope_reader reader(scope_if, [this](scope_frame f){ publish(std::move(f)); });
+    scope_reader reader(scope_if, scaling, [this](scope_frame f){ publish(std::move(f)); });
 
     io_context.run();
 }

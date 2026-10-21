@@ -100,12 +100,13 @@ int main (int argc, char **argv) {
 
 
     //std::array<server_connector, 4> workers_pool;
-    scope_server scope_data_source(scope_data_port, sa);
+    auto tickets = std::make_shared<scope_tickets>();
+    scope_server scope_data_source(scope_data_port, ba, sa, tickets);
     std::jthread scope_source_thread([&scope_data_source](std::stop_token stop){ scope_data_source.run(stop); });
 
     server_connector connector;
 
-    connector.set_interfaces(ba, sa);
+    connector.set_interfaces(ba, tickets);
     connector.start_server();
 
     if (emulator_fd != nullptr) {

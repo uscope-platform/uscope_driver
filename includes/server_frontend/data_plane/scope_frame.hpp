@@ -20,7 +20,8 @@
 #include <vector>
 
 /// Header of every binary websocket frame pushed by the scope server, little endian.
-/// It is followed by n_channels*n_samples 64 bit words, exactly as read from the kernel module.
+/// It is followed by n_channels*n_samples little endian float32, grouped by channel (all the samples of channel 0,
+/// then channel 1, ...), already converted according to the channel metadata and scaled by the channel scaling factor.
 /// Since slow clients only receive the newest data, gaps in the sequence number are the skipped frames.
 struct scope_frame_header {
     uint64_t sequence;

@@ -27,8 +27,8 @@ std::atomic_bool server_stop_req;
 server_connector::server_connector() {
 }
 
-void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa) {
-    core_processor.setup_interfaces(ba, sa);
+void server_connector::set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_tickets> &tickets) {
+    core_processor.setup_interfaces(ba, tickets);
 }
 
 void server_connector::start_server() {

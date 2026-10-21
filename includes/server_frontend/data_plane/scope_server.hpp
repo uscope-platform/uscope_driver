@@ -29,6 +29,9 @@
 #include <boost/beast/websocket.hpp>
 
 #include "hw_interface/bus/scope_accessor.hpp"
+ #include "hw_interface/scope_scaling.hpp"
+#include "server_frontend/data_plane/scope_controller.hpp"
+#include "server_frontend/data_plane/scope_tickets.hpp"
 #include "server_frontend/data_plane/scope_frame.hpp"
 
 class scope_session;
@@ -37,7 +40,8 @@ class scope_session;
 /// skip frames, they never receive stale data.
 class scope_server {
     public:
-        scope_server(int port, std::shared_ptr<scope_accessor> sa);
+        scope_server(int port, std::shared_ptr<bus_accessor> ba, std::shared_ptr<scope_accessor> sa,
+                     std::shared_ptr<scope_tickets> tickets);
         ~scope_server();
         /// Runs the event loop until a stop is requested through the token
         void run(std::stop_token stop);
@@ -48,6 +52,9 @@ class scope_server {
 
         int port;
         std::shared_ptr<scope_accessor> scope_if;
+        std::shared_ptr<scope_scaling> scaling;
+        std::shared_ptr<scope_tickets> tickets;
+        std::shared_ptr<scope_controller> controller;
 
         std::mutex latest_mutex;
         scope_frame latest_frame;

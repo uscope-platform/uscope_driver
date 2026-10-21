@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "hw_interface/bus/scope_accessor.hpp"
+#include "hw_interface/scope_scaling.hpp"
 #include "server_frontend/data_plane/scope_frame.hpp"
 
 /// Reads the scope data from the board on its own thread and publishes it as ready to send frames
@@ -33,7 +34,7 @@ public:
     using frame_sink = std::function<void(scope_frame)>;
 
     /// Starts the reader thread, which is stopped and joined by the destructor
-    scope_reader(std::shared_ptr<scope_accessor> sa, frame_sink sink);
+    scope_reader(std::shared_ptr<scope_accessor> sa, std::shared_ptr<scope_scaling> scaling, frame_sink sink);
     ~scope_reader();
 
     scope_reader(const scope_reader &) = delete;
@@ -43,6 +44,7 @@ private:
     void read_loop(std::stop_token stop);
 
     std::shared_ptr<scope_accessor> scope_if;
+    std::shared_ptr<scope_scaling> scaling;
     frame_sink sink;
     std::jthread thread;  // last, so that it is started after and joined before the other members
 };

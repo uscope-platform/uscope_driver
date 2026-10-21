@@ -95,25 +95,10 @@ def messages(sock):
 
 
 def decode(message):
-    """Splits a frame in per channel arrays, with the same conventions as the driver:
-    bits 0-31 data, 32-47 channel, 48-63 metadata (bits 0-3 size-8, bit 4 signed, bit 5 float)"""
+    """Splits a frame in per channel arrays; the driver already sends float32 values, grouped by channel"""
     sequence, timestamp, n_channels, n_samples = HEADER.unpack_from(message)
-    words = np.frombuffer(message, dtype="<u8", offset=HEADER.size, count=n_channels * n_samples)
-
-    data = (words & 0xFFFFFFFF).astype(np.uint32)
-    channel = ((words >> 32) & 0xFFFF).astype(np.int64)
-    metadata = (words >> 48).astype(np.uint32)
-    size = (metadata & 0xF) + 8
-    is_signed = (metadata >> 4) & 1
-    is_float = (metadata >> 5) & 1
-
-    value = (data & ((np.uint64(1) << size.astype(np.uint64)) - np.uint64(1)).astype(np.uint32)).astype(np.int64)
-    sign_bit = np.int64(1) << (size.astype(np.int64) - 1)
-    value = np.where(is_signed.astype(bool) & ((value & sign_bit) != 0), value - (sign_bit << 1), value).astype(np.float32)
-    value = np.where(is_float.astype(bool), data.view(np.float32), value)
-
-    channels = [value[channel == c] for c in range(n_channels)]
-    return sequence, timestamp, channels
+    values = np.frombuffer(message, dtype="<f4", offset=HEADER.size, count=n_channels * n_samples)
+    return sequence, timestamp, list(values.reshape(n_channels, n_samples))
 
 
 class receiver(threading.Thread):

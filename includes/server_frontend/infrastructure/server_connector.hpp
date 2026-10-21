@@ -48,7 +48,7 @@ extern std::atomic_bool server_stop_req;
 class server_connector {
 public:
     server_connector();
-    void set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
+    void set_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_tickets> &tickets);
     void start_server();
     std::optional<nlohmann::json> receive_command(boost::asio::ip::tcp::socket &s);
     void send_response(boost::asio::ip::tcp::socket &s, const nlohmann::json &j);

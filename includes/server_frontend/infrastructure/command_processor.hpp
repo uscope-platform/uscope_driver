@@ -24,23 +24,24 @@
 
 #include "server_frontend/endpoints/control_endpoints.hpp"
 #include "server_frontend/endpoints/cores_endpoints.hpp"
-#include "server_frontend/endpoints/scope_endpoints.hpp"
+#include "server_frontend/data_plane/scope_tickets.hpp"
 #include "server_frontend/endpoints/platform_endpoints.hpp"
 
 class command_processor {
 public:
     command_processor() = default;
-    void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_accessor> &sa);
+    void setup_interfaces(const std::shared_ptr<bus_accessor> &ba, const std::shared_ptr<scope_tickets> &tickets);
     nlohmann::json process_command(std::string command, nlohmann::json &arguments);
 
 private:
     nlohmann::json process_null();
+    nlohmann::json process_scope_ticket_add(nlohmann::json &arguments);
 
 
     fpga_bridge hw;
     control_endpoints control_ep;
     cores_endpoints cores_ep;
-    scope_endpoints scope_ep;
+    std::shared_ptr<scope_tickets> tickets;
     platform_endpoints platform_ep;
 
 

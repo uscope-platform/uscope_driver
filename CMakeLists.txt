@@ -51,11 +51,9 @@ set(DRIVER_SOURCES /
         src/server_frontend/infrastructure/schema_validator.cpp
         src/server_frontend/endpoints/cores_endpoints.cpp
         src/server_frontend/endpoints/control_endpoints.cpp
-        src/server_frontend/endpoints/scope_endpoints.cpp
         src/server_frontend/endpoints/platform_endpoints.cpp
         src/hw_interface/toolchain_manager.cpp
         src/hw_interface/fpga_bridge.cpp
-        src/hw_interface/scope_manager.cpp
         src/hw_interface/channel_metadata.cpp
         src/hw_interface/timing_manager.cpp
         src/emulated_data_generator.cpp
@@ -68,6 +66,7 @@ set(DRIVER_SOURCES /
         includes/hw_interface/bus/bus_accessor.hpp
         src/hw_interface/bus/scope_accessor.cpp
         src/server_frontend/data_plane/scope_server.cpp
+        src/server_frontend/data_plane/scope_controller.cpp
         src/server_frontend/data_plane/scope_reader.cpp
         src/server_frontend/data_plane/scope_session.cpp
 )
