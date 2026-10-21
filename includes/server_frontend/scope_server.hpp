@@ -19,13 +19,23 @@
 
 
 
+#include <stop_token>
+#include <boost/asio.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+
 class scope_server {
     public:
         scope_server(int port);
         ~scope_server();
-        void run();
+        /// Runs the event loop until a stop is requested through the token
+        void run(std::stop_token stop);
     private:
+        boost::asio::awaitable<void> listen();
+        boost::asio::awaitable<void> session(boost::asio::ip::tcp::socket socket);
+
         int port;
+        boost::asio::io_context io_context;
 };
 
 

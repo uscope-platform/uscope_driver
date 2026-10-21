@@ -101,7 +101,7 @@ int main (int argc, char **argv) {
 
     //std::array<server_connector, 4> workers_pool;
     scope_server scope_data_source(scope_data_port);
-    std::jthread scope_source_thread(&scope_server::run, &scope_data_source);
+    std::jthread scope_source_thread([&scope_data_source](std::stop_token stop){ scope_data_source.run(stop); });
 
     server_connector connector;
 
