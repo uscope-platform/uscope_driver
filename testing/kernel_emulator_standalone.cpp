@@ -41,7 +41,7 @@ int buf_fd;
 int main (int argc, char **argv) {
 
 
-    bool emulate_hw = false;
+
     bool log_command = false;
     bool test_untriggered_scope = false;
     std::string scope_data_source;
@@ -49,7 +49,6 @@ int main (int argc, char **argv) {
 
     usleep(10000);
 
-    std::cout<< "debug mode: "<< std::boolalpha <<emulate_hw<<std::endl;
     std::cout<< "logging: "<< std::boolalpha <<log_command<<std::endl;
 
     buf_fd = open("/dev/uscope_data", O_RDWR| O_SYNC);

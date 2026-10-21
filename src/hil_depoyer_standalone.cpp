@@ -33,7 +33,6 @@ int main (int argc, char **argv) {
 
     CLI11_PARSE(app, argc, argv);
 
-    runtime_config.emulate_hw = true;
     runtime_config.debug_hil = true;
     spdlog::set_level(spdlog::level::trace);
     runtime_config.server_port = 6666;
@@ -90,7 +89,7 @@ int main (int argc, char **argv) {
         custom_deploy = spec["deployment_mode"];
     }
 
-    auto ba = std::make_shared<bus_accessor>(true);
+    auto ba = std::make_shared<bus_accessor>();
     if(custom_deploy){
         custom_deployer c;
         c.set_accessor(ba);
