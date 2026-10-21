@@ -27,7 +27,9 @@ interfaces_dictionary if_dict;
 /// Handler for SIGINT in order to stop the event loop on CTRL+C
 /// \param args
 void intHandler(int args) {
-    pclose(emulator_fd);
+    if (emulator_fd != nullptr) {
+        pclose(emulator_fd);
+    }
     exit(0);
 }
 
@@ -42,13 +44,11 @@ int main (int argc, char **argv) {
     CLI::App app{"Low level Driver for the uScope interface system"};
 
     bool debug_hil = false;
-    bool external_emu = false;
     bool log_command = false;
     bool read_version = false;
     int scope_data_port = 6667;
     int log_level = 0;
 
-    app.add_flag("--external_emulator", external_emu, "Use external kernel emulator");
     app.add_flag("--debug_hil", debug_hil, "Write intermediate steps for hil deployment debugging");
     app.add_option("--scope-port", scope_data_port, "Port for the scope data websocket server")->check(CLI::PositiveNumber);
     app.add_flag("--log", log_command, "Log the received commands on the standard output");

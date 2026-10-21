@@ -38,6 +38,6 @@
 
 
 
-FILE *emulator_fd;
+FILE *emulator_fd = nullptr;
 
 #endif //USCOPE_DIR_USCOPE_DRIVER_H
