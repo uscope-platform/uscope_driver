@@ -60,6 +60,14 @@ static __poll_t ucube_lkm_poll(struct file *, struct poll_table_struct *);
 
 static dev_t device_number;
 static struct class *uCube_class;
+
+/* Make the device nodes accessible to non root users */
+static char *ucube_devnode(const struct device *dev, umode_t *mode)
+{
+    if (mode)
+        *mode = 0666;
+    return NULL;
+}
 static struct scope_device_data *dev_data;
 static struct platform_device *fclk_devs[4];
 
@@ -261,6 +269,7 @@ static int __init ucube_lkm_init(void)
 
     major = MAJOR(device_number);
     uCube_class = class_create("uCube_scope");
+    uCube_class->devnode = ucube_devnode;
 
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
