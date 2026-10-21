@@ -67,7 +67,7 @@ set(DRIVER_SOURCES /
         src/hw_interface/bus/bus_accessor.cpp
         includes/hw_interface/bus/bus_accessor.hpp
         src/hw_interface/bus/scope_accessor.cpp
-        includes/hw_interface/bus/scope_accessor.hpp
+        src/server_frontend/scope_server.cpp
 )
 
 set(DRIVER_VERSION_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/generated/driver_version.cpp)

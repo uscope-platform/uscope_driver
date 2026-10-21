@@ -17,6 +17,7 @@
 
 #include "uscope_driver.hpp"
 #include "configuration.hpp"
+#include "server_frontend/scope_server.hpp"
 
 
 configuration runtime_config;
@@ -44,14 +45,14 @@ int main (int argc, char **argv) {
     bool external_emu = false;
     bool log_command = false;
     bool read_version = false;
-    std::string scope_data_source;
+    int scope_data_port = 6667;
     int log_level = 0;
 
     app.add_flag("--external_emulator", external_emu, "Use external kernel emulator");
     app.add_flag("--debug_hil", debug_hil, "Write intermediate steps for hil deployment debugging");
+    app.add_option("--scope-port", scope_data_port, "Port for the scope data websocket server")->check(CLI::PositiveNumber);
     app.add_flag("--log", log_command, "Log the received commands on the standard output");
     app.add_option("--log_level", log_level, "Log the received commands on the standard output");
-    app.add_option("--scope_source", scope_data_source, "Path for the scope data source");
     app.add_flag("--version", read_version, "Print the software version information");
 
     CLI11_PARSE(app, argc, argv);
@@ -67,9 +68,12 @@ int main (int argc, char **argv) {
     signal(SIGKILL,intHandler);
 
 
-    auto arch = std::getenv("ARCH");
-    if_dict.set_arch(arch);
-
+    if (const char * arch = std::getenv("ARCH")) {
+        if_dict.set_arch(arch);
+    } else {
+        spdlog::error("The architecture must be selected with the ARCH environment variable");
+        exit(-1);
+    }
 
     runtime_config.server_port = 6666;
     runtime_config.debug_hil = debug_hil;
@@ -95,6 +99,8 @@ int main (int argc, char **argv) {
 
 
     //std::array<server_connector, 4> workers_pool;
+    scope_server scope_data_source(scope_data_port);
+    std::jthread scope_source_thread(&scope_server::run, &scope_data_source);
 
     server_connector connector;
 
