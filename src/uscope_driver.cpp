@@ -43,7 +43,7 @@ int main (int argc, char **argv) {
     bool debug_hil = false;
     bool log_command = false;
     bool read_version = false;
-    int scope_data_port = 6667;
+    int scope_data_port = 8990;
     int log_level = 0;
 
     app.add_flag("--debug_hil", debug_hil, "Write intermediate steps for hil deployment debugging");
