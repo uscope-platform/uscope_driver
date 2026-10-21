@@ -186,3 +186,27 @@ add_custom_target(mock_dev_ko ALL
 )
 
 add_dependencies(mock_dev_ko mock_dev_sources)
+
+# Module signing, required to load the module when Secure Boot is enabled.
+# BOOT_KEY (env) is the path of the enrolled MOK key pair without extension
+# (<BOOT_KEY>.priv and <BOOT_KEY>.der).
+execute_process(COMMAND mokutil --sb-state
+        OUTPUT_VARIABLE SECURE_BOOT_STATE
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if (SECURE_BOOT_STATE MATCHES "SecureBoot enabled")
+    set(MODULE_SIGN_FILE ${KERNEL_DIR}/scripts/sign-file)
+    set(MODULE_SIGN_KEY "$ENV{BOOT_KEY}.priv")
+    set(MODULE_SIGN_CERT "$ENV{BOOT_KEY}.der")
+
+    if (NOT DEFINED ENV{BOOT_KEY} OR NOT EXISTS ${MODULE_SIGN_KEY} OR NOT EXISTS ${MODULE_SIGN_CERT})
+        message(FATAL_ERROR "Secure Boot is enabled: set BOOT_KEY to the MOK key path "
+                "without extension (expects BOOT_KEY.priv and BOOT_KEY.der) to sign mock_module.ko")
+    endif ()
+
+    add_custom_command(TARGET mock_dev_ko POST_BUILD
+            COMMAND ${MODULE_SIGN_FILE} sha256 ${MODULE_SIGN_KEY} ${MODULE_SIGN_CERT} ${MODULE_BUILD_DIR}/mock_module.ko
+            COMMENT "Signing mock_module.ko"
+    )
+endif ()
