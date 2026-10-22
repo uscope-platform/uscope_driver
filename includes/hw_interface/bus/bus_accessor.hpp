@@ -58,6 +58,8 @@ public:
 private:
     bool previous_sink_mode = false;
     uint64_t control_addr, core_addr;
+    // size in 32 bit words of the window mapped over the fcore programming bus
+    uint64_t fcore_words;
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;

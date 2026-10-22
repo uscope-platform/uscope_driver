@@ -88,6 +88,7 @@ bus_accessor::bus_accessor() {
 
     spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
     fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
+    fcore_words = static_cast<uint64_t>(n_pages_fcore)*4096/4;
     if(fCore == MAP_FAILED) {
         spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
         exit(1);
@@ -174,6 +175,12 @@ void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> pr
             pn.push_back(p);
         }
     } else {
+        // an address outside of the mapped window would be a segmentation fault, which kills the driver
+        if(address < core_addr || (address-core_addr)/4 + program.size() > fcore_words){
+            throw std::runtime_error("Cannot load the program at address 0x" + fmt::format("{:x}", address) +
+                                     ": the programming bus is mapped from 0x" + fmt::format("{:x}", core_addr) +
+                                     " for " + std::to_string(fcore_words*4) + " bytes (check the ARCH of the driver and the code address of the core)");
+        }
         m.lock();
         a = {address};
         for(int i = 0; i< program.size(); i++){
