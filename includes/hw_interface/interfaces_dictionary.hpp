@@ -23,13 +23,13 @@
 
 class interfaces_dictionary {
 public:
+    /// Selects the architecture, which has to be one of the known ones
     void set_arch(const std::string &a) {
-        arch = a;
         if(!is_valid_arch(a)){
             throw std::invalid_argument("Unknown architecture '" + a + "', the valid ones are: " + valid_archs());
         }
+        arch = a;
     };
-    std::string get_control_bus() const {
     bool is_valid_arch(const std::string &a) const {
         return control_bus_if.contains(a);
     };
@@ -38,6 +38,7 @@ public:
         for(auto &[name, _]: control_bus_if) ret += (ret.empty() ? "" : ", ") + name;
         return ret;
     };
+    std::string get_control_bus() const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration bus before architecture selection");
         return control_bus_if.at(arch);
     };
@@ -53,7 +54,6 @@ public:
     std::string get_clock_if(uint8_t clock_number) const {
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration before architecture selection");
         if(clock_number >3) throw std::invalid_argument("The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
-        if(arch=="emulate") return clock_if.at(arch);
         if(arch=="zynqmp")  return clock_if.at(arch) + std::to_string(clock_number)+ "/set_rate";
         return clock_if.at(arch) + std::to_string(clock_number);
     };
@@ -82,53 +82,45 @@ private:
     std::unordered_map<std::string, std::string> fpga_manager_state_if = {
             {"zynq", "/dev/uscope_bitstream"},
             {"zynqmp", "/dev/uscope_bitstream"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/fpga_manager_state"}
     };
 
     std::unordered_map<std::string, std::string> fpga_manager_bitstream_if = {
             {"zynq", "/dev/uscope_bitstream"},
             {"zynqmp", "/dev/uscope_bitstream"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/fpga_bitstream_if"}
     };
 
     std::unordered_map<std::string, std::string> fpga_manager_flags_if = {
             {"zynq", "/sys/class/fpga_manager/fpga0/flags"},
             {"zynqmp", "/sys/class/fpga_manager/fpga0/flags"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/fpga_flags_if"}
     };
 
     std::unordered_map<std::string, std::string> control_bus_if = {
             {"zynq", "/dev/uscope_BUS_0"},
             {"zynqmp", "/dev/uscope_BUS_0"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/control_bus_if"}
     };
     std::unordered_map<std::string, std::string> cores_bus_if = {
             {"zynq", "/dev/uscope_BUS_1"},
             {"zynqmp", "/dev/uscope_BUS_1"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/cores_bus_if"}
     };
     std::unordered_map<std::string, std::string> data_bus_if = {
             {"zynq", "/dev/uscope_data"},
             {"zynqmp", "/dev/uscope_data"},
-            {"emulate", "/dev/uscope_data"},
             {"testing", "/tmp/data_bus_if"}
     };
 
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
             {"zynqmp", "/sys/devices/platform/fclk"},
-            {"emulate", "/dev/zero"},
             {"testing", "/tmp/clock_if_"}
     };
     std::unordered_map<std::string, std::string> buffer_addres_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/dma_addr"},
             {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/dma_addr"},
-            {"emulate", "/dev/urandom"},
             {"testing", "/tmp/buffer_addres_if"}
     };
     std::string arch = "trap";
