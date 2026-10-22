@@ -18,13 +18,26 @@
 
 #include <utility>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 
 class interfaces_dictionary {
 public:
     void set_arch(const std::string &a) {
         arch = a;
+        if(!is_valid_arch(a)){
+            throw std::invalid_argument("Unknown architecture '" + a + "', the valid ones are: " + valid_archs());
+        }
     };
     std::string get_control_bus() const {
+    bool is_valid_arch(const std::string &a) const {
+        return control_bus_if.contains(a);
+    };
+    std::string valid_archs() const {
+        std::string ret;
+        for(auto &[name, _]: control_bus_if) ret += (ret.empty() ? "" : ", ") + name;
+        return ret;
+    };
         if(arch == "trap") throw std::runtime_error("Attempted access to configuration bus before architecture selection");
         return control_bus_if.at(arch);
     };
