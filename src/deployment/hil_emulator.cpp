@@ -19,6 +19,7 @@ emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
     try{
         spdlog::info("EMULATE HIL");
         emu_manager.set_specs(specs);
+        emu_manager.set_multichannel_debug(multichannel_debug);
         emu_manager.process();
         spdlog::info("COMPILATION DONE");
 

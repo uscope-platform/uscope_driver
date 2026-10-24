@@ -31,7 +31,7 @@ namespace commands {
     static std::set<std::string> core_commands = {"apply_program", "deploy_hil", "emulate_hil", "compile_program",
                                                   "hil_select_out", "hil_set_in", "hil_start", "hil_stop","hil_disassemble",
                                                   "set_hil_address_map", "get_hil_address_map","hil_debug","hil_hardware_sim",
-            "get_sampling_frequency"
+            "get_sampling_frequency", "set_debugger_option", "get_debugger_option"
     };
 
 

@@ -425,3 +425,40 @@ TEST(cores_endpoints, unknown_command) {
     EXPECT_EQ(resp["data"], "DRIVER ERROR: Internal driver error\n");
 }
 
+
+
+TEST(cores_endpoints, debugger_option_multichannel) {
+    auto ba = std::make_shared<bus_accessor>();
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+
+    // the emulations debug every channel, until it is said otherwise
+    auto resp = ep.process_command("get_debugger_option", {{"name", "multichannel_debug"}});
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    EXPECT_EQ(resp["data"], true);
+
+    resp = ep.process_command("set_debugger_option", {{"name", "multichannel_debug"}, {"value", false}});
+    EXPECT_EQ(resp["response_code"], responses::ok);
+
+    resp = ep.process_command("get_debugger_option", {{"name", "multichannel_debug"}});
+    EXPECT_EQ(resp["response_code"], responses::ok);
+    EXPECT_EQ(resp["data"], false);
+}
+
+TEST(cores_endpoints, debugger_option_invalid) {
+    auto ba = std::make_shared<bus_accessor>();
+    cores_endpoints ep(true);
+    ep.set_accessor(ba);
+
+    auto resp = ep.process_command("set_debugger_option", {{"name", "multichannel_debug"}, {"value", "yes"}});
+    EXPECT_EQ(resp["response_code"], responses::invalid_arg);
+
+    resp = ep.process_command("set_debugger_option", {{"name", "not_an_option"}, {"value", true}});
+    EXPECT_EQ(resp["response_code"], responses::invalid_arg);
+
+    resp = ep.process_command("get_debugger_option", {{"name", "not_an_option"}});
+    EXPECT_EQ(resp["response_code"], responses::invalid_arg);
+
+    resp = ep.process_command("get_debugger_option", {});
+    EXPECT_EQ(resp["response_code"], responses::invalid_arg);
+}

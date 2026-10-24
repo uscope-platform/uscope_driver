@@ -48,6 +48,10 @@ nlohmann::json cores_endpoints::process_command(const std::string& command_strin
         return process_get_hil_address_map(arguments);
     } else if(command_string == "get_sampling_frequency") {
         return process_get_sampling_frequency();
+    } else if(command_string == "set_debugger_option") {
+        return process_set_debugger_option(arguments);
+    } else if(command_string == "get_debugger_option") {
+        return process_get_debugger_option(arguments);
     } else {
         nlohmann::json resp;
         resp["response_code"] = responses::as_integer(responses::internal_error);
@@ -215,6 +219,54 @@ nlohmann::json cores_endpoints::process_set_hil_address_map(const nlohmann::json
     hil.set_layout_map(arguments);
     custom.set_layout_map(arguments);
     resp["response_code"] = responses::as_integer(responses::ok);
+    return resp;
+}
+
+/// \param arguments the name of the option and its value: {"name": "multichannel_debug", "value": true}
+nlohmann::json cores_endpoints::process_set_debugger_option(const nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(!arguments.is_object() || !arguments.contains("name") || !arguments["name"].is_string() || !arguments.contains("value")){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The arguments for the set debugger option command must contain the name of the option and its value\n";
+        return resp;
+    }
+
+    std::string name = arguments["name"];
+    if(name == "multichannel_debug"){
+        if(!arguments["value"].is_boolean()){
+            resp["response_code"] = responses::as_integer(responses::invalid_arg);
+            resp["data"] = "DRIVER ERROR: The multichannel_debug option must be boolean\n";
+            return resp;
+        }
+        emulator.set_multichannel_debug(arguments["value"]);
+        resp["response_code"] = responses::as_integer(responses::ok);
+        return resp;
+    }
+
+    resp["response_code"] = responses::as_integer(responses::invalid_arg);
+    resp["data"] = "DRIVER ERROR: Unknown debugger option " + name + "\n";
+    return resp;
+}
+
+/// \param arguments the name of the option: {"name": "multichannel_debug"}
+/// \return the value of the option
+nlohmann::json cores_endpoints::process_get_debugger_option(const nlohmann::json &arguments) {
+    nlohmann::json resp;
+    if(!arguments.is_object() || !arguments.contains("name") || !arguments["name"].is_string()){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The arguments for the get debugger option command must contain the name of the option\n";
+        return resp;
+    }
+
+    std::string name = arguments["name"];
+    if(name == "multichannel_debug"){
+        resp["data"] = emulator.get_multichannel_debug();
+        resp["response_code"] = responses::as_integer(responses::ok);
+        return resp;
+    }
+
+    resp["response_code"] = responses::as_integer(responses::invalid_arg);
+    resp["data"] = "DRIVER ERROR: Unknown debugger option " + name + "\n";
     return resp;
 }
 

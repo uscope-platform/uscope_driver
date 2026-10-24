@@ -58,8 +58,14 @@ public:
     std::string run_command(const interactive_command &c);
     emulation_results emulate(const nlohmann::json &specs);
     std::map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
+
+    /// The emulation of every channel is debugged, not only the one of the first channel. It is what the emulations that
+    /// are started after it is set use
+    void set_multichannel_debug(bool value) { multichannel_debug = value; }
+    bool get_multichannel_debug() const { return multichannel_debug; }
 private:
     fcore::emulator_dispatcher emu_manager;
+    bool multichannel_debug = true;
     std::string initialize_emulation(const nlohmann::json &specs);
     std::string run_emulation();
     std::string add_breakpoint(std::string core_id, uint32_t line);
