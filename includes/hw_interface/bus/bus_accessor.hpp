@@ -33,6 +33,12 @@
 
 enum bus_access_type {control_plane_write, rom_plane_write, control_plane_read, rom_plane_read};
 
+/// Thrown when an access falls outside of the mapped bus windows; the access is rejected, nothing is written
+class bus_address_error : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
 struct bus_op{
     std::vector<uint64_t> address;
     std::vector<uint64_t> data;
@@ -58,6 +64,9 @@ public:
 private:
     bool previous_sink_mode = false;
     uint64_t control_addr, core_addr;
+    // size in 32 bit words of the windows mapped over the control and fcore programming buses
+    uint64_t control_words;
+    uint64_t fcore_words;
 
     volatile uint32_t *registers;
     volatile uint32_t *fCore;

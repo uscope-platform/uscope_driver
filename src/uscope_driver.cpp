@@ -70,7 +70,12 @@ int main (int argc, char **argv) {
 
 
     if (const char * arch = std::getenv("ARCH")) {
-        if_dict.set_arch(arch);
+        try {
+            if_dict.set_arch(arch);
+        } catch (const std::invalid_argument &e) {
+            spdlog::error("ARCH environment variable: {0}", e.what());
+            exit(-1);
+        }
     } else {
         spdlog::error("The architecture must be selected with the ARCH environment variable");
         exit(-1);

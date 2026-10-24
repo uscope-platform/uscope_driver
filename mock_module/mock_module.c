@@ -316,6 +316,12 @@ static int __init ucube_lkm_init(void)
             pr_err("%s: Failed to create fclk interface\nError:%d\n", __func__, rc);
             return dev_rc;
         }
+        /* the macros refuse world writable attributes, so like the device nodes the files are opened up here, to
+           let the driver set the clocks without being root */
+        rc = sysfs_chmod_file(&fclk_devs[i]->dev.kobj, &dev_attr_set_rate.attr, 0666);
+        if (rc) {
+            pr_err("%s: Failed to open up the permissions of fclk%d\nError:%d\n", __func__, i, rc);
+        }
     }
 
     /*SETUP AND ALLOCATE DMA BUFFER*/

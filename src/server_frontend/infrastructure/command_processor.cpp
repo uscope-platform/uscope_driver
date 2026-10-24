@@ -26,22 +26,30 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
 
     spdlog::trace("Received command: {0}", command_string);
 
-    if(commands::control_commands.contains(command_string)){
-        response_obj["body"] = control_ep.process_command(command_string, arguments);
-    } else if(commands::core_commands.contains(command_string)) {
-        response_obj["body"] = cores_ep.process_command(command_string, arguments);
-    } else if(commands::platform_commands.contains(command_string)){
-        response_obj["body"] = platform_ep.process_command(command_string, arguments);
-    } else if(commands::infrastructure_commands.contains(command_string)){
-        if(command_string == "null"){
-            response_obj["body"] = process_null();
-        } else if(command_string == "scope_ticket_add"){
-            response_obj["body"] = process_scope_ticket_add(arguments);
+    try {
+        if(commands::control_commands.contains(command_string)){
+            response_obj["body"] = control_ep.process_command(command_string, arguments);
+        } else if(commands::core_commands.contains(command_string)) {
+            response_obj["body"] = cores_ep.process_command(command_string, arguments);
+        } else if(commands::platform_commands.contains(command_string)){
+            response_obj["body"] = platform_ep.process_command(command_string, arguments);
+        } else if(commands::infrastructure_commands.contains(command_string)){
+            if(command_string == "null"){
+                response_obj["body"] = process_null();
+            } else if(command_string == "scope_ticket_add"){
+                response_obj["body"] = process_scope_ticket_add(arguments);
+            }
+        } else{
+            response_obj["body"] = nlohmann::json();
+            response_obj["body"]["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
+            response_obj["body"]["data"] = "DRIVER ERROR: Unknown command received\n";
         }
-    } else{
+    } catch (const bus_address_error &e) {
+        // an access outside of the mapped buses is rejected, the rest of the driver keeps running
+        spdlog::error("Rejected command {0}: {1}", command_string, e.what());
         response_obj["body"] = nlohmann::json();
-        response_obj["body"]["response_code"] = responses::as_integer(responses::invalid_cmd_schema);
-        response_obj["body"]["data"] = "DRIVER ERROR: Unknown command received\n";
+        response_obj["body"]["response_code"] = responses::as_integer(responses::invalid_arg);
+        response_obj["body"]["data"] = std::string("DRIVER ERROR: ") + e.what() + "\n";
     }
 
     return response_obj;

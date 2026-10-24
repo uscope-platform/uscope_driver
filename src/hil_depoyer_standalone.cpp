@@ -38,7 +38,16 @@ int main (int argc, char **argv) {
     runtime_config.server_port = 6666;
 
     auto arch = std::getenv("ARCH");
-    if_dict.set_arch(arch);
+    if(arch == nullptr){
+        spdlog::error("The architecture must be selected with the ARCH environment variable");
+        return -1;
+    }
+    try {
+        if_dict.set_arch(arch);
+    } catch (const std::invalid_argument &e) {
+        spdlog::error("ARCH environment variable: {0}", e.what());
+        return -1;
+    }
 
     std::ifstream ifs(input_file);
     nlohmann::json spec = nlohmann::json::parse(ifs);

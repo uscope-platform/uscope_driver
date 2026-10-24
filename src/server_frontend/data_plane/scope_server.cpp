@@ -36,7 +36,7 @@ scope_server::scope_server(int port, std::shared_ptr<bus_accessor> ba, std::shar
 }
 
 scope_server::~scope_server(){
-    spdlog::critical("Scope data server stopping...");
+    spdlog::info("Scope data server stopping...");
 }
 
 /// Accepts connections and spawns a session for each one
@@ -89,7 +89,7 @@ void scope_server::publish(scope_frame f) {
 }
 
 void scope_server::run(std::stop_token stop) {
-    spdlog::critical("Scope data server starting...");
+    spdlog::info("Scope data server starting...");
 
     // wakes the event loop from the requesting thread, also if the stop was already requested
     std::stop_callback stop_loop(stop, [this]{ io_context.stop(); });

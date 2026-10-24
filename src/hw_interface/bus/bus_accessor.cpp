@@ -80,6 +80,7 @@ bus_accessor::bus_accessor() {
     }
 
     spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl, control_addr);
+    control_words = static_cast<uint64_t>(n_pages_ctrl)*4096/4;
     registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
     if(registers == MAP_FAILED) {
         spdlog::error("Cannot mmap control bus: {0}", strerror(errno));
@@ -88,6 +89,7 @@ bus_accessor::bus_accessor() {
 
     spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
     fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
+    fcore_words = static_cast<uint64_t>(n_pages_fcore)*4096/4;
     if(fCore == MAP_FAILED) {
         spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
         exit(1);
@@ -98,42 +100,44 @@ bus_accessor::bus_accessor() {
 }
 
 void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
-    operations.push_back({addresses, {data}, control_plane_write});
     if(!sink_mode){
-        m.lock();
+        // all the addresses are validated before touching anything, so a rejected write has no effect at all
         if(addresses.size() ==1){
-            registers[register_address_to_index(addresses[0])] = data;
+            auto index = register_address_to_index(addresses[0]);
+            std::lock_guard lock(m);
+            registers[index] = data;
         } else {
-            registers[register_address_to_index(addresses[1]+4)] = addresses[0];
-            registers[register_address_to_index(addresses[1])] = data;
+            auto address_index = register_address_to_index(addresses[1]+4);
+            auto data_index = register_address_to_index(addresses[1]);
+            std::lock_guard lock(m);
+            registers[address_index] = addresses[0];
+            registers[data_index] = data;
         }
-        m.unlock();
     }
+    operations.push_back({addresses, {data}, control_plane_write});
 }
 
 uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
-        operations.push_back({address, {0}, control_plane_read});
     if(!sink_mode){
-        uint32_t ret_val;
-        m.lock();
+        uint32_t ret_val = 0;
         if(address.size()==1){
             auto reg_n = register_address_to_index(address[0]);
             spdlog::trace("READ from Register #{0} at address {1}", reg_n, address[0]);
+            std::lock_guard lock(m);
             ret_val = registers[reg_n];
-        } else{
-            ret_val = 0;
         }
-        m.unlock();
+        operations.push_back({address, {0}, control_plane_read});
         return ret_val;
     } else {
+        operations.push_back({address, {0}, control_plane_read});
         return rand()%100;
     }
 }
 
 uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
-    if(core_addr>address){
-        spdlog::critical("Tried to write the core address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
-        exit(-1);
+    if(address < core_addr || (address - core_addr) / 4 >= fcore_words){
+        throw bus_address_error("Core bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
+                                + fmt::format("{:x}", core_addr) + " for " + std::to_string(fcore_words*4) + " bytes)");
     }
     return (address - core_addr) / 4;
 }
@@ -157,9 +161,9 @@ std::pair<std::string, std::string> bus_accessor::get_hardware_simulation_data()
 }
 
 uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
-    if(control_addr>address){
-        spdlog::critical("Tried to write the control address: 0x{0:x} which is below the minimum allowed: 0x{1:x}", address, control_addr);
-        exit(-1);
+    if(address < control_addr || (address - control_addr) / 4 >= control_words){
+        throw bus_address_error("Control bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
+                                + fmt::format("{:x}", control_addr) + " for " + std::to_string(control_words*4) + " bytes)");
     }
     return (address - control_addr) / 4;
 }
@@ -174,14 +178,19 @@ void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> pr
             pn.push_back(p);
         }
     } else {
-        m.lock();
+        // an address outside of the mapped window would be a segmentation fault, which kills the driver
+        if(address < core_addr || (address-core_addr)/4 + program.size() > fcore_words){
+            throw bus_address_error("Cannot load the program at address 0x" + fmt::format("{:x}", address) +
+                                     ": the programming bus is mapped from 0x" + fmt::format("{:x}", core_addr) +
+                                     " for " + std::to_string(fcore_words*4) + " bytes (check the ARCH of the driver and the code address of the core)");
+        }
+        std::lock_guard lock(m);
         a = {address};
         for(int i = 0; i< program.size(); i++){
             fCore[i+fcore_address_to_index(address)] = program[i];
             pn.push_back(program[i]);
             usleep(1);
         }
-        m.unlock();
     }
         operations.push_back({a, pn, rom_plane_write});
 }
