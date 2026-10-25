@@ -20,7 +20,14 @@ emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
         spdlog::info("EMULATE HIL");
         emu_manager.set_specs(specs);
         emu_manager.set_multichannel_debug(multichannel_debug);
-        emu_manager.process();
+        try{
+            emu_manager.process();
+        } catch (std::runtime_error &err) {
+            ret_val.code = 8;
+            ret_val.results = std::string("EMULATION ERROR:\n") + err.what();
+            ret_val.results_valid = false;
+            return ret_val;
+        }
         spdlog::info("COMPILATION DONE");
 
         emu_manager.emulate();
