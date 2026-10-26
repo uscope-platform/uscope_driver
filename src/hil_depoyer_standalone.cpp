@@ -15,6 +15,7 @@
 
 
 #include <nlohmann/json.hpp>
+#include "hw_interface/fcore_result.hpp"
 #include <CLI/CLI.hpp>
 
 #include "deployment/hil_deployer.hpp"
@@ -92,7 +93,7 @@ int main (int argc, char **argv) {
 
 
     fcore::emulator_dispatcher em;
-    em.set_specs(spec);
+    unwrap(em.set_specs(spec));
     bool custom_deploy = false;
     if(spec.contains("deployment_mode")) {
         custom_deploy = spec["deployment_mode"];

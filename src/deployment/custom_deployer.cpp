@@ -15,6 +15,7 @@
 //  limitations under the License.
 
 #include "deployment/custom_deployer.hpp"
+#include "hw_interface/fcore_result.hpp"
 
 custom_deployer::custom_deployer() {
     auto clock_f = std::getenv("HIL_CLOCK_FREQ");
@@ -29,18 +30,18 @@ custom_deployer::custom_deployer() {
 
 responses::response_code custom_deployer::deploy(const nlohmann::json &arguments) {
 
-    if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
-    dispatcher.set_specs(arguments);
-    auto programs = dispatcher.get_programs();
+    if(runtime_config.debug_hil) unwrap(dispatcher.enable_debug_mode());
+    unwrap(dispatcher.set_specs(arguments));
+    auto programs = unwrap(dispatcher.get_programs());
 
 
     bus_map.clear();
-    bus_map.set_map(dispatcher.get_interconnect_slots());
+    bus_map.set_map(unwrap(dispatcher.get_interconnect_slots()));
 
     spdlog::info("------------------------------------------------------------------");
     for(auto &p: programs){
         uint64_t core_address = 0;
-        core_address = dispatcher.get_deployment_options(p.name).rom_address;
+        core_address = unwrap(dispatcher.get_deployment_options(p.name)).rom_address;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
         this->load_core(core_address, p.program.binary);
@@ -59,18 +60,18 @@ responses::response_code custom_deployer::deploy(const nlohmann::json &arguments
     }
 
 
-    auto memories = dispatcher.get_memory_initializations();
+    auto memories = unwrap(dispatcher.get_memory_initializations());
 
     for(auto &p: programs){
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
         uint64_t control_address = 0;
-        control_address = dispatcher.get_deployment_options(p.name).control_address;
+        control_address = unwrap(dispatcher.get_deployment_options(p.name)).control_address;
         this->setup_memories(control_address, memories[p.name], p.n_channels);
     }
 
 
     for(auto &p:programs){
-        auto inputs = dispatcher.get_inputs(p.name);
+        auto inputs = unwrap(dispatcher.get_inputs(p.name));
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         for(int i = 0; i<inputs.size(); i++)  {
@@ -111,7 +112,7 @@ responses::response_code custom_deployer::deploy(const nlohmann::json &arguments
     }
 
     for(auto &p:programs){
-        auto opts = dispatcher.get_deployment_options(p.name);
+        auto opts = unwrap(dispatcher.get_deployment_options(p.name));
         auto min_channels =  opts.has_reciprocal ? 11 : 8;
 
         if(p.n_channels> min_channels){

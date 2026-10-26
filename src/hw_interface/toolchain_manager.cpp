@@ -15,6 +15,7 @@
 //  limitations under the License.
 
 #include "hw_interface/toolchain_manager.hpp"
+#include "hw_interface/fcore_result.hpp"
 
 
 std::vector<uint32_t>
@@ -30,8 +31,6 @@ toolchain_manager::compile(std::string content, nlohmann::json h, nlohmann::json
     auto map = fcore::fcore_cc::load_iom_map(io);
     cc.set_dma_map(map);
     //TODO: EVALUATE WHETHER TO PLUmb this in or to kick it out
-    if(!cc.compile(1)){
-        throw std::runtime_error(cc.get_errors());
-    }
+    unwrap(cc.compile(1));
     return cc.get_executable();
 }

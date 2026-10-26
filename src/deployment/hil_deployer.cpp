@@ -15,6 +15,7 @@
 //  limitations under the License.
 
 #include "deployment/hil_deployer.hpp"
+#include "hw_interface/fcore_result.hpp"
 
 
 hil_deployer::hil_deployer() {
@@ -42,13 +43,13 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
     bus_labels.clear();
     hw.clear_operations_vector();
 
-    if(runtime_config.debug_hil) dispatcher.enable_debug_mode();
-    dispatcher.set_specs(arguments);
-    auto programs = dispatcher.get_programs();
+    if(runtime_config.debug_hil) unwrap(dispatcher.enable_debug_mode());
+    unwrap(dispatcher.set_specs(arguments));
+    auto programs = unwrap(dispatcher.get_programs());
 
     bus_map.clear();
 
-    bus_map.set_map(dispatcher.get_interconnect_slots());
+    bus_map.set_map(unwrap(dispatcher.get_interconnect_slots()));
 
 
     if(programs.size()>32){
@@ -89,7 +90,7 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
         if(n_transfers > max_transfers) max_transfers = n_transfers;
     }
 
-    auto memories = dispatcher.get_memory_initializations();
+    auto memories = unwrap(dispatcher.get_memory_initializations());
 
 
     for(auto &p:programs) {
@@ -236,7 +237,7 @@ void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_progr
     spdlog::info("------------------------------------------------------------------");
     spdlog::info("SETUP INTERCONNECTS INITIAL VALUES");
     spdlog::info("------------------------------------------------------------------");
-    for(auto &slot:dispatcher.get_interconnect_slots()) {
+    for(auto &slot:unwrap(dispatcher.get_interconnect_slots())) {
         for(auto &p:programs) {
             if(p.name == slot.destination_id) {
                 for(auto &in:p.inputs) {
@@ -275,7 +276,7 @@ void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_progr
 
 void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) {
     for(auto &p:programs){
-        auto inputs = dispatcher.get_inputs(p.name);
+        auto inputs = unwrap(dispatcher.get_inputs(p.name));
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         int input_progressive = 0;
@@ -383,7 +384,7 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
 
 std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
     std::vector<uint32_t>core_dividers;
-    auto programs = dispatcher.get_programs();
+    auto programs = unwrap(dispatcher.get_programs());
     for(auto &p: programs){
         if(p.sampling_frequency == 0) {
             core_dividers.push_back(1);
@@ -412,7 +413,7 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
         uint32_t program_length;
     };
 
-    auto programs = dispatcher.get_programs();
+    auto programs = unwrap(dispatcher.get_programs());
 
     std::vector<shift_calc_data> calc_data_v;
     for(auto &p :programs ){
