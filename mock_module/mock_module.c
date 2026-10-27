@@ -70,6 +70,9 @@ static char *ucube_devnode(const struct device *dev, umode_t *mode)
 }
 static struct scope_device_data *dev_data;
 static struct platform_device *fclk_devs[4];
+/* the platform device that exposes the physical address of the dma buffer, where the real uScope device has it */
+static struct platform_device *scope_dev;
+static u64 mock_dma_addr;
 
 /* STRUCTURE FOR THE DEVICE SPECIFIC DATA*/
 struct scope_device_data {
@@ -117,6 +120,20 @@ static ssize_t fclk_store(struct device *dev, struct device_attribute *attr, con
 }
 
 static DEVICE_ATTR(set_rate, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+
+static ssize_t dma_addr_show(struct device *dev, struct device_attribute *mattr, char *data) {
+    return sprintf(data, "%llu\n", mock_dma_addr);
+}
+
+/* the address is settable so that the tests can choose the one the driver reads back */
+static ssize_t dma_addr_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t len) {
+    int rc = kstrtou64(buf, 0, &mock_dma_addr);
+    if (rc)
+        return rc;
+    return len;
+}
+
+static DEVICE_ATTR(dma_addr, S_IRUGO|S_IWUSR, dma_addr_show, dma_addr_store);
 
 
 static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * poll_struct){
@@ -303,7 +320,7 @@ static int __init ucube_lkm_init(void)
 
     for(int i = 0; i< 4; i++){
         snprintf(name, sizeof(name), "fclk%d", i);
-        fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
+        fclk_devs[i] = platform_device_register_simple(set_scope_data, -1, NULL, 0);
         if (IS_ERR(fclk_devs[0])) {
             int rc = PTR_ERR(fclk_devs[0]);
             class_destroy(uCube_class);
@@ -324,6 +341,26 @@ static int __init ucube_lkm_init(void)
         }
     }
 
+    scope_dev = platform_device_register_simple("fffc000000008000.uScope", -1, NULL, 0);
+    if (IS_ERR(scope_dev)) {
+        int rc = PTR_ERR(scope_dev);
+        pr_err("%s: Failed to register the scope device\nError:%d\n", __func__, rc);
+        scope_dev = NULL;
+        return rc;
+    }
+    int scope_rc = device_create_file(&scope_dev->dev, &dev_attr_dma_addr);
+    if (scope_rc) {
+        pr_err("%s: Failed to create the dma_addr interface\nError:%d\n", __func__, scope_rc);
+        platform_device_unregister(scope_dev);
+        scope_dev = NULL;
+        return scope_rc;
+    }
+    /* like the clock files, opened up to let the driver and the tests use it without being root */
+    scope_rc = sysfs_chmod_file(&scope_dev->dev.kobj, &dev_attr_dma_addr.attr, 0666);
+    if (scope_rc) {
+        pr_err("%s: Failed to open up the permissions of dma_addr\nError:%d\n", __func__, scope_rc);
+    }
+
     /*SETUP AND ALLOCATE DMA BUFFER*/
     dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
     bitstream_buffer = vmalloc(BITSTREAM_SIZE);
@@ -340,6 +377,10 @@ static void __exit ucube_lkm_exit(void) {
 
     vfree(dev_data->read_data_buffer);
 	vfree(bitstream_buffer);
+    if (scope_dev) {
+        device_remove_file(&scope_dev->dev, &dev_attr_dma_addr);
+        platform_device_unregister(scope_dev);
+    }
     for (int i = 0; i < 4; i++) {
 		device_remove_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
         if (!IS_ERR_OR_NULL(fclk_devs[i])) {
