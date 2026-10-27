@@ -220,8 +220,6 @@ TEST(fpga_bridge, set_scope_data) {
     EXPECT_EQ(ops.address, ref_addr);
     EXPECT_EQ(ops.type, control_plane_write);
     EXPECT_EQ(resp, responses::ok);
-
-    std::filesystem::remove(if_dict.get_buffer_address_if().value());
 }
 /*
 //TODO: readd once fpga loading is handled by my driver
