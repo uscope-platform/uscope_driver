@@ -8,6 +8,7 @@ set(TEST_SOURCES
         endpoints/control_endpoints.cpp
         endpoints/server_connector.cpp
         endpoints/emulated_hil_endpoints.cpp
+        emulation/emulated_scope_reader.cpp
         )
 
 set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)

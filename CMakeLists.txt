@@ -70,6 +70,7 @@ set(DRIVER_SOURCES /
         src/server_frontend/data_plane/scope_reader.cpp
         src/server_frontend/data_plane/scope_session.cpp
         src/emulation/emulation_context.cpp
+        src/emulation/emulated_scope_reader.cpp
 )
 
 set(DRIVER_VERSION_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/generated/driver_version.cpp)

@@ -18,6 +18,8 @@
 #include "server_frontend/data_plane/scope_frame.hpp"
 #include "server_frontend/data_plane/scope_reader.hpp"
 #include "server_frontend/data_plane/scope_session.hpp"
+#include "emulation/emulated_scope_reader.hpp"
+#include "emulation/emulation_context.hpp"
 
 #include <chrono>
 #include <thread>
@@ -105,7 +107,14 @@ void scope_server::run(std::stop_token stop) {
     });
 
     // stopped (and joined) when this function returns, whatever the reason the event loop ended
-    scope_reader reader(scope_if, scaling, [this](scope_frame f){ publish(std::move(f)); });
+    // both the board and the emulation produce frames, only the ones of the target are published
+    auto &emulation = emulation_context::instance();
+    scope_reader reader(scope_if, scaling, [this, &emulation](scope_frame f){
+        if(!emulation.emulator_selected()) publish(std::move(f));
+    });
+    emulated_scope_reader emulated_reader(emulation.get_emulation(), scaling, [this, &emulation](scope_frame f){
+        if(emulation.emulator_selected()) publish(std::move(f));
+    });
 
     io_context.run();
 }
