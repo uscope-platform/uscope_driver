@@ -320,7 +320,7 @@ static int __init ucube_lkm_init(void)
 
     for(int i = 0; i< 4; i++){
         snprintf(name, sizeof(name), "fclk%d", i);
-        fclk_devs[i] = platform_device_register_simple(set_scope_data, -1, NULL, 0);
+        fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
         if (IS_ERR(fclk_devs[0])) {
             int rc = PTR_ERR(fclk_devs[0]);
             class_destroy(uCube_class);
