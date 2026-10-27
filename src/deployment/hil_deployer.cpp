@@ -59,10 +59,10 @@ fcore::result<responses::response_code> hil_deployer::run_deployment(const nlohm
 
     auto slots = dispatcher.get_interconnect_slots();
     if(!slots) return fcore::fail(std::move(slots).error());
-    bus_map.set_map(*slots);
+    bus_map.set_map(slots.value());
 
 
-    if(programs->size()>32){
+    if(programs.value().size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";
         spdlog::critical(msg);
         return fcore::fail(fcore::error_code::spec_error, msg);
@@ -71,12 +71,12 @@ fcore::result<responses::response_code> hil_deployer::run_deployment(const nlohm
     std::vector<uint32_t> frequencies;
 
     spdlog::info("------------------------------------------------------------------");
-    for(auto &p: *programs){
+    for(auto &p: programs.value()){
         auto core_address = this->addresses.bases.cores_rom + p.index * this->addresses.offsets.cores_rom;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
         execution_order[p.name] =  p.order;
-        this->load_core(core_address, p.program.binary);
+        if(auto loaded = this->load_core(core_address, p.program.binary); !loaded) return fcore::fail(std::move(loaded).error().with_context("loading the program of core " + p.name));
         n_channels[p.name] = check_reciprocal(p.program.binary);
         frequencies.push_back(p.sampling_frequency);
 
@@ -85,44 +85,44 @@ fcore::result<responses::response_code> hil_deployer::run_deployment(const nlohm
         return std::lcm(a,b);
     });
 
-    auto dividers = calculate_timebase_divider(*programs);
-    auto shifts = calculate_timebase_shift(*programs);
+    auto dividers = calculate_timebase_divider(programs.value());
+    auto shifts = calculate_timebase_shift(programs.value());
 
     spdlog::info("------------------------------------------------------------------");
 
-    setup_interconnect_iv(*slots, *programs);
+    setup_interconnect_iv(slots.value(), programs.value());
 
     uint16_t max_transfers = 0;
-    for(auto &p:*programs){
+    for(auto &p:programs.value()){
         uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*cores_idx[p.name];
         auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
         auto n_transfers = this->setup_output_dma(dma_address, p.name, p.n_channels);
         if(!n_transfers) return fcore::fail(std::move(n_transfers).error().with_context("setting up the output DMA of core " + p.name));
-        if(*n_transfers > max_transfers) max_transfers = *n_transfers;
+        if(n_transfers.value() > max_transfers) max_transfers = n_transfers.value();
     }
 
     auto memories = dispatcher.get_memory_initializations();
     if(!memories) return fcore::fail(std::move(memories).error());
 
 
-    for(auto &p:*programs) {
-        auto initializations = (*memories)[p.name];
+    for(auto &p:programs.value()) {
+        auto initializations = memories.value()[p.name];
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
 
         auto control_address = this->addresses.bases.cores_control + cores_idx[p.name] * this->addresses.offsets.cores_control;
-        this->setup_memories(control_address, initializations, p.n_channels);
+        if(auto memory = this->setup_memories(control_address, initializations, p.n_channels); !memory) return fcore::fail(std::move(memory).error().with_context("setting up the memories of core " + p.name));
     }
 
-    auto inputs = setup_inputs(*programs);
+    auto inputs = setup_inputs(programs.value());
     if(!inputs) return fcore::fail(std::move(inputs).error());
 
-    setup_sequencer(programs->size(), dividers, shifts);
-    setup_cores(*programs);
+    if(auto sequencer = setup_sequencer(programs.value().size(), dividers, shifts); !sequencer) return fcore::fail(std::move(sequencer).error());
+    if(auto cores = setup_cores(programs.value()); !cores) return fcore::fail(std::move(cores).error());
 
     return responses::ok;
 }
 
-void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
+fcore::result<void> hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& shifts) {
     spdlog::info("SETUP SEQUENCER");
     spdlog::info("------------------------------------------------------------------");
 
@@ -130,29 +130,33 @@ void hil_deployer::setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divis
     std::bitset<32> enable;
     for(int i = 0; i<n_cores; i++){
         enable[i] = true;
-        this->write_register(this->addresses.bases.controller + this->addresses.offsets.controller + 0x4 + 4 * i, divisors[i]-1);
-        this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 8 + 4*i, shifts[i]);
+        if(auto written = this->write_registers({
+            {this->addresses.bases.controller + this->addresses.offsets.controller + 0x4 + 4 * i, divisors[i]-1},
+            {this->addresses.bases.controller + this->addresses.offsets.hil_tb + 8 + 4*i, shifts[i]}
+        }); !written) return written;
     }
 
     if(timebase_frequency == 0) {
-        this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, min_timebase);
+        if(auto written = this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, min_timebase); !written) return written;
     } else {
-        this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, hil_clock_frequency/timebase_frequency);
+        if(auto written = this->write_register(this->addresses.bases.controller + this->addresses.offsets.hil_tb + 4, hil_clock_frequency/timebase_frequency); !written) return written;
     }
 
 
-    this->write_register(this->addresses.bases.controller + this->addresses.offsets.controller, enable.to_ulong());
+    if(auto written = this->write_register(this->addresses.bases.controller + this->addresses.offsets.controller, enable.to_ulong()); !written) return written;
 
 
     spdlog::info("------------------------------------------------------------------");
+    return {};
 }
 
-void hil_deployer::setup_cores(std::vector<fcore::deployed_program> &programs) {
+fcore::result<void> hil_deployer::setup_cores(std::vector<fcore::deployed_program> &programs) {
     spdlog::info("SETUP CORES");
     spdlog::info("------------------------------------------------------------------");
     for(auto p : programs ){
-        this->setup_core(this->addresses.bases.cores_control + p.index * this->addresses.offsets.cores_control,  n_channels[p.name]);
+        if(auto core = this->setup_core(this->addresses.bases.cores_control + p.index * this->addresses.offsets.cores_control,  n_channels[p.name]); !core) return core;
     }
+    return {};
 }
 
 
@@ -188,28 +192,27 @@ fcore::result<void> hil_deployer::select_output(uint32_t channel, const output_s
     if(!data) return fcore::fail(std::move(data).error());
     spdlog::info("HIL SELECT OUTPUT: selected output {0}({1},{2}) from core {3} for scope channel {4}",
                  output.source_output,
-                 data->address,
+                 data.value().address,
                  output.channel,
                  output.core_name,
                  channel);
 
-    auto selector = data->address | (data->channel <<16);
-    this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
-    return {};
+    auto selector = data.value().address | (data.value().channel <<16);
+    return this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
 }
 
-void hil_deployer::set_input(const std::string &core,  const std::string &name, uint16_t channel, double value) {
-    this->update_input_value(core,name, channel, value);
+fcore::result<void> hil_deployer::set_input(const std::string &core,  const std::string &name, uint16_t channel, double value) {
+    return this->update_input_value(core,name, channel, value);
 }
 
-void hil_deployer::start() {
+fcore::result<void> hil_deployer::start() {
     spdlog::info("START HIL");
-    this->write_register(this->addresses.bases.hil_control, 1);
+    return this->write_register(this->addresses.bases.hil_control, 1);
 }
 
-void hil_deployer::stop() {
+fcore::result<void> hil_deployer::stop() {
     spdlog::info("STOP HIL");
-    this->write_register(this->addresses.bases.hil_control, 0);
+    return this->write_register(this->addresses.bases.hil_control, 0);
 }
 
 float hil_deployer::get_sampling_frequency() const {
@@ -221,9 +224,11 @@ fcore::result<hardware_sim_data_t> hil_deployer::get_hardware_sim_data(const nlo
     if(deployed_hash != std::hash<nlohmann::json>{}(specs)) {
         hw.disable_bus_access();
         auto deployment = deploy(specs);
-        if(deployment) start();
+        fcore::result<void> started;
+        if(deployment) started = start();
         hw.enable_bus_access();
         if(!deployment) return fcore::fail(std::move(deployment).error());
+        if(!started) return fcore::fail(std::move(started).error());
     }
 
     auto [rom, control] = hw.get_hardware_simulation_data();
@@ -294,7 +299,7 @@ fcore::result<void> hil_deployer::setup_inputs(std::vector<fcore::deployed_progr
     for(auto &p:programs){
         auto core_inputs = dispatcher.get_inputs(p.name);
         if(!core_inputs) return fcore::fail(std::move(core_inputs).error());
-        auto &inputs = *core_inputs;
+        auto &inputs = core_inputs.value();
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         int input_progressive = 0;
@@ -393,7 +398,7 @@ fcore::result<void> hil_deployer::setup_inputs(std::vector<fcore::deployed_progr
         }
 
         if(active_random_inputs>0) {
-            write_register(this->addresses.bases.noise_generator, active_random_inputs);
+            if(auto written = write_register(this->addresses.bases.noise_generator, active_random_inputs); !written) return written;
         }
         spdlog::info("------------------------------------------------------------------");
     }

@@ -41,22 +41,22 @@ fcore::result<responses::response_code> custom_deployer::run_deployment(const nl
     if(!specs) return fcore::fail(std::move(specs).error());
     auto programs_res = dispatcher.get_programs();
     if(!programs_res) return fcore::fail(std::move(programs_res).error());
-    auto &programs = *programs_res;
+    auto &programs = programs_res.value();
 
 
     bus_map.clear();
     auto slots = dispatcher.get_interconnect_slots();
     if(!slots) return fcore::fail(std::move(slots).error());
-    bus_map.set_map(*slots);
+    bus_map.set_map(slots.value());
 
     spdlog::info("------------------------------------------------------------------");
     for(auto &p: programs){
         auto opts = dispatcher.get_deployment_options(p.name);
         if(!opts) return fcore::fail(std::move(opts).error());
-        uint64_t core_address = opts->rom_address;
+        uint64_t core_address = opts.value().rom_address;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
-        this->load_core(core_address, p.program.binary);
+        if(auto loaded = this->load_core(core_address, p.program.binary); !loaded) return fcore::fail(std::move(loaded).error().with_context("loading the program of core " + p.name));
     }
 
     spdlog::info("------------------------------------------------------------------");
@@ -69,7 +69,7 @@ fcore::result<responses::response_code> custom_deployer::run_deployment(const nl
 
         auto n_transfers = this->setup_output_dma(dma_address, programs[i].name, programs[i].n_channels);
         if(!n_transfers) return fcore::fail(std::move(n_transfers).error().with_context("setting up the output DMA of core " + programs[i].name));
-        if(*n_transfers > max_transfers) max_transfers = *n_transfers;
+        if(n_transfers.value() > max_transfers) max_transfers = n_transfers.value();
     }
 
 
@@ -80,14 +80,14 @@ fcore::result<responses::response_code> custom_deployer::run_deployment(const nl
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
         auto opts = dispatcher.get_deployment_options(p.name);
         if(!opts) return fcore::fail(std::move(opts).error());
-        this->setup_memories(opts->control_address, (*memories)[p.name], p.n_channels);
+        if(auto memory = this->setup_memories(opts.value().control_address, memories.value()[p.name], p.n_channels); !memory) return fcore::fail(std::move(memory).error().with_context("setting up the memories of core " + p.name));
     }
 
 
     for(auto &p:programs){
         auto core_inputs = dispatcher.get_inputs(p.name);
         if(!core_inputs) return fcore::fail(std::move(core_inputs).error());
-        auto &inputs = *core_inputs;
+        auto &inputs = core_inputs.value();
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         for(int i = 0; i<inputs.size(); i++)  {
@@ -130,14 +130,11 @@ fcore::result<responses::response_code> custom_deployer::run_deployment(const nl
     for(auto &p:programs){
         auto deployment_options = dispatcher.get_deployment_options(p.name);
         if(!deployment_options) return fcore::fail(std::move(deployment_options).error());
-        auto &opts = *deployment_options;
+        auto &opts = deployment_options.value();
         auto min_channels =  opts.has_reciprocal ? 11 : 8;
 
-        if(p.n_channels> min_channels){
-            this->setup_core(opts.control_address, p.n_channels);
-        } else{
-            this->setup_core(opts.control_address, min_channels);
-        }
+        auto core = this->setup_core(opts.control_address, p.n_channels> min_channels ? p.n_channels : min_channels);
+        if(!core) return fcore::fail(std::move(core).error());
     }
 
 

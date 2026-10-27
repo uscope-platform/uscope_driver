@@ -23,7 +23,7 @@ configuration runtime_config;
 
 
 int main(int argc, char **argv) {
-    if_dict.set_arch("zynqmp");
+    if_dict.set_arch("zynqmp").value();
     testing::InitGoogleTest(&argc, argv);
 
     // Get the test framework's listener collection

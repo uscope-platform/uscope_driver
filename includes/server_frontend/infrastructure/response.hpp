@@ -17,6 +17,11 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
+#include <type_traits>
+#include <nlohmann/json.hpp>
+
+#include "errors/error.hpp"
 
 
 namespace responses {
@@ -39,6 +44,16 @@ namespace responses {
     auto as_integer(response_code const value)
     -> typename std::underlying_type<response_code>::type {
         return static_cast<typename std::underlying_type<response_code>::type>(value);
+    }
+
+
+    /// Response body for a command that failed with an error of the toolchain or of the hardware access
+    inline nlohmann::json error_response(const fcore::error &e) {
+        nlohmann::json resp;
+        const bool bad_argument = e.code == fcore::error_code::invalid_argument || e.code == fcore::error_code::not_supported;
+        resp["response_code"] = as_integer(bad_argument ? invalid_arg : internal_error);
+        resp["data"] = "DRIVER ERROR: " + e.what() + "\n";
+        return resp;
     }
 
 }

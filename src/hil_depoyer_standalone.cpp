@@ -42,10 +42,8 @@ int main (int argc, char **argv) {
         spdlog::error("The architecture must be selected with the ARCH environment variable");
         return -1;
     }
-    try {
-        if_dict.set_arch(arch);
-    } catch (const std::invalid_argument &e) {
-        spdlog::error("ARCH environment variable: {0}", e.what());
+    if(auto selected = if_dict.set_arch(arch); !selected) {
+        spdlog::error("ARCH environment variable: {0}", selected.error().what());
         return -1;
     }
 
@@ -101,7 +99,12 @@ int main (int argc, char **argv) {
         custom_deploy = spec["deployment_mode"];
     }
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto bus = bus_accessor::create();
+    if(!bus){
+        spdlog::error("{0}", bus.error().what());
+        return -1;
+    }
+    auto ba = bus.value();
     if(custom_deploy){
         custom_deployer c;
         c.set_accessor(ba);

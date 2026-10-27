@@ -16,18 +16,29 @@
 
 #include "deployment/deployer_base.hpp"
 
-void deployer_base::write_register(uint64_t addr, uint32_t val) {
+fcore::result<void> deployer_base::write_register(uint64_t addr, uint32_t val) {
     spdlog::info("write 0x{0:x} to address {1:x}", val, addr);
     nlohmann::json write;
     write["type"] = "direct";
     write["address"] = addr;
     write["value"] = val;
 
-    hw.single_write_register(write);
+    auto written = hw.single_write_register(write);
+    if(!written) return fcore::fail(std::move(written).error());
+    return {};
 }
 
-void deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &program) {
-    hw.apply_program(address, program);
+fcore::result<void> deployer_base::write_registers(const std::vector<register_write> &writes) {
+    for(auto &[addr, val]:writes){
+        if(auto written = write_register(addr, val); !written) return written;
+    }
+    return {};
+}
+
+fcore::result<void> deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &program) {
+    auto loaded = hw.apply_program(address, program);
+    if(!loaded) return fcore::fail(std::move(loaded).error());
+    return {};
 }
 
 fcore::result<uint16_t> deployer_base::setup_output_dma(uint64_t address, const std::string &core_name, uint32_t n_channels) {
@@ -41,7 +52,7 @@ fcore::result<uint16_t> deployer_base::setup_output_dma(uint64_t address, const 
             current_io++;
         }
     }
-    write_register(address, current_io);
+    if(auto written = write_register(address, current_io); !written) return fcore::fail(std::move(written).error());
     spdlog::info("------------------------------------------------------------------");
     return static_cast<uint16_t>(current_io);
 }
@@ -70,7 +81,7 @@ fcore::result<void> deployer_base::setup_output_entry(const fcore::deployer_inte
     uint64_t mapping_address = dma_address + +3*4 + io_progressive*4;
     spdlog::info("map core io address: ({0},{1}) to hil bus address: ({2},{3})",
                  e.source_io_address,e.source_channel, e.destination_bus_address, e.destination_channel);
-    write_register(mapping_address, mapping);
+    if(auto written = write_register(mapping_address, mapping); !written) return written;
 
     auto n_dma_channels = 16;
 
@@ -87,25 +98,22 @@ fcore::result<void> deployer_base::setup_output_entry(const fcore::deployer_inte
     if(ivs.contains(e.source_id)) {
         if(ivs[e.source_id].contains(e.source_name)) {
             auto iv = ivs[e.source_id][e.source_name];
-            write_register(dma_address+8, io_progressive);
-            write_register(dma_address+4, iv[e.source_channel]);
+            if(auto written = write_registers({{dma_address+8, io_progressive}, {dma_address+4, iv[e.source_channel]}}); !written) return written;
         }
     }
 
     if(e.metadata.type == fcore::type_float){
-        write_register(metadata_address, get_metadata_value(
+        return write_register(metadata_address, get_metadata_value(
                 32,
                 true,
                 true
         ));
-    } else {
-        write_register(metadata_address, get_metadata_value(
-                e.metadata.width,
-                e.metadata.is_signed,
-                false
-        ));
     }
-    return {};
+    return write_register(metadata_address, get_metadata_value(
+            e.metadata.width,
+            e.metadata.is_signed,
+            false
+    ));
 }
 
 uint32_t deployer_base::get_metadata_value(uint8_t size, bool is_signed, bool is_float) {
@@ -116,11 +124,11 @@ uint32_t deployer_base::get_metadata_value(uint8_t size, bool is_signed, bool is
     return ret;
 }
 
-void deployer_base::setup_core(uint64_t core_address, uint32_t n_channels) {
-    write_register(core_address, n_channels);
+fcore::result<void> deployer_base::setup_core(uint64_t core_address, uint32_t n_channels) {
+    return write_register(core_address, n_channels);
 }
 
-void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::memory_init_value> init_values, uint32_t n_channels) {
+fcore::result<void> deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::memory_init_value> init_values, uint32_t n_channels) {
     spdlog::info("------------------------------------------------------------------");
     for(auto &[address, value]:init_values){
 
@@ -130,12 +138,12 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
                 for(int i = 0; i < n_channels; i++) {
                     auto v = float_to_uint32(vect[i]);
                     auto register_addr = base_address + ((address[0] & 0xFF) + (i<<8))*4;
-                    write_register(register_addr, v);
+                    if(auto written = write_register(register_addr, v); !written) return written;
                 }
             } else {
                 auto v = float_to_uint32(vect[0]);
                 auto register_addr = base_address+address[0]*4;
-                write_register(register_addr, v);
+                if(auto written = write_register(register_addr, v); !written) return written;
             }
 
         } else {
@@ -144,16 +152,17 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
                 for(int i = 0; i < n_channels; i++) {
                     auto v = std::get<std::vector<uint32_t>>(value)[i];
                     auto register_addr = base_address + ((address[0] & 0xFF) + (i<<8))*4;
-                    write_register(register_addr,v);
+                    if(auto written = write_register(register_addr, v); !written) return written;
                 }
             } else {
                 auto v = std::get<std::vector<uint32_t>>(value)[0];
                 auto register_addr = base_address+address[0]*4;
-                write_register(register_addr,v);
+                if(auto written = write_register(register_addr, v); !written) return written;
             }
         }
     }
     spdlog::info("------------------------------------------------------------------");
+    return {};
 }
 
 fcore::result<void> deployer_base::setup_input(
@@ -201,14 +210,16 @@ fcore::result<void> deployer_base::setup_input(
             metadata.const_ip_addr.second,
         };
 
-        write_register(metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second);
-        write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest);
-        write_register( metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, input_value);
+        if(auto written = write_registers({
+            {metadata.const_ip_addr.first + fcore_constant_engine.const_selector, metadata.const_ip_addr.second},
+            {metadata.const_ip_addr.first + fcore_constant_engine.const_dest, metadata.dest},
+            {metadata.const_ip_addr.first + fcore_constant_engine.const_lsb, input_value}
+        }); !written) return written;
 
         inputs.push_back(metadata);
     } else if(in.source_type == fcore::random_input) {
         uint32_t address =in.address[0] + (target_channel<<16);
-        write_register( const_ip_address + (active_random_inputs+1)*4, address);
+        if(auto written = write_register( const_ip_address + (active_random_inputs+1)*4, address); !written) return written;
         active_random_inputs++;
 
         if(is_multichannel){
@@ -230,18 +241,21 @@ fcore::result<void> deployer_base::setup_input(
     return {};
 }
 
-void deployer_base::update_input_value(const std::string &core_name,  const std::string &name, uint16_t channel, double raw_value) {\
+fcore::result<void> deployer_base::update_input_value(const std::string &core_name,  const std::string &name, uint16_t channel, double raw_value) {\
     std::string core_identifier = core_name + '[' + std::to_string(channel) + ']';
     for(auto &in:inputs){
         if(in.name == name && in.core == core_name && in.channel == channel){
             uint32_t value =static_cast<uint32_t>(raw_value);
             if(in.is_float) value = float_to_uint32(static_cast<float>(raw_value));
-            write_register(in.const_ip_addr.first + fcore_constant_engine.const_selector, in.const_ip_addr.second);
-            write_register( in.const_ip_addr.first + fcore_constant_engine.const_dest, in.dest);
-            write_register( in.const_ip_addr.first + fcore_constant_engine.const_lsb, value);
+            if(auto written = write_registers({
+                {in.const_ip_addr.first + fcore_constant_engine.const_selector, in.const_ip_addr.second},
+                {in.const_ip_addr.first + fcore_constant_engine.const_dest, in.dest},
+                {in.const_ip_addr.first + fcore_constant_engine.const_lsb, value}
+            }); !written) return written;
             spdlog::info("HIL SET INPUT: set value {0} for input at address {1}, on core {2}", raw_value, in.dest, core_identifier);
         }
     }
+    return {};
 }
 
 fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t dest) {
@@ -249,18 +263,19 @@ fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const 
     uint64_t period = p.period[channel]*hil_clock_frequency;
     uint64_t t_on = p.t_on[channel]*hil_clock_frequency;
     uint64_t t_delay = p.t_delay[channel]*hil_clock_frequency;
-    write_register(address + square_wave_gen.channel_selector, active_waveforms);
-    write_register(address +square_wave_gen.v_on, float_to_uint32(p.v_on[channel]));
-    write_register(address +square_wave_gen.v_off, float_to_uint32(p.v_off[channel]));
-    write_register(address +square_wave_gen.t_delay, t_delay);
-    write_register(address +square_wave_gen.t_on, t_on);
-    write_register(address +square_wave_gen.period, period);
-    write_register(address +square_wave_gen.dest_out, dest);
-    write_register(address + square_wave_gen.shape_selector, 0);
-    write_register(address +square_wave_gen.user_out, get_metadata_value(32,true,true));
+    if(auto written = write_registers({
+        {address + square_wave_gen.channel_selector, active_waveforms},
+        {address +square_wave_gen.v_on, float_to_uint32(p.v_on[channel])},
+        {address +square_wave_gen.v_off, float_to_uint32(p.v_off[channel])},
+        {address +square_wave_gen.t_delay, static_cast<uint32_t>(t_delay)},
+        {address +square_wave_gen.t_on, static_cast<uint32_t>(t_on)},
+        {address +square_wave_gen.period, static_cast<uint32_t>(period)},
+        {address +square_wave_gen.dest_out, dest},
+        {address + square_wave_gen.shape_selector, 0},
+        {address +square_wave_gen.user_out, get_metadata_value(32,true,true)}
+    }); !written) return written;
     active_waveforms++;
-    write_register(address + square_wave_gen.active_channels,  active_waveforms);
-    return {};
+    return write_register(address + square_wave_gen.active_channels,  active_waveforms);
 }
 
 fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {

@@ -21,6 +21,7 @@
 #include <boost/asio.hpp>
 #include <nlohmann/json.hpp>
 
+#include "errors/result.hpp"
 #include "hw_interface/bus/bus_accessor.hpp"
 #include "hw_interface/fpga_bridge.hpp"
 #include "hw_interface/hw_address_maps.hpp"
@@ -40,11 +41,11 @@ public:
 private:
     nlohmann::json handle(const std::string &cmd, const nlohmann::json &args);
 
-    void set_scaling_factors(const nlohmann::json &args);
-    void set_acquisition(const nlohmann::json &args);
-    std::string get_acquisition_status();
-    void set_scope_address(const nlohmann::json &args);
-    void disable_dma(const nlohmann::json &args);
+    fcore::result<void> set_scaling_factors(const nlohmann::json &args);
+    fcore::result<void> set_acquisition(const nlohmann::json &args);
+    fcore::result<std::string> get_acquisition_status();
+    fcore::result<void> set_scope_address(const nlohmann::json &args);
+    fcore::result<void> disable_dma(const nlohmann::json &args);
 
     // only accessed from the command thread
     uint64_t scope_base_address = 0;

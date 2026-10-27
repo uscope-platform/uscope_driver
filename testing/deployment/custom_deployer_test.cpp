@@ -376,7 +376,7 @@ TEST(custom_deployer, deployment) {
 })");
 
     return;
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     custom_deployer d;
     d.set_accessor(ba);
     auto addr_map = custom_deployer_get_addr_map();

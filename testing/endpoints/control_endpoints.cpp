@@ -30,7 +30,7 @@ TEST(control_endpoints, write_single_register) {
         "proxy_type":""
     })");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     control_endpoints ep(true);
     ep.set_accessor(ba);
@@ -55,7 +55,7 @@ TEST(control_endpoints, write_single_register_non_int_error) {
         "proxy_type":""
     })");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     control_endpoints ep(true);
     ep.set_accessor(ba);
@@ -78,7 +78,7 @@ TEST(control_endpoints, write_register_non_validating) {
         "proxy_type":""
     })");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     control_endpoints ep(true);
     ep.set_accessor(ba);
@@ -97,7 +97,7 @@ TEST(control_endpoints, read_register) {
 
     auto command = nlohmann::json::parse(R"(18316525568)");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     control_endpoints ep(true);
     ep.set_accessor(ba);
@@ -117,7 +117,7 @@ TEST(control_endpoints, read_non_register) {
 
     auto command = nlohmann::json::parse(R"({"error":true})");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     control_endpoints ep(true);
     ep.set_accessor(ba);

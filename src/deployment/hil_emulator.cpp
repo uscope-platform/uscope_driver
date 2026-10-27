@@ -35,7 +35,7 @@ emulation_results hil_emulator::emulate(const nlohmann::json &specs) {
     if(!results) return fail_with(7, results.error());
 
     spdlog::info("EMULATION RESULTS AVAILABLE");
-    ret_val.results = results->dump();
+    ret_val.results = results.value().dump();
     ret_val.results_valid = true;
     ret_val.code = 1;
     return ret_val;
@@ -81,15 +81,15 @@ fcore::result<std::string> hil_emulator::remove_breakpoint(std::string core_id, 
 fcore::result<std::string> hil_emulator::step_over() {
     auto checkpoint = emu_manager.step_over();
     if(!checkpoint) return fcore::fail(std::move(checkpoint).error());
-    nlohmann::json ret = *checkpoint;
+    nlohmann::json ret = checkpoint.value();
     return ret.dump();
 }
 
 fcore::result<std::string> hil_emulator::continue_execution() {
     auto res = emu_manager.continue_emulation();
     if(!res) return fcore::fail(std::move(res).error());
-    if(res->has_value()){
-        nlohmann::json val = res->value();
+    if(res.value().has_value()){
+        nlohmann::json val = res.value().value();
         return val.dump();
     } else{
         return "{}";
@@ -106,15 +106,15 @@ fcore::result<std::string> hil_emulator::run_emulation() {
     if(auto r = emu_manager.set_multichannel_debug(false); !r) return fcore::fail(std::move(r).error());
     auto res = emu_manager.emulate();
     if(!res) return fcore::fail(std::move(res).error());
-    if(res->has_value()){
-        nlohmann::json val = res->value();
+    if(res.value().has_value()){
+        nlohmann::json val = res.value().value();
         return val.dump();
     } else {
         auto results = emu_manager.get_results();
         if(!results) return fcore::fail(std::move(results).error());
         nlohmann::json ret;
         ret["status"] = "complete";
-        ret["emulation_result"] = *results;
+        ret["emulation_result"] = results.value();
         return ret.dump();
     }
 }
@@ -122,7 +122,7 @@ fcore::result<std::string> hil_emulator::run_emulation() {
 fcore::result<std::string> hil_emulator::get_breakpoints(const std::string &core_id) {
     auto breakpoints = emu_manager.get_breakpoints(core_id);
     if(!breakpoints) return fcore::fail(std::move(breakpoints).error());
-    nlohmann::json ret = *breakpoints;
+    nlohmann::json ret = breakpoints.value();
     return ret.dump();
 }
 

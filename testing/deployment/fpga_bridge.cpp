@@ -30,7 +30,7 @@ TEST(fpga_bridge, single_write_register_direct) {
     }
     )");
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
@@ -60,7 +60,7 @@ TEST(fpga_bridge, single_write_register_axis_proxied) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
@@ -89,17 +89,13 @@ TEST(fpga_bridge, single_write_type_error) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    try{
-        auto res = bridge.single_write_register(spec_json);
-        EXPECT_TRUE(false); // The call should throw and exception
-    } catch (std::runtime_error &e){
-        std::string err = e.what();
-        EXPECT_EQ(err,"ERROR: Unrecognised register write type");
-    }
+    auto res = bridge.single_write_register(spec_json);
+    ASSERT_FALSE(res);
+    EXPECT_EQ(res.error().what(),"ERROR: Unrecognised register write type");
 
 }
 
@@ -118,17 +114,13 @@ TEST(fpga_bridge, single_write_proxy_error) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    try{
-        auto res = bridge.single_write_register(spec_json);
-        EXPECT_TRUE(false); // The call should throw and exception
-    } catch (std::runtime_error &e){
-        std::string err = e.what();
-        EXPECT_EQ(err,"ERROR: Unrecognised write proxy type");
-    }
+    auto res = bridge.single_write_register(spec_json);
+    ASSERT_FALSE(res);
+    EXPECT_EQ(res.error().what(),"ERROR: Unrecognised write proxy type");
 
 }
 
@@ -136,11 +128,13 @@ TEST(fpga_bridge, single_write_register_read) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    auto res = bridge.single_read_register(0x443C40004);
+    auto read = bridge.single_read_register(0x443C40004);
+    ASSERT_TRUE(read);
+    auto res = read.value();
     auto ops = bridge.get_bus_operations()[0];
 
     EXPECT_LT(res["data"], 100);
@@ -155,7 +149,7 @@ TEST(fpga_bridge, load_program) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
@@ -178,14 +172,14 @@ TEST(fpga_bridge, set_clock) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    std::ofstream o(if_dict.get_clock_if(2));
+    std::ofstream o(if_dict.get_clock_if(2).value());
     auto resp = bridge.set_pl_clock(2, 1200000);
     EXPECT_EQ(resp, responses::ok);
-    std::ifstream result_file(if_dict.get_clock_if(2));
+    std::ifstream result_file(if_dict.get_clock_if(2).value());
     std::string res;
     result_file>>res;
     EXPECT_EQ(res, "1000000");
@@ -195,11 +189,11 @@ TEST(fpga_bridge, set_clock_file_errorr) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    std::ofstream o(if_dict.get_clock_if(1));
+    std::ofstream o(if_dict.get_clock_if(1).value());
     auto resp = bridge.set_pl_clock(2, 1000000);
     EXPECT_EQ(resp, responses::ok);
 }
@@ -209,11 +203,11 @@ TEST(fpga_bridge, set_scope_data) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
-    std::ofstream o(if_dict.get_buffer_address_if());
+    std::ofstream o(if_dict.get_buffer_address_if().value());
     o<< "124786"<<std::endl;
     o.close();
 
@@ -227,7 +221,7 @@ TEST(fpga_bridge, set_scope_data) {
     EXPECT_EQ(ops.type, control_plane_write);
     EXPECT_EQ(resp, responses::ok);
 
-    std::filesystem::remove(if_dict.get_buffer_address_if());
+    std::filesystem::remove(if_dict.get_buffer_address_if().value());
 }
 /*
 //TODO: readd once fpga loading is handled by my driver
@@ -236,32 +230,32 @@ TEST(fpga_bridge, fpga_loading) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
 
 
     std::ofstream o("/tmp/test.bit");
-    o = std::ofstream(if_dict.get_fpga_state_if());
+    o = std::ofstream(if_dict.get_fpga_state_if().value());
     o << "1"<<std::endl;
     o.close();
     auto resp = bridge.load_bitstream("/tmp/test.bit");
 
-    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::ifstream result_file(if_dict.get_fpga_flags_if().value());
     std::string res;
     result_file>>res;
     EXPECT_EQ(res, "0");
 
-    result_file = std::ifstream(if_dict.get_fpga_bitstream_if());
+    result_file = std::ifstream(if_dict.get_fpga_bitstream_if().value());
     result_file>>res;
     EXPECT_EQ(res, "test.bit");
 
     EXPECT_EQ(resp, responses::ok);
     std::filesystem::remove("/tmp/test.bit");
-    std::filesystem::remove(if_dict.get_fpga_state_if());
-    std::filesystem::remove(if_dict.get_fpga_flags_if());
-    std::filesystem::remove(if_dict.get_fpga_bitstream_if());
+    std::filesystem::remove(if_dict.get_fpga_state_if().value());
+    std::filesystem::remove(if_dict.get_fpga_flags_if().value());
+    std::filesystem::remove(if_dict.get_fpga_bitstream_if().value());
 }
 
 
@@ -270,7 +264,7 @@ TEST(fpga_bridge, fpga_failed_loading) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
@@ -279,19 +273,19 @@ TEST(fpga_bridge, fpga_failed_loading) {
     std::ofstream o("/tmp/test.bit");
     auto resp = bridge.load_bitstream("/tmp/test.bit");
 
-    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::ifstream result_file(if_dict.get_fpga_flags_if().value());
     std::string res;
     result_file>>res;
     EXPECT_EQ(res, "0");
 
-    result_file = std::ifstream(if_dict.get_fpga_bitstream_if());
+    result_file = std::ifstream(if_dict.get_fpga_bitstream_if().value());
     result_file>>res;
     EXPECT_EQ(res, "test.bit");
 
     EXPECT_EQ(resp, responses::bitstream_load_failed);
     std::filesystem::remove("/tmp/test.bit");
-    std::filesystem::remove(if_dict.get_fpga_flags_if());
-    std::filesystem::remove(if_dict.get_fpga_bitstream_if());
+    std::filesystem::remove(if_dict.get_fpga_flags_if().value());
+    std::filesystem::remove(if_dict.get_fpga_bitstream_if().value());
 }
 
 
@@ -299,7 +293,7 @@ TEST(fpga_bridge, fpga_bitstream_not_found) {
 
     
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     fpga_bridge bridge(true);
     bridge.set_accessor(ba);
 
@@ -307,12 +301,12 @@ TEST(fpga_bridge, fpga_bitstream_not_found) {
 
     auto resp = bridge.load_bitstream("/tmp/sfgftest.bit");
 
-    std::ifstream result_file(if_dict.get_fpga_flags_if());
+    std::ifstream result_file(if_dict.get_fpga_flags_if().value());
     std::string res;
     result_file>>res;
     EXPECT_EQ(res, "0");
 
     EXPECT_EQ(resp, responses::bitstream_not_found);
-    std::filesystem::remove(if_dict.get_fpga_state_if());
+    std::filesystem::remove(if_dict.get_fpga_state_if().value());
 }
 */

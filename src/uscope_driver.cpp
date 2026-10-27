@@ -70,10 +70,8 @@ int main (int argc, char **argv) {
 
 
     if (const char * arch = std::getenv("ARCH")) {
-        try {
-            if_dict.set_arch(arch);
-        } catch (const std::invalid_argument &e) {
-            spdlog::error("ARCH environment variable: {0}", e.what());
+        if(auto selected = if_dict.set_arch(arch); !selected) {
+            spdlog::error("ARCH environment variable: {0}", selected.error().what());
             exit(-1);
         }
     } else {
@@ -100,8 +98,18 @@ int main (int argc, char **argv) {
     spdlog::info("Log level: {0}", log_level);
 
 
-    auto ba = std::make_shared<bus_accessor>();
-    auto sa = std::make_shared<scope_accessor>();
+    auto bus = bus_accessor::create();
+    if(!bus) {
+        spdlog::error("{0}", bus.error().what());
+        exit(1);
+    }
+    auto scope = scope_accessor::create();
+    if(!scope) {
+        spdlog::error("{0}", scope.error().what());
+        exit(1);
+    }
+    auto ba = bus.value();
+    auto sa = scope.value();
 
 
     //std::array<server_connector, 4> workers_pool;

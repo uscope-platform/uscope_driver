@@ -102,7 +102,7 @@ TEST(cores_endpoints, hil_sim_data) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -132,7 +132,7 @@ TEST(cores_endpoints, deployed_hil_sim_data) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -163,7 +163,7 @@ TEST(cores_endpoints, cache_invalidation_hil_sim_data) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -194,7 +194,7 @@ TEST(cores_endpoints, deploy_hil) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -213,7 +213,7 @@ TEST(cores_endpoints, deploy_hil_error) {
 
     command["cores"][0]["order"] = "fs";
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
     cores_endpoints ep(true);
     ep.set_accessor(ba);
@@ -231,7 +231,7 @@ TEST(cores_endpoints, emulate_hil) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -254,7 +254,7 @@ TEST(cores_endpoints, start_hil) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -277,7 +277,7 @@ TEST(cores_endpoints, stop_hil) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -298,7 +298,7 @@ TEST(cores_endpoints, set_input) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -326,7 +326,7 @@ TEST(cores_endpoints, select_output) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -357,7 +357,7 @@ TEST(cores_endpoints, get_address_map) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -376,7 +376,7 @@ TEST(cores_endpoints, hil_debug) {
     nlohmann::json spec = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -397,7 +397,7 @@ TEST(cores_endpoints, hil_disassemble) {
     nlohmann::json command = nlohmann::json::parse(default_hil_spec);
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -414,7 +414,7 @@ TEST(cores_endpoints, hil_disassemble) {
 TEST(cores_endpoints, unknown_command) {
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
 
 
     cores_endpoints ep(true);
@@ -428,7 +428,7 @@ TEST(cores_endpoints, unknown_command) {
 
 
 TEST(cores_endpoints, debugger_option_multichannel) {
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     cores_endpoints ep(true);
     ep.set_accessor(ba);
 
@@ -446,7 +446,7 @@ TEST(cores_endpoints, debugger_option_multichannel) {
 }
 
 TEST(cores_endpoints, debugger_option_invalid) {
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     cores_endpoints ep(true);
     ep.set_accessor(ba);
 

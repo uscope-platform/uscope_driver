@@ -81,7 +81,9 @@ nlohmann::json cores_endpoints::process_apply_program(const nlohmann::json &argu
 
     uint64_t address = arguments["address"];
     std::vector<uint32_t> program = arguments["program"];
-    resp["response_code"] = hw.apply_program(address, program);
+    auto applied = hw.apply_program(address, program);
+    if(!applied) return responses::error_response(applied.error());
+    resp["response_code"] = applied.value();
     return resp;
 }
 
@@ -93,7 +95,7 @@ nlohmann::json cores_endpoints::process_deploy_hil(const nlohmann::json &argumen
     });
 
     if(outcome){
-        resp["response_code"] = *outcome;
+        resp["response_code"] = outcome.value();
     } else {
         nlohmann::json data;
         resp["response_code"] = responses::as_integer(responses::ok);
@@ -125,6 +127,8 @@ nlohmann::json cores_endpoints::process_hil_select_out(const nlohmann::json &arg
         out.source_output = arguments["output"]["name"];
         out.channel = arguments["output"]["channel"];
         if(auto selected = hil.select_output(arguments["channel"], out); !selected){
+            // either the output does not exist or the scope multiplexer cannot be written
+            if(selected.error().code != fcore::error_code::bus_allocation) return responses::error_response(selected.error());
             resp["response_code"] = responses::as_integer(responses::invalid_arg);
             resp["data"] = "DRIVER ERROR: " + selected.error().what() + "\n";
         }
@@ -143,14 +147,14 @@ nlohmann::json cores_endpoints::process_hil_set_in(const nlohmann::json &argumen
     double value = arguments["value"];
     std::string core =  arguments["core"];
     uint16_t channel = arguments["channel"];
-    hil.set_input(core, name, channel, value);
+    if(auto set = hil.set_input(core, name, channel, value); !set) return responses::error_response(set.error());
     return resp;
 }
 
 nlohmann::json cores_endpoints::process_hil_start() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    hil.start();
+    if(auto started = hil.start(); !started) return responses::error_response(started.error());
     return resp;
 }
 
@@ -164,7 +168,7 @@ nlohmann::json cores_endpoints::process_get_sampling_frequency() {
 nlohmann::json cores_endpoints::process_hil_stop() {
     nlohmann::json resp;
     resp["response_code"] = responses::ok;
-    hil.stop();
+    if(auto stopped = hil.stop(); !stopped) return responses::error_response(stopped.error());
     return resp;
 }
 
@@ -184,7 +188,7 @@ nlohmann::json cores_endpoints::process_compile_program(const nlohmann::json &ar
     auto hex = toolchain.compile(content,headers, io);
     if(hex){
         compilation_result["status"] = "ok";
-        compilation_result["hex"] = *hex;
+        compilation_result["hex"] = hex.value();
     } else {
         compilation_result["status"] = "error";
         compilation_result["error"] = hex.error().what();
@@ -200,7 +204,7 @@ nlohmann::json cores_endpoints::process_hil_disassemble(const nlohmann::json &ar
 
     auto disassembly = emulator.disassemble(arguments);
     if(disassembly){
-        resp["data"] = *disassembly;
+        resp["data"] = disassembly.value();
         resp["response_code"] = responses::as_integer(responses::ok);
     } else {
         resp["data"] = "DRIVER ERROR: " + disassembly.error().what() + "\n";
@@ -216,7 +220,7 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(const nlohmann::json &a
 
     auto sim_data = hil.get_hardware_sim_data(arguments);
     if(sim_data){
-        resp["data"] = *sim_data;
+        resp["data"] = sim_data.value();
         resp["response_code"] = responses::as_integer(responses::ok);
     } else {
         resp["data"] = "DRIVER ERROR: " + sim_data.error().what() + "\n";
@@ -340,7 +344,7 @@ nlohmann::json cores_endpoints::process_hil_debug(const nlohmann::json &argument
 
     auto outcome = emulator.run_command(c);
     if(outcome){
-        resp["data"] = *outcome;
+        resp["data"] = outcome.value();
         resp["response_code"] = responses::as_integer(responses::ok);
     } else {
         resp["data"] = "DRIVER ERROR: " + outcome.error().what() + "\n";

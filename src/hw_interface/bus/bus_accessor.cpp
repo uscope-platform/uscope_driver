@@ -15,6 +15,14 @@
 
 #include "hw_interface/bus/bus_accessor.hpp"
 
+#include <charconv>
+#include <cstdlib>
+#include <cstring>
+#include <mutex>
+#include <string_view>
+
+#include <fmt/format.h>
+
 std::mutex m;
 
 std::atomic<bool> bus_accessor::sink_mode{false};
@@ -30,18 +38,42 @@ void sigbus_handler(int dummy) {
     exit(-1);
 }
 
-bus_accessor::bus_accessor() {
+namespace {
+    /// Number of pages to map, from the environment variable if it is set
+    fcore::result<int> pages_from_environment(const char *name) {
+        constexpr int default_pages = 344000;
+        const char *value = std::getenv(name);
+        if(value == nullptr) return default_pages;
 
+        const std::string_view text(value);
+        int pages = 0;
+        auto [end, ec] = std::from_chars(text.data(), text.data() + text.size(), pages);
+        if(ec != std::errc() || end != text.data() + text.size() || pages <= 0){
+            return fcore::fail(fcore::error_code::invalid_argument, std::string(name) + " must be a positive integer, got '" + value + "'");
+        }
+        return pages;
+    }
+}
+
+fcore::result<std::shared_ptr<bus_accessor>> bus_accessor::create() {
     spdlog::info("fpga_bridge initialization started");
 
     signal(SIGSEGV,sigsegv_handler);
     signal(SIGBUS,sigbus_handler);
+
+    auto accessor = std::make_shared<bus_accessor>(construction_key{});
+    if(auto mapped = accessor->map_buses(); !mapped) return fcore::fail(std::move(mapped).error());
+
+    spdlog::info("fpga_bridge initialization done");
+    return accessor;
+}
+
+fcore::result<void> bus_accessor::map_buses() {
     std::string arch;
     if (const char * env_val = std::getenv("ARCH")) {
         arch = env_val;
     } else {
-        spdlog::error("The architecture must be selected with the ARCH environment variable");
-        exit(-1);
+        return fcore::fail(fcore::error_code::invalid_argument, "The architecture must be selected with the ARCH environment variable");
     }
     if(arch == "zynqmp"){
         control_addr = ZYNQMP_REGISTERS_BASE_ADDR;
@@ -51,80 +83,73 @@ bus_accessor::bus_accessor() {
         core_addr = ZYNQ_FCORE_BASE_ADDR;
     }
 
-    int n_pages_ctrl, n_pages_fcore;
+    auto n_pages_ctrl = pages_from_environment("MMAP_N_PAGES_CTRL");
+    if(!n_pages_ctrl) return fcore::fail(std::move(n_pages_ctrl).error());
+    auto n_pages_fcore = pages_from_environment("MMAP_N_PAGES_FCORE");
+    if(!n_pages_fcore) return fcore::fail(std::move(n_pages_fcore).error());
 
-    char const* t = getenv("MMAP_N_PAGES_CTRL");
-    if(t == nullptr){
-        n_pages_ctrl = 344000;
-    } else {
-        n_pages_ctrl = std::stoi(std::string(t));
-    }
+    auto control_bus = if_dict.get_control_bus();
+    if(!control_bus) return fcore::fail(std::move(control_bus).error());
+    auto cores_bus = if_dict.get_cores_bus();
+    if(!cores_bus) return fcore::fail(std::move(cores_bus).error());
 
-    t = getenv("MMAP_N_PAGES_FCORE");
-    if(t == nullptr){
-        n_pages_fcore = 344000;
-    } else {
-        n_pages_fcore = std::stoi(std::string(t));
-    }
-
-    auto registers_fd = open(if_dict.get_control_bus().c_str(), O_RDWR | O_SYNC);
+    auto registers_fd = open(control_bus.value().c_str(), O_RDWR | O_SYNC);
     if(registers_fd == -1){
-        spdlog::error( "Error while mapping the axi control bus");
-        exit(1);
+        return fcore::fail(fcore::error_code::io_error, "Error while mapping the axi control bus " + control_bus.value() + ": " + strerror(errno));
     }
 
-    auto fcore_fd = open(if_dict.get_cores_bus().c_str(), O_RDWR | O_SYNC);
+    auto fcore_fd = open(cores_bus.value().c_str(), O_RDWR | O_SYNC);
     if(fcore_fd == -1){
-        spdlog::error("Error while mapping the fcore rom bus");
-        exit(1);
+        return fcore::fail(fcore::error_code::io_error, "Error while mapping the fcore rom bus " + cores_bus.value() + ": " + strerror(errno));
     }
 
-    spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl, control_addr);
-    control_words = static_cast<uint64_t>(n_pages_ctrl)*4096/4;
-    registers = (uint32_t*) mmap(nullptr, n_pages_ctrl*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
+    spdlog::info("Mapping {0} memory pages from the axi control bus, starting at address: 0x{1:x}", n_pages_ctrl.value(), control_addr);
+    control_words = static_cast<uint64_t>(n_pages_ctrl.value())*4096/4;
+    registers = (uint32_t*) mmap(nullptr, n_pages_ctrl.value()*4096, PROT_READ | PROT_WRITE, MAP_SHARED, registers_fd, control_addr);
     if(registers == MAP_FAILED) {
-        spdlog::error("Cannot mmap control bus: {0}", strerror(errno));
-        exit(1);
+        return fcore::fail(fcore::error_code::io_error, std::string("Cannot mmap control bus: ") + strerror(errno));
     }
 
-    spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: ", n_pages_fcore, core_addr);
-    fCore = (uint32_t*) mmap(nullptr, n_pages_fcore*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
-    fcore_words = static_cast<uint64_t>(n_pages_fcore)*4096/4;
+    spdlog::info("Mapping {0} memory pages from the fcore programming bus, starting at address: 0x{1:x}", n_pages_fcore.value(), core_addr);
+    fCore = (uint32_t*) mmap(nullptr, n_pages_fcore.value()*4096, PROT_READ | PROT_WRITE, MAP_SHARED, fcore_fd, core_addr);
+    fcore_words = static_cast<uint64_t>(n_pages_fcore.value())*4096/4;
     if(fCore == MAP_FAILED) {
-        spdlog::error("Cannot mmap fcore programming bus: {0}", strerror(errno));
-        exit(1);
+        return fcore::fail(fcore::error_code::io_error, std::string("Cannot mmap fcore programming bus: ") + strerror(errno));
     }
-
-
-    spdlog::info("fpga_bridge initialization done");
+    return {};
 }
 
-void bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
+fcore::result<void> bus_accessor::write_register(const std::vector<uint64_t>& addresses, uint64_t data) {
     if(!sink_mode){
         // all the addresses are validated before touching anything, so a rejected write has no effect at all
         if(addresses.size() ==1){
             auto index = register_address_to_index(addresses[0]);
+            if(!index) return fcore::fail(std::move(index).error());
             std::lock_guard lock(m);
-            registers[index] = data;
+            registers[index.value()] = data;
         } else {
             auto address_index = register_address_to_index(addresses[1]+4);
+            if(!address_index) return fcore::fail(std::move(address_index).error());
             auto data_index = register_address_to_index(addresses[1]);
+            if(!data_index) return fcore::fail(std::move(data_index).error());
             std::lock_guard lock(m);
-            registers[address_index] = addresses[0];
-            registers[data_index] = data;
+            registers[address_index.value()] = addresses[0];
+            registers[data_index.value()] = data;
         }
     }
     operations.push_back({addresses, {data}, control_plane_write});
+    return {};
 }
 
-uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
+fcore::result<uint32_t> bus_accessor::read_register(const std::vector<uint64_t>& address) {
     if(!sink_mode){
         uint32_t ret_val = 0;
         if(address.size()==1){
             auto reg_n = register_address_to_index(address[0]);
-            spdlog::trace("READ from Register #{0} at address {1}", reg_n, address[0]);
+            if(!reg_n) return fcore::fail(std::move(reg_n).error());
+            spdlog::trace("READ from Register #{0} at address {1}", reg_n.value(), address[0]);
             std::lock_guard lock(m);
-            ret_val = registers[reg_n];
+            ret_val = registers[reg_n.value()];
         }
         operations.push_back({address, {0}, control_plane_read});
         return ret_val;
@@ -134,9 +159,9 @@ uint32_t bus_accessor::read_register(const std::vector<uint64_t>& address) {
     }
 }
 
-uint64_t bus_accessor::fcore_address_to_index(uint64_t address) const {
+fcore::result<uint64_t> bus_accessor::fcore_address_to_index(uint64_t address) const {
     if(address < core_addr || (address - core_addr) / 4 >= fcore_words){
-        throw bus_address_error("Core bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
+        return fcore::fail(fcore::error_code::invalid_argument,"Core bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
                                 + fmt::format("{:x}", core_addr) + " for " + std::to_string(fcore_words*4) + " bytes)");
     }
     return (address - core_addr) / 4;
@@ -160,15 +185,15 @@ std::pair<std::string, std::string> bus_accessor::get_hardware_simulation_data()
     return {rom_plane, control_plane};
 }
 
-uint64_t bus_accessor::register_address_to_index(uint64_t address) const {
+fcore::result<uint64_t> bus_accessor::register_address_to_index(uint64_t address) const {
     if(address < control_addr || (address - control_addr) / 4 >= control_words){
-        throw bus_address_error("Control bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
+        return fcore::fail(fcore::error_code::invalid_argument,"Control bus address 0x" + fmt::format("{:x}", address) + " is outside of the mapped window (from 0x"
                                 + fmt::format("{:x}", control_addr) + " for " + std::to_string(control_words*4) + " bytes)");
     }
     return (address - control_addr) / 4;
 }
 
-void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
+fcore::result<void> bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> program) {
 
     std::vector<uint64_t> pn;
     std::vector<uint64_t> a = {address};
@@ -180,18 +205,21 @@ void bus_accessor::load_program(uint64_t address, const std::vector<uint32_t> pr
     } else {
         // an address outside of the mapped window would be a segmentation fault, which kills the driver
         if(address < core_addr || (address-core_addr)/4 + program.size() > fcore_words){
-            throw bus_address_error("Cannot load the program at address 0x" + fmt::format("{:x}", address) +
+            return fcore::fail(fcore::error_code::invalid_argument, "Cannot load the program at address 0x" + fmt::format("{:x}", address) +
                                      ": the programming bus is mapped from 0x" + fmt::format("{:x}", core_addr) +
                                      " for " + std::to_string(fcore_words*4) + " bytes (check the ARCH of the driver and the code address of the core)");
         }
+        auto base_index = fcore_address_to_index(address);
+        if(!base_index) return fcore::fail(std::move(base_index).error());
         std::lock_guard lock(m);
         a = {address};
         for(int i = 0; i< program.size(); i++){
-            fCore[i+fcore_address_to_index(address)] = program[i];
+            fCore[i+base_index.value()] = program[i];
             pn.push_back(program[i]);
             usleep(1);
         }
     }
-        operations.push_back({a, pn, rom_plane_write});
+    operations.push_back({a, pn, rom_plane_write});
+    return {};
 }
 

@@ -25,6 +25,7 @@
 #include <chrono>
 #include <thread>
 #include <atomic>
+#include <memory>
 
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -38,6 +39,7 @@
 #include "server_frontend/infrastructure/response.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"
 #include "configuration.hpp"
+#include "errors/result.hpp"
 
 
 #include "bus/bus_accessor.hpp"
@@ -53,21 +55,23 @@ public:
     void set_accessor(const std::shared_ptr<bus_accessor>& bus_acc) {busses = bus_acc;}
 
     void clear_operations_vector(){busses->clear_operations();}
-    responses::response_code load_bitstream(const std::vector<uint8_t>& bitstream);
-    responses::response_code single_write_register(const nlohmann::json &write_obj);
-    nlohmann::json single_read_register(uint64_t address);
-    responses::response_code apply_program(uint64_t address, std::vector<uint32_t> program);
-    responses::response_code apply_filter(uint64_t address, std::vector<uint32_t> taps);
-    responses::response_code set_scope_data(uint64_t address);
+    /// The operations that access the hardware report the outcome of the operation as a response code, or the error
+    /// that prevented it, as it happens for an address outside of the mapped buses
+    [[nodiscard]] fcore::result<responses::response_code> load_bitstream(const std::vector<uint8_t>& bitstream);
+    [[nodiscard]] fcore::result<responses::response_code> single_write_register(const nlohmann::json &write_obj);
+    [[nodiscard]] fcore::result<nlohmann::json> single_read_register(uint64_t address);
+    [[nodiscard]] fcore::result<responses::response_code> apply_program(uint64_t address, std::vector<uint32_t> program);
+    [[nodiscard]] fcore::result<responses::response_code> apply_filter(uint64_t address, std::vector<uint32_t> taps);
+    [[nodiscard]] fcore::result<responses::response_code> set_scope_data(uint64_t address);
     std::string get_module_version();
     std::string get_hardware_version();
 
-    void write_direct(uint64_t addr, uint32_t val);
-    void write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
-    uint32_t read_direct(uint64_t address);
+    [[nodiscard]] fcore::result<void> write_direct(uint64_t addr, uint32_t val);
+    [[nodiscard]] fcore::result<void> write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
+    [[nodiscard]] fcore::result<uint32_t> read_direct(uint64_t address);
 
     uint32_t get_pl_clock( uint8_t clk_n);
-    responses::response_code  set_pl_clock(uint8_t clk_n, uint32_t freq);
+    [[nodiscard]] fcore::result<responses::response_code>  set_pl_clock(uint8_t clk_n, uint32_t freq);
 
     std::vector<bus_op> get_bus_operations() const;
 
@@ -80,8 +84,6 @@ private:
 
     std::shared_ptr<bus_accessor> busses;
     static std::atomic<bool> fpga_loaded;
-
-    std::string arch;
 
 };
 

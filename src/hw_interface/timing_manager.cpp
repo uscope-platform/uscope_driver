@@ -24,9 +24,9 @@ timing_manager::timing_manager(std::shared_ptr<fpga_bridge> &h) {
     ps_pl_clk_f[3] = hw->get_pl_clock(3);
 }
 
-responses::response_code timing_manager::set_base_clock(uint8_t clk_n, uint64_t clk_f) {
+fcore::result<responses::response_code> timing_manager::set_base_clock(uint8_t clk_n, uint64_t clk_f) {
     auto resp =  hw->set_pl_clock(clk_n, clk_f);
-    if(resp == responses::ok){
+    if(resp && resp.value() == responses::ok){
         ps_pl_clk_f[clk_n] = clk_f;
     }
     return resp;
@@ -40,7 +40,7 @@ void timing_manager::add_generated_clock(std::string clock_name, const clock_def
     generated_clocks[clock_name] = c;
 }
 
-responses::response_code  timing_manager::set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p) {
+fcore::result<responses::response_code>  timing_manager::set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p) {
     if (generated_clocks.contains(clock_name)) {
         auto clk_def = generated_clocks[clock_name];
         clk_def.divider = d;
@@ -49,7 +49,7 @@ responses::response_code  timing_manager::set_generated_clock(std::string clock_
             generated_clocks[clock_name].multiplier = m;
             setup_pll(clk_def.generator_base_address, clk_def.divider, clk_def.multiplier, clk_def.phase);
         } else {
-            setup_clock_divider(clk_def.generator_base_address, clk_def.divider, clk_def.phase);
+            if(auto divider = setup_clock_divider(clk_def.generator_base_address, clk_def.divider, clk_def.phase); !divider) return fcore::fail(std::move(divider).error());
         }
     }
     return responses::ok;
@@ -66,9 +66,9 @@ void timing_manager::setup_pll(uint64_t base_address, uint16_t div, uint16_t mul
     // PLL BASED DYNAMIC CLOCK FREQUENCY NOT IMPLEMENTED IN HARDWARE YET
 }
 
-void timing_manager::setup_clock_divider(uint64_t base_address, uint16_t div, uint16_t phase) {
-    hw->write_direct(base_address +0x4, div);
-    hw->write_direct(base_address + 0x8, phase);
+fcore::result<void> timing_manager::setup_clock_divider(uint64_t base_address, uint16_t div, uint16_t phase) {
+    if(auto written = hw->write_direct(base_address +0x4, div); !written) return written;
+    return hw->write_direct(base_address + 0x8, phase);
 }
 
 

@@ -44,9 +44,9 @@ public:
     fcore::result<responses::response_code> deploy(const nlohmann::json &arguments);
 
     fcore::result<void> select_output(uint32_t channel, const output_specs_t& output);
-    void set_input(const std::string &core,  const std::string &name, uint16_t channel, double value);
-    void start();
-    void stop();
+    fcore::result<void> set_input(const std::string &core,  const std::string &name, uint16_t channel, double value);
+    fcore::result<void> start();
+    fcore::result<void> stop();
     float get_sampling_frequency() const;
     fcore::result<hardware_sim_data_t> get_hardware_sim_data(const nlohmann::json &specs);
 private:
@@ -55,8 +55,8 @@ private:
     void setup_interconnect_iv(const std::vector<fcore::deployer_interconnect_slot> &slots, const std::vector<fcore::deployed_program> &programs);
     fcore::result<void> setup_inputs(std::vector<fcore::deployed_program> &programs);
 
-    void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
-    void setup_cores(std::vector<fcore::deployed_program> &programs);
+    fcore::result<void> setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
+    fcore::result<void> setup_cores(std::vector<fcore::deployed_program> &programs);
 
     uint32_t check_reciprocal(const std::vector<uint32_t> &program);
     std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::deployed_program> &programs);

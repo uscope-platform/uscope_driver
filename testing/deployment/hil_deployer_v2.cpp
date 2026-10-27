@@ -100,7 +100,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
     hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -272,7 +272,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
 })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -430,7 +430,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -605,7 +605,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -910,7 +910,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
 })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -1199,7 +1199,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
 )");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -1446,7 +1446,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
     })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -1698,7 +1698,7 @@ TEST(deployer_v2, gather_interconnect_test) {
 })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -1978,7 +1978,7 @@ TEST(deployer_v2, vector_interconnect_test) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -2244,7 +2244,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
     })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -2487,7 +2487,7 @@ TEST(deployer_v2, simple_single_core_output_select) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -2680,7 +2680,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
 })");
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -2849,7 +2849,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3017,7 +3017,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3026,7 +3026,7 @@ TEST(deployer_v2, hardware_sim_file_production) {
 
     ASSERT_TRUE(sim_data);
 
-    auto files = *sim_data;
+    auto files = sim_data.value();
 
     auto control_ref = "18316857356:131073\n18316857420:56\n18316857344:1\n18316861452:0\n18316861448:2\n18316861440:1106876826\n18316861452:1\n18316861448:3\n18316861440:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto outputs_ref = "2:test.out\n";
@@ -3120,7 +3120,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3129,7 +3129,7 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
 
     ASSERT_TRUE(sim_data);
 
-    auto files = *sim_data;
+    auto files = sim_data.value();
 
     auto control_ref = "18316857356:131073\n18316857420:56\n18316857360:268636161\n18316857424:56\n18316857344:2\n18316861452:0\n18316861448:2\n18316861440:1106876826\n18316861452:65536\n18316861448:65538\n18316861440:1106876826\n18316861452:1\n18316861448:3\n18316861440:1082130432\n18316861452:65537\n18316861448:65539\n18316861440:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto outputs_ref = "2:test.out[0]\n65539:test.out[1]\n";
@@ -3206,7 +3206,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3215,7 +3215,7 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
 
     ASSERT_TRUE(sim_data);
 
-    auto files = *sim_data;
+    auto files = sim_data.value();
 
     auto control_ref = "18316857356:196610\n18316857420:56\n18316857360:262145\n18316857424:56\n18316857344:2\n18316853252:0\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto rom_ref = "21474836480:1245187\n21474836484:12\n21474836488:4128769\n21474836492:131074\n21474836496:12\n21474836500:12\n21474836504:38\n21474836508:1084856730\n21474836512:0\n21474836516:8261601\n21474836520:38\n21474836524:1073741824\n21474836528:0\n21474836532:0\n21474836536:0\n21474836540:0\n21474836544:0\n21474836548:266211\n21474836552:0\n21474836556:0\n21474836560:0\n21474836564:0\n21474836568:0\n21474836572:0\n21474836576:12\n";
@@ -3329,7 +3329,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3531,7 +3531,7 @@ TEST(deployer_v2, multichannel_memory_init) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3725,7 +3725,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -3944,7 +3944,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -4143,7 +4143,7 @@ TEST(deployer_v2, multichannel_partial_transfer) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -4373,7 +4373,7 @@ TEST(deployer_v2, interconnect_initial_value) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -4625,7 +4625,7 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
@@ -4938,7 +4938,7 @@ TEST(deployer_v2, waveform_inputs) {
 
 
 
-    auto ba = std::make_shared<bus_accessor>();
+    auto ba = bus_accessor::create().value();
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);

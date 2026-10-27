@@ -18,28 +18,32 @@
 #include <thread>
 #include <chrono>
 #include <sys/ioctl.h>
+#include <cstring>
 
-scope_accessor::scope_accessor() {
-    std::string data_file = if_dict.get_data_bus();
-    fd_data = open(data_file.c_str(), O_RDWR| O_SYNC);
-    if(fd_data == -1){
-        spdlog::error("Error while mapping the scope data buffer: {0}", std::strerror(errno));
+fcore::result<std::shared_ptr<scope_accessor>> scope_accessor::create() {
+    auto data_file = if_dict.get_data_bus();
+    if(!data_file) return fcore::fail(std::move(data_file).error());
+
+    auto accessor = std::make_shared<scope_accessor>(construction_key{});
+    accessor->fd_data = open(data_file.value().c_str(), O_RDWR| O_SYNC);
+    if(accessor->fd_data == -1){
+        return fcore::fail(fcore::error_code::io_error, "Error while mapping the scope data buffer " + data_file.value() + ": " + std::strerror(errno));
     }
-
+    return accessor;
 }
 
 scope_accessor::~scope_accessor() {
-    close(fd_data);
+    if(fd_data != -1) close(fd_data);
 }
 
-std::array<uint64_t, scope_accessor::n_channels*scope_accessor::buffer_size>  scope_accessor::get_scope_data() {
+fcore::result<std::array<uint64_t, scope_accessor::n_channels*scope_accessor::buffer_size>> scope_accessor::get_scope_data() {
 
     std::array<uint64_t, n_channels*buffer_size> ret_val{};
     auto read_size = ret_val.size()*sizeof(uint64_t);
     ssize_t read_data = read(fd_data,ret_val.data(), read_size);
-    if(read_data==0) throw std::runtime_error("nothing to read");
+    if(read_data==0) return fcore::fail(fcore::error_code::io_error, "nothing to read");
     if(read_data<0) {
-        spdlog::critical(std::strerror(errno));
+        return fcore::fail(fcore::error_code::io_error, std::string("Failed to read the scope data: ") + std::strerror(errno));
     }
     spdlog::trace("READ_DATA: COPIED DATA FROM KERNEL ({0} words transferred)", read_data/sizeof(uint64_t));
     return ret_val;

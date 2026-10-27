@@ -18,22 +18,35 @@
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <array>
+#include <memory>
+#include "errors/result.hpp"
 #include "hw_interface/interfaces_dictionary.hpp"
 
 class scope_accessor {
 public:
-    scope_accessor();
+    /// Opens the data buffer of the kernel module
+    static fcore::result<std::shared_ptr<scope_accessor>> create();
+
+    /// Only create() can build the key, which keeps the constructor out of the reach of the callers
+    class construction_key {
+        friend class scope_accessor;
+        construction_key() = default;
+    };
+    explicit scope_accessor(construction_key) {}
     ~scope_accessor();
+    scope_accessor(const scope_accessor &) = delete;
+    scope_accessor &operator=(const scope_accessor &) = delete;
     static constexpr int n_channels = 6;
     static constexpr int buffer_size = 1024;
-    std::array<uint64_t, n_channels*buffer_size> get_scope_data();
+    [[nodiscard]] fcore::result<std::array<uint64_t, n_channels*buffer_size>> get_scope_data();
     /// Blocks for at most timeout_ms waiting for the kernel module to signal a new buffer
     /// \return true if a new buffer is available to be read
     bool wait_for_data(int timeout_ms);
 private:
     static constexpr unsigned long ioctl_new_data_available = 1;
     static constexpr  int internal_buffer_size = n_channels*buffer_size;
-    volatile int fd_data;
+    volatile int fd_data = -1;
 };
 
 

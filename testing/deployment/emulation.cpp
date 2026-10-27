@@ -225,7 +225,7 @@ TEST(emulator, disassembly) {
     hil_emulator emu;
     auto disassembly = emu.disassemble(spec_json);
     ASSERT_TRUE(disassembly);
-    auto res = *disassembly;
+    auto res = disassembly.value();
 
     std::unordered_map<std::string, fcore::disassembled_program> check_map;
 

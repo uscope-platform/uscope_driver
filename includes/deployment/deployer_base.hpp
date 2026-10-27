@@ -152,10 +152,14 @@ public:
 protected:
     fcore::result<bus_address> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);}
 
-    void write_register(uint64_t addr, uint32_t val);
-    void load_core(uint64_t address, const std::vector<uint32_t> &program);
-    void setup_core(uint64_t core_address, uint32_t n_channels);
-    void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values,  uint32_t n_channels);
+    using register_write = std::pair<uint64_t, uint32_t>;
+
+    fcore::result<void> write_register(uint64_t addr, uint32_t val);
+    /// Performs the writes in order, stopping at the first one that fails
+    fcore::result<void> write_registers(const std::vector<register_write> &writes);
+    fcore::result<void> load_core(uint64_t address, const std::vector<uint32_t> &program);
+    fcore::result<void> setup_core(uint64_t core_address, uint32_t n_channels);
+    fcore::result<void> setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values,  uint32_t n_channels);
 
     fcore::result<void> setup_input(
         const fcore::deployed_core_inputs &c,
@@ -171,7 +175,7 @@ protected:
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
-    void update_input_value(const std::string &core,  const std::string &name, uint16_t channel, double value);
+    fcore::result<void> update_input_value(const std::string &core,  const std::string &name, uint16_t channel, double value);
 
     fcore::result<void> setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
     fcore::result<void> setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);

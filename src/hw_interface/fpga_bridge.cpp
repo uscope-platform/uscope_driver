@@ -22,32 +22,28 @@ std::atomic<bool> fpga_bridge::fpga_loaded{false};
 
 fpga_bridge::fpga_bridge() {
 
-
-
-    auto raw_arch =  std::getenv("ARCH");
-    if(raw_arch== nullptr){
-        spdlog::error("Architecture selection (through the ARCH environment variable) is mandatory");
-        exit(-2);
-    }
-    arch = raw_arch;
-
-    std::ifstream ifs(if_dict.get_fpga_state_if());
-    if(ifs.get() == '1'){
-        fpga_loaded = true;
+    auto state_if = if_dict.get_fpga_state_if();
+    if(state_if){
+        std::ifstream ifs(state_if.value());
+        if(ifs.get() == '1'){
+            fpga_loaded = true;
+            return;
+        }
     } else {
-        spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
+        spdlog::warn("Unable to check whether the FPGA has been loaded: {0}", state_if.error().what());
     }
-
+    spdlog::info("FPGA HAS NOT BEEN LOADED YET, ALL AXI ACCESSES ARE DIABLED");
 }
 
 /// This method loads a bitstrem by name through the linux kernel fpga_manager interface
 /// \param bitstream Name of the bitstream to load
 /// \return #RESP_OK if the file is found #RESP_ERR_BITSTREAM_NOT_FOUND otherwise
-responses::response_code fpga_bridge::load_bitstream(const std::vector<uint8_t>& bitstream) {
+fcore::result<responses::response_code> fpga_bridge::load_bitstream(const std::vector<uint8_t>& bitstream) {
 
     spdlog::warn("LOAD BITSTREAM: loading file");
     auto driver = if_dict.get_fpga_bitstream_if();
-    const int fd = open(driver.c_str(), O_RDWR);
+    if(!driver) return fcore::fail(std::move(driver).error());
+    const int fd = open(driver.value().c_str(), O_RDWR);
 
     write(fd, bitstream.data(), bitstream.size());
 
@@ -73,21 +69,25 @@ responses::response_code fpga_bridge::load_bitstream(const std::vector<uint8_t>&
 /// \param address Address to write to
 /// \param value Value to write
 /// \return #RESP_OK
-responses::response_code fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
+fcore::result<responses::response_code> fpga_bridge::single_write_register(const nlohmann::json &write_obj) {
 
-    if(write_obj["type"] == "direct"){
-        write_direct(write_obj["address"], write_obj["value"]);
-    } else if(write_obj["type"] == "proxied") {
-         if(write_obj["proxy_type"] == "axis_constant"){
-             write_proxied(write_obj["proxy_address"], write_obj["address"], write_obj["value"]);
+    // the fields of the object are read with the json library, which reports a missing or mistyped one with an exception
+    return fcore::catching([&]() -> fcore::result<responses::response_code> {
+        fcore::result<void> written;
+        if(write_obj["type"] == "direct"){
+            written = write_direct(write_obj["address"], write_obj["value"]);
+        } else if(write_obj["type"] == "proxied") {
+            if(write_obj["proxy_type"] == "axis_constant"){
+                written = write_proxied(write_obj["proxy_address"], write_obj["address"], write_obj["value"]);
+            } else {
+                return fcore::fail(fcore::error_code::invalid_argument, "ERROR: Unrecognised write proxy type");
+            }
         } else {
-             throw std::runtime_error("ERROR: Unrecognised write proxy type");
-         }
-    } else {
-        throw std::runtime_error("ERROR: Unrecognised register write type");
-    }
-
-    return responses::ok;
+            return fcore::fail(fcore::error_code::invalid_argument, "ERROR: Unrecognised register write type");
+        }
+        if(!written) return fcore::fail(std::move(written).error());
+        return responses::ok;
+    });
 }
 
 
@@ -95,10 +95,12 @@ responses::response_code fpga_bridge::single_write_register(const nlohmann::json
 /// \param address Address of the register to read
 /// \param value Pointer where the read value will be put
 /// \return #RESP_OK
-nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
+fcore::result<nlohmann::json> fpga_bridge::single_read_register(uint64_t address) {
     nlohmann::json response_body;
     spdlog::info("READ SINGLE REGISTER: addr 0x{0:x}", address);
-    response_body["data"] = read_direct(address);
+    auto value = read_direct(address);
+    if(!value) return fcore::fail(std::move(value).error());
+    response_body["data"] = value.value();
     response_body["response_code"] = responses::as_integer(responses::ok);
     return response_body;
 }
@@ -108,20 +110,20 @@ nlohmann::json fpga_bridge::single_read_register(uint64_t address) {
 /// \param address Address of the fCore instance
 /// \param program Vector with the instructions of the program to load
 /// \return #RESP_OK
-responses::response_code fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
+fcore::result<responses::response_code> fpga_bridge::apply_program(uint64_t address, std::vector<uint32_t> program) {
     spdlog::info("APPLY PROGRAM: address:  0x{0:x} program_size: {1}", address, program.size());
-    busses->load_program(address, program);
+    if(auto loaded = busses->load_program(address, program); !loaded) return fcore::fail(std::move(loaded).error());
     return responses::ok;
 }
 
 
 
-responses::response_code fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
+fcore::result<responses::response_code> fpga_bridge::apply_filter(uint64_t address, std::vector<uint32_t> taps) {
     spdlog::info("APPLY FILTER: address: 0x{0:x}  N. Filter Taps {1}", address, taps.size());
 
     for(int i = 0; i< taps.size(); i++){
-        write_direct(address, taps[i]);
-        write_direct(address + 4, i);
+        if(auto written = write_direct(address, taps[i]); !written) return fcore::fail(std::move(written).error());
+        if(auto written = write_direct(address + 4, i); !written) return fcore::fail(std::move(written).error());
     }
 
     return responses::ok;
@@ -135,28 +137,32 @@ std::string fpga_bridge::get_hardware_version() {
     return "HARDWARE VERSIONING NOT IMPLEMENTED YET";
 }
 
-responses::response_code fpga_bridge::set_scope_data(uint64_t addr) {
+fcore::result<responses::response_code> fpga_bridge::set_scope_data(uint64_t addr) {
     uint64_t buffer;
 
-    std::ifstream fs(if_dict.get_buffer_address_if());
-    fs >> buffer;
+    auto buffer_if = if_dict.get_buffer_address_if();
+    if(!buffer_if) return fcore::fail(std::move(buffer_if).error());
+    std::ifstream fs(buffer_if.value());
+    if(!(fs >> buffer)) return fcore::fail(fcore::error_code::io_error, "Unable to read the address of the scope buffer from " + buffer_if.value());
 
     spdlog::info("SET_SCOPE_BUFFER_ADDRESS: writing buffer address 0x{0:x} to scope at address 0x{1:x}", buffer, addr);
-    write_direct(addr, buffer);
+    if(auto written = write_direct(addr, buffer); !written) return fcore::fail(std::move(written).error());
     return responses::ok;
 }
 
-void fpga_bridge::write_direct(uint64_t addr, uint32_t val) {
+fcore::result<void> fpga_bridge::write_direct(uint64_t addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (DIRECT): addr 0x{0:x} value {1}", addr, val);
-    if(fpga_loaded) busses->write_register({addr}, val);
+    if(fpga_loaded) return busses->write_register({addr}, val);
+    return {};
 }
 
-void fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {
+fcore::result<void> fpga_bridge::write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val) {
     spdlog::info("WRITE SINGLE REGISTER (AXIS PROXIED): proxy_addr 0x{0:x} addr 0x{1:x} value {2}",proxy_addr, target_addr, val);
-    if(fpga_loaded) busses->write_register({target_addr, proxy_addr}, val);
+    if(fpga_loaded) return busses->write_register({target_addr, proxy_addr}, val);
+    return {};
 }
 
-uint32_t fpga_bridge::read_direct(uint64_t address) {
+fcore::result<uint32_t> fpga_bridge::read_direct(uint64_t address) {
     spdlog::info("READ SINGLE REGISTER (DIRECT): addr 0x{0:x}", address);
     if(!fpga_loaded) return 0;
     std::vector<uint64_t> a= {address};
@@ -167,12 +173,14 @@ uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
     return 99'999'999;
 }
 
-responses::response_code fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
+fcore::result<responses::response_code> fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
     std::string command;
 
     spdlog::info("SET_CLOCK FREQUENCY: clock #{0}  to {1}Hz", clk_n, freq);
 
-    std::string file = if_dict.get_clock_if(clk_n).c_str();
+    auto clock_if = if_dict.get_clock_if(clk_n);
+    if(!clock_if) return fcore::fail(std::move(clock_if).error());
+    std::string file = clock_if.value();
     auto fd = open(file.c_str(), O_RDWR | O_SYNC);
     if(fd<0){
         spdlog::critical("Failed to open the clock setting file: {0}", file);

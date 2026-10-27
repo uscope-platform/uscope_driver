@@ -52,7 +52,9 @@ nlohmann::json control_endpoints::process_single_write_register(nlohmann::json &
             check_float_intness(arguments["proxy_address"]) &&
             check_float_intness(arguments["value"])
     ){
-        resp["response_code"] = hw.single_write_register(arguments);
+        auto written = hw.single_write_register(arguments);
+        if(!written) return responses::error_response(written.error());
+        resp["response_code"] = written.value();
     } else {
         resp["response_code"] = responses::as_integer(responses::invalid_arg);
         resp["data"] = "DRIVER ERROR: addresses and values for register writes must be integers\n"+ error_message;
@@ -73,7 +75,9 @@ nlohmann::json control_endpoints::process_single_read_register(nlohmann::json &a
         return resp;
     }
     uint64_t address = arguments;
-    return hw.single_read_register(address);
+    auto value = hw.single_read_register(address);
+    if(!value) return responses::error_response(value.error());
+    return value.value();
 }
 
 
@@ -89,7 +93,9 @@ nlohmann::json control_endpoints::process_load_bitstream(nlohmann::json &argumen
     }
 
     std::vector<uint8_t> decoded_data = cppcodec::base64_rfc4648::decode(static_cast<std::string>(arguments));
-    resp["response_code"] = hw.load_bitstream(decoded_data);
+    auto loaded = hw.load_bitstream(decoded_data);
+    if(!loaded) return responses::error_response(loaded.error());
+    resp["response_code"] = loaded.value();
     return resp;
 }
 
@@ -108,7 +114,9 @@ nlohmann::json control_endpoints::process_apply_filter(nlohmann::json &arguments
     }
     uint64_t address = arguments["address"];
     std::vector<uint32_t> taps = arguments["taps"];
-    resp["response_code"] = hw.apply_filter(address, taps);
+    auto applied = hw.apply_filter(address, taps);
+    if(!applied) return responses::error_response(applied.error());
+    resp["response_code"] = applied.value();
     return resp;
 }
 

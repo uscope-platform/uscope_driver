@@ -36,15 +36,15 @@ class timing_manager {
 public:
     timing_manager() = default;
     explicit timing_manager(std::shared_ptr<fpga_bridge> &hw);
-    responses::response_code  set_base_clock(uint8_t clk_n, uint64_t clk_f);
+    [[nodiscard]] fcore::result<responses::response_code>  set_base_clock(uint8_t clk_n, uint64_t clk_f);
     uint64_t get_base_clock(uint8_t clk_n);
-    responses::response_code  set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p);
+    [[nodiscard]] fcore::result<responses::response_code>  set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p);
     void add_generated_clock(std::string clock_name, const struct  clock_definition &c);
     uint64_t get_generated_clock(const std::string& clock_name);
 
 private:
     void setup_pll(uint64_t base_address, uint16_t div, uint16_t mult, uint16_t phase);
-    void setup_clock_divider(uint64_t base_address, uint16_t div, uint16_t phase);
+    fcore::result<void> setup_clock_divider(uint64_t base_address, uint16_t div, uint16_t phase);
 
     std::shared_ptr<fpga_bridge> hw;
     std::array<uint64_t, 4> ps_pl_clk_f;

@@ -38,12 +38,9 @@ void scope_reader::read_loop(std::stop_token stop) {
     while (!stop.stop_requested()) {
         if (!scope_if->wait_for_data(50)) continue;
 
-        std::array<uint64_t, scope_accessor::n_channels * scope_accessor::buffer_size> raw_data{};
-        try {
-            raw_data = scope_if->get_scope_data();
-        } catch (const std::runtime_error &) {
-            continue;
-        }
+        auto scope_data = scope_if->get_scope_data();
+        if (!scope_data) continue;
+        const auto &raw_data = scope_data.value();
 
         // the samples of each channel are grouped together, so that the clients can use them without further work
         constexpr size_t n_channels = scope_accessor::n_channels;
