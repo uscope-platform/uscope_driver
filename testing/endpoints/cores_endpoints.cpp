@@ -221,7 +221,11 @@ TEST(cores_endpoints, deploy_hil_error) {
     auto resp = ep.process_command("deploy_hil", command);
 
     EXPECT_EQ(resp["response_code"], responses::ok);
-    EXPECT_EQ(resp["data"]["error"], "HIL DEPLOYMENT ERROR:\nFailed to validate emulator schema");
+    // the message is the report of the schema validator, so only the parts that identify the failure are checked
+    std::string error = resp["data"]["error"];
+    EXPECT_TRUE(error.starts_with("HIL DEPLOYMENT ERROR:\n"));
+    EXPECT_NE(error.find("[cores][0][order]"), std::string::npos);
+    EXPECT_NE(error.find("while validating the emulator specification"), std::string::npos);
     EXPECT_EQ(resp["data"]["error_code"], responses::deployment_error);
 };
 
