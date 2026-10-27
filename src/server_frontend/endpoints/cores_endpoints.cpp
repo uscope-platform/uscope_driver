@@ -15,11 +15,15 @@
 //  limitations under the License.
 
 #include "server_frontend/endpoints/cores_endpoints.hpp"
+#include "emulation/emulation_context.hpp"
 
 
 
 
 nlohmann::json cores_endpoints::process_command(const std::string& command_string, const nlohmann::json &arguments) {
+    // the emulator, when the user selected it
+    if(auto emulated = emulation_context::instance().process_command(command_string, arguments)) return emulated.value();
+
     if(command_string == "apply_program") {
         return process_apply_program(arguments);
     } else if(command_string=="deploy_hil") {
