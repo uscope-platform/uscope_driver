@@ -55,9 +55,9 @@ void to_json(nlohmann::json& j, const emulation_results& p);
 
 class hil_emulator {
 public:
-    std::string run_command(const interactive_command &c);
+    fcore::result<std::string> run_command(const interactive_command &c);
     emulation_results emulate(const nlohmann::json &specs);
-    std::map<std::string, fcore::disassembled_program> disassemble(const nlohmann::json &specs);
+    fcore::result<std::map<std::string, fcore::disassembled_program>> disassemble(const nlohmann::json &specs);
 
     /// The emulation of every channel is debugged, not only the one of the first channel. It is what the emulations that
     /// are started after it is set use
@@ -66,13 +66,13 @@ public:
 private:
     fcore::emulator_dispatcher emu_manager;
     bool multichannel_debug = true;
-    std::string initialize_emulation(const nlohmann::json &specs);
-    std::string run_emulation();
-    std::string add_breakpoint(std::string core_id, uint32_t line);
-    std::string remove_breakpoint(std::string core_id, uint32_t line);
-    std::string step_over();
-    std::string get_breakpoints(const std::string &core_id);
-    std::string continue_execution();
+    fcore::result<std::string> initialize_emulation(const nlohmann::json &specs);
+    fcore::result<std::string> run_emulation();
+    fcore::result<std::string> add_breakpoint(std::string core_id, uint32_t line);
+    fcore::result<std::string> remove_breakpoint(std::string core_id, uint32_t line);
+    fcore::result<std::string> step_over();
+    fcore::result<std::string> get_breakpoints(const std::string &core_id);
+    fcore::result<std::string> continue_execution();
 
 
 };

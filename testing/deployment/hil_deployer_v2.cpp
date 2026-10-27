@@ -104,7 +104,7 @@ TEST(deployer_v2, simple_single_core_deployment) {
     hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
     auto ops = ba->get_operations();
 
@@ -276,7 +276,7 @@ TEST(deployer_v2, simple_single_core_integer_input) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -434,7 +434,7 @@ TEST(deployer_v2, simple_single_core_memory_init) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -609,7 +609,7 @@ TEST(deployer_v2, multichannel_single_core_deployment) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -914,7 +914,7 @@ TEST(deployer_v2, simple_multi_core_deployment) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
     auto ops = ba->get_operations();
 
@@ -1203,7 +1203,7 @@ TEST(deployer_v2, scalar_interconnect_test) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -1450,7 +1450,7 @@ TEST(deployer_v2, scatter_interconnect_test) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -1702,7 +1702,7 @@ TEST(deployer_v2, gather_interconnect_test) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -1982,7 +1982,7 @@ TEST(deployer_v2, vector_interconnect_test) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -2248,7 +2248,7 @@ TEST(deployer_v2, 2d_vector_interconnect_test) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
 
     auto ops = ba->get_operations();
@@ -2491,12 +2491,12 @@ TEST(deployer_v2, simple_single_core_output_select) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     output_specs_t out;
     out.channel = 1,
     out.core_name = "test";
     out.source_output = "out";
-    d.select_output(0, out);
+    ASSERT_TRUE(d.select_output(0, out));
 
 
     auto ops = ba->get_operations();
@@ -2684,7 +2684,7 @@ TEST(deployer_v2, simple_single_core_input_set) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.set_input("test","input_2",0,90);
 
 
@@ -2853,7 +2853,7 @@ TEST(deployer_v2, simple_single_core_start_stop) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
     d.stop();
 
@@ -3022,7 +3022,11 @@ TEST(deployer_v2, hardware_sim_file_production) {
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
 
-    auto files = d.get_hardware_sim_data(spec_json);
+    auto sim_data = d.get_hardware_sim_data(spec_json);
+
+    ASSERT_TRUE(sim_data);
+
+    auto files = *sim_data;
 
     auto control_ref = "18316857356:131073\n18316857420:56\n18316857344:1\n18316861452:0\n18316861448:2\n18316861440:1106876826\n18316861452:1\n18316861448:3\n18316861440:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto outputs_ref = "2:test.out\n";
@@ -3121,7 +3125,11 @@ TEST(deployer_v2, hardware_sim_file_production_multichannel) {
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
 
-    auto files = d.get_hardware_sim_data(spec_json);
+    auto sim_data = d.get_hardware_sim_data(spec_json);
+
+    ASSERT_TRUE(sim_data);
+
+    auto files = *sim_data;
 
     auto control_ref = "18316857356:131073\n18316857420:56\n18316857360:268636161\n18316857424:56\n18316857344:2\n18316861452:0\n18316861448:2\n18316861440:1106876826\n18316861452:65536\n18316861448:65538\n18316861440:1106876826\n18316861452:1\n18316861448:3\n18316861440:1082130432\n18316861452:65537\n18316861448:65539\n18316861440:1082130432\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto outputs_ref = "2:test.out[0]\n65539:test.out[1]\n";
@@ -3203,7 +3211,11 @@ TEST(deployer_v2, hardware_sim_file_production_mem_out) {
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
 
-    auto files = d.get_hardware_sim_data(spec_json);
+    auto sim_data = d.get_hardware_sim_data(spec_json);
+
+    ASSERT_TRUE(sim_data);
+
+    auto files = *sim_data;
 
     auto control_ref = "18316857356:196610\n18316857420:56\n18316857360:262145\n18316857424:56\n18316857344:2\n18316853252:0\n18316595204:0\n18316591112:2\n18316591108:100000000\n18316595200:1\n18316853248:11\n18316656640:1\n";
     auto rom_ref = "21474836480:1245187\n21474836484:12\n21474836488:4128769\n21474836492:131074\n21474836496:12\n21474836500:12\n21474836504:38\n21474836508:1084856730\n21474836512:0\n21474836516:8261601\n21474836520:38\n21474836524:1073741824\n21474836528:0\n21474836532:0\n21474836536:0\n21474836540:0\n21474836544:0\n21474836548:266211\n21474836552:0\n21474836556:0\n21474836560:0\n21474836564:0\n21474836568:0\n21474836572:0\n21474836576:12\n";
@@ -3321,7 +3333,7 @@ TEST(deployer_v2, multichannel_diversified_input_constants) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
     d.stop();
 
@@ -3523,7 +3535,7 @@ TEST(deployer_v2, multichannel_memory_init) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
     d.stop();
 
@@ -3717,7 +3729,7 @@ TEST(deployer_v2, multichannel_random_inputs) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
     d.stop();
 
@@ -3936,7 +3948,7 @@ TEST(deployer_v2, memory_to_memory_inteconnect) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
     d.stop();
 
@@ -4135,7 +4147,7 @@ TEST(deployer_v2, multichannel_partial_transfer) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
 
 
@@ -4365,7 +4377,7 @@ TEST(deployer_v2, interconnect_initial_value) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
 
 
@@ -4617,7 +4629,7 @@ TEST(deployer_v2, multichannel_interconnect_initial_value) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
 
 
@@ -4930,7 +4942,7 @@ TEST(deployer_v2, waveform_inputs) {
      hil_deployer d(true);
     d.set_accessor(ba);
     d.set_layout_map(addr_map_v2);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
     d.start();
 
 

@@ -150,14 +150,14 @@ public:
     };
 
 protected:
-    bus_address get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);}
+    fcore::result<bus_address> get_bus_address(const output_specs_t& spec){return bus_map.translate_output(spec);}
 
     void write_register(uint64_t addr, uint32_t val);
     void load_core(uint64_t address, const std::vector<uint32_t> &program);
     void setup_core(uint64_t core_address, uint32_t n_channels);
     void setup_memories(uint64_t address, std::vector<fcore::memory_init_value> init_values,  uint32_t n_channels);
 
-    void setup_input(
+    fcore::result<void> setup_input(
         const fcore::deployed_core_inputs &c,
         uint64_t const_ip_address,
         uint32_t const_idx,
@@ -166,16 +166,16 @@ protected:
         bool is_multichannel
     );
 
-    uint16_t setup_output_dma(uint64_t address, const std::string& core_name, uint32_t n_channels);
-    void setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels);
+    fcore::result<uint16_t> setup_output_dma(uint64_t address, const std::string& core_name, uint32_t n_channels);
+    fcore::result<void> setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels);
 
     static uint32_t get_metadata_value(uint8_t size, bool is_signed, bool is_float);
 
     void update_input_value(const std::string &core,  const std::string &name, uint16_t channel, double value);
 
-    void setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
-    void setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);
-    void setup_waveform(uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel);
+    fcore::result<void> setup_waveform(uint64_t address, const fcore::square_wave_parameters &p, uint32_t channel);
+    fcore::result<void> setup_waveform(uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel);
+    fcore::result<void> setup_waveform(uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel);
 
     explicit deployer_base(bool already_deployed) :hw(already_deployed) {}
 

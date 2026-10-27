@@ -29,8 +29,10 @@ public:
     custom_deployer();
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
-    responses::response_code deploy(const nlohmann::json &arguments);
+    /// Any failure of the deployment, including the ones of the hardware access, is reported in the result
+    fcore::result<responses::response_code> deploy(const nlohmann::json &arguments);
 private:
+    fcore::result<responses::response_code> run_deployment(const nlohmann::json &arguments);
     float clock_frequency;
     std::map<std::string, uint32_t> cores_idx;
 

@@ -15,7 +15,6 @@
 
 
 #include <nlohmann/json.hpp>
-#include "hw_interface/fcore_result.hpp"
 #include <CLI/CLI.hpp>
 
 #include "deployment/hil_deployer.hpp"
@@ -93,7 +92,10 @@ int main (int argc, char **argv) {
 
 
     fcore::emulator_dispatcher em;
-    unwrap(em.set_specs(spec));
+    if(auto r = em.set_specs(spec); !r){
+        spdlog::error("Invalid specification: {0}", r.error().what());
+        return -1;
+    }
     bool custom_deploy = false;
     if(spec.contains("deployment_mode")) {
         custom_deploy = spec["deployment_mode"];
@@ -104,12 +106,18 @@ int main (int argc, char **argv) {
         custom_deployer c;
         c.set_accessor(ba);
         c.set_layout_map(addr_map);
-        c.deploy(spec);
+        if(auto r = c.deploy(spec); !r){
+            spdlog::error("Deployment failed: {0}", r.error().what());
+            return -1;
+        }
     } else {
         hil_deployer d;
         d.set_accessor(ba);
         d.set_layout_map(addr_map);
-        d.deploy(spec);
+        if(auto r = d.deploy(spec); !r){
+            spdlog::error("Deployment failed: {0}", r.error().what());
+            return -1;
+        }
     }
 
     return 0;

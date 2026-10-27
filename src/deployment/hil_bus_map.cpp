@@ -54,7 +54,7 @@ bool hil_bus_map::is_io_address_free(uint16_t addr, const std::string &p_n) {
 
 }
 
-uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
+fcore::result<uint16_t> hil_bus_map::get_free_address(uint16_t original_addr) {
     if(is_bus_address_free(original_addr)){
         return original_addr;
     }
@@ -64,19 +64,20 @@ uint16_t hil_bus_map::get_free_address(uint16_t original_addr) {
             return i;
         }
     }
-    throw std::runtime_error("Unable to find free bus address");
+    return fcore::fail(fcore::error_code::bus_allocation, "Unable to find free bus address");
 }
 
 
-bus_address hil_bus_map::translate_output(const output_specs_t &out) {
+fcore::result<bus_address> hil_bus_map::translate_output(const output_specs_t &out) {
     for(auto &e:bus_map){
         if(e.source_id == out.core_name){
             if(e.source_name == out.source_output && e.source_channel == out.channel){
-                return {e.destination_bus_address, e.destination_channel};
+                return bus_address{e.destination_bus_address, e.destination_channel};
             }
         }
     }
-    throw std::runtime_error(
+    return fcore::fail(
+            fcore::error_code::bus_allocation,
             "Unable to find requested output: " +
             out.core_name + "." + out.source_output +
             "[" + std::to_string(out.channel) + "]");

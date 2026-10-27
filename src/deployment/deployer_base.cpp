@@ -30,34 +30,35 @@ void deployer_base::load_core(uint64_t address, const std::vector<uint32_t> &pro
     hw.apply_program(address, program);
 }
 
-uint16_t deployer_base::setup_output_dma(uint64_t address, const std::string &core_name, uint32_t n_channels) {
+fcore::result<uint16_t> deployer_base::setup_output_dma(uint64_t address, const std::string &core_name, uint32_t n_channels) {
     spdlog::info("SETUP DMA FOR CORE: {0} AT ADDRESS 0x{1:x}", core_name, address);
     spdlog::info("------------------------------------------------------------------");
     int current_io = 0;
     for(auto &i:bus_map){
         if(i.source_id == core_name){
-            setup_output_entry(i, address, current_io, n_channels);
+            auto entry = setup_output_entry(i, address, current_io, n_channels);
+            if(!entry) return fcore::fail(std::move(entry).error());
             current_io++;
         }
     }
     write_register(address, current_io);
     spdlog::info("------------------------------------------------------------------");
-    return current_io;
+    return static_cast<uint16_t>(current_io);
 }
 
-void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels) {
+fcore::result<void> deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &e, uint64_t dma_address, uint32_t io_progressive, uint32_t n_channels) {
 
     if(e.source_io_address > 0xfff){
-        throw std::runtime_error("The maximum source address in an interconnect is 0xFFF");
+        return fcore::fail(fcore::error_code::invalid_argument, "The maximum source address in an interconnect is 0xFFF");
     }
     if(e.destination_bus_address > 0xfff){
-        throw std::runtime_error("The maximum destination address in an interconnect is 0xFFF");
+        return fcore::fail(fcore::error_code::invalid_argument, "The maximum destination address in an interconnect is 0xFFF");
     }
     if(e.source_channel > 0xF){
-        throw std::runtime_error("The maximum number source of channels in an interconnect is 16");
+        return fcore::fail(fcore::error_code::invalid_argument, "The maximum number source of channels in an interconnect is 16");
     }
     if(e.destination_channel > 0xF){
-        throw std::runtime_error("The maximum number destination of channels in an interconnect is 16");
+        return fcore::fail(fcore::error_code::invalid_argument, "The maximum number destination of channels in an interconnect is 16");
     }
 
 
@@ -104,7 +105,7 @@ void deployer_base::setup_output_entry(const fcore::deployer_interconnect_slot &
                 false
         ));
     }
-
+    return {};
 }
 
 uint32_t deployer_base::get_metadata_value(uint8_t size, bool is_signed, bool is_float) {
@@ -155,7 +156,7 @@ void deployer_base::setup_memories(uint64_t base_address, std::vector<fcore::mem
     spdlog::info("------------------------------------------------------------------");
 }
 
-void deployer_base::setup_input(
+fcore::result<void> deployer_base::setup_input(
     const fcore::deployed_core_inputs &in,
     uint64_t const_ip_address,
     uint32_t const_idx,
@@ -224,8 +225,9 @@ void deployer_base::setup_input(
             bus_labels[address] = core_name + "." + in.name;
         }
 
-        std::visit([&](auto &&arg) { setup_waveform(const_ip_address, arg, address); }, in.waveform_parameters);
+        return std::visit([&](auto &&arg) { return setup_waveform(const_ip_address, arg, address); }, in.waveform_parameters);
     }
+    return {};
 }
 
 void deployer_base::update_input_value(const std::string &core_name,  const std::string &name, uint16_t channel, double raw_value) {\
@@ -242,7 +244,7 @@ void deployer_base::update_input_value(const std::string &core_name,  const std:
     }
 }
 
-void deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t dest) {
+fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const fcore::square_wave_parameters &p, uint32_t dest) {
     uint32_t channel = (0xFFF0000 & dest) >>16;
     uint64_t period = p.period[channel]*hil_clock_frequency;
     uint64_t t_on = p.t_on[channel]*hil_clock_frequency;
@@ -258,14 +260,15 @@ void deployer_base::setup_waveform(const uint64_t address, const fcore::square_w
     write_register(address +square_wave_gen.user_out, get_metadata_value(32,true,true));
     active_waveforms++;
     write_register(address + square_wave_gen.active_channels,  active_waveforms);
+    return {};
 }
 
-void deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {
-    throw std::runtime_error("Not implemented in hardware yet");
+fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const fcore::sine_wave_parameters &p, uint32_t channel) {
+    return fcore::fail(fcore::error_code::not_supported, "Not implemented in hardware yet");
 }
 
-void deployer_base::setup_waveform(const uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel) {
-    throw std::runtime_error("Not implemented in hardware yet");
+fcore::result<void> deployer_base::setup_waveform(const uint64_t address, const fcore::triangle_wave_parameters &p, uint32_t channel) {
+    return fcore::fail(fcore::error_code::not_supported, "Not implemented in hardware yet");
 }
 
 void deployer_base::set_accessor(const std::shared_ptr<bus_accessor> &ba) {

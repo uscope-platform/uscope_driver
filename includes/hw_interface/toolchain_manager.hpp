@@ -35,7 +35,7 @@ struct io_metadata {
 
 class toolchain_manager {
 public:
-    std::vector<uint32_t> compile(std::string content, nlohmann::json h, nlohmann::json io);
+    fcore::result<std::vector<uint32_t>> compile(std::string content, nlohmann::json h, nlohmann::json io);
 
 };
 

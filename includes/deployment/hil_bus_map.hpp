@@ -65,9 +65,9 @@ public:
     std::vector<fcore::deployer_interconnect_slot>::iterator end();
 
 
-    bus_address translate_output(const output_specs_t &out);
+    fcore::result<bus_address> translate_output(const output_specs_t &out);
 
-    uint16_t get_free_address(uint16_t original_addr);
+    fcore::result<uint16_t> get_free_address(uint16_t original_addr);
     bool is_io_address_free(uint16_t addr, const std::string& p_n);
     bool is_bus_address_free(uint16_t addr);
     void clear() {bus_map.clear();}

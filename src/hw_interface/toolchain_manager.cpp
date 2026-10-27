@@ -15,22 +15,23 @@
 //  limitations under the License.
 
 #include "hw_interface/toolchain_manager.hpp"
-#include "hw_interface/fcore_result.hpp"
 
 
-std::vector<uint32_t>
+fcore::result<std::vector<uint32_t>>
 toolchain_manager::compile(std::string content, nlohmann::json h, nlohmann::json io) {
-    std::vector<std::string> c = {std::move(content)};
+    // the malformed headers and io maps are reported by the json library with exceptions
+    return fcore::catching([&]() -> fcore::result<std::vector<uint32_t>> {
+        std::vector<std::string> c = {std::move(content)};
 
-    std::vector<std::string> headers;
-    for(auto &item:h){
-        headers.push_back(item["content"]);
-    }
+        std::vector<std::string> headers;
+        for(auto &item:h){
+            headers.push_back(item["content"]);
+        }
 
-    fcore::fcore_cc cc(c, headers);
-    auto map = fcore::fcore_cc::load_iom_map(io);
-    cc.set_dma_map(map);
-    //TODO: EVALUATE WHETHER TO PLUmb this in or to kick it out
-    unwrap(cc.compile(1));
-    return cc.get_executable();
+        fcore::fcore_cc cc(c, headers);
+        auto map = fcore::fcore_cc::load_iom_map(io);
+        cc.set_dma_map(map);
+        if(auto r = cc.compile(1); !r) return fcore::fail(std::move(r).error());
+        return cc.get_executable();
+    });
 }

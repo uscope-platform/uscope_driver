@@ -40,26 +40,28 @@ public:
     explicit hil_deployer(bool fpga_already_deployed) :deployer_base(fpga_already_deployed){}
     void set_accessor(const std::shared_ptr<bus_accessor> &ba);
 
-    responses::response_code deploy(const nlohmann::json &arguments);
+    /// Any failure of the deployment, including the ones of the hardware access, is reported in the result
+    fcore::result<responses::response_code> deploy(const nlohmann::json &arguments);
 
-    void select_output(uint32_t channel, const output_specs_t& output);
+    fcore::result<void> select_output(uint32_t channel, const output_specs_t& output);
     void set_input(const std::string &core,  const std::string &name, uint16_t channel, double value);
     void start();
     void stop();
     float get_sampling_frequency() const;
-    hardware_sim_data_t get_hardware_sim_data(const nlohmann::json &specs);
+    fcore::result<hardware_sim_data_t> get_hardware_sim_data(const nlohmann::json &specs);
 private:
 
-    void setup_interconnect_iv(const std::vector<fcore::deployed_program> &programs);
-    void setup_inputs(std::vector<fcore::deployed_program> &programs);
+    fcore::result<responses::response_code> run_deployment(const nlohmann::json &arguments);
+    void setup_interconnect_iv(const std::vector<fcore::deployer_interconnect_slot> &slots, const std::vector<fcore::deployed_program> &programs);
+    fcore::result<void> setup_inputs(std::vector<fcore::deployed_program> &programs);
 
     void setup_sequencer(uint16_t n_cores, std::vector<uint32_t> divisors, const std::vector<uint32_t>& orders);
     void setup_cores(std::vector<fcore::deployed_program> &programs);
 
     uint32_t check_reciprocal(const std::vector<uint32_t> &program);
-    std::vector<uint32_t> calculate_timebase_divider();
+    std::vector<uint32_t> calculate_timebase_divider(const std::vector<fcore::deployed_program> &programs);
 
-    std::vector<uint32_t> calculate_timebase_shift();
+    std::vector<uint32_t> calculate_timebase_shift(const std::vector<fcore::deployed_program> &programs);
 
     ssize_t deployed_hash;
 

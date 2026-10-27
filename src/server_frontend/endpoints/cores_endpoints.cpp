@@ -87,22 +87,19 @@ nlohmann::json cores_endpoints::process_apply_program(const nlohmann::json &argu
 
 nlohmann::json cores_endpoints::process_deploy_hil(const nlohmann::json &arguments) {
     nlohmann::json resp;
-    try{
-
+    auto outcome = fcore::catching([&]() -> fcore::result<responses::response_code> {
         bool custom_deploy = arguments["deployment_mode"];
+        return custom_deploy ? custom.deploy(arguments) : hil.deploy(arguments);
+    });
 
-        if(custom_deploy){
-            resp["response_code"] = custom.deploy(arguments);
-        } else {
-            resp["response_code"] = hil.deploy(arguments);
-        }
-    } catch (std::runtime_error &e){
-
+    if(outcome){
+        resp["response_code"] = *outcome;
+    } else {
         nlohmann::json data;
         resp["response_code"] = responses::as_integer(responses::ok);
 
         data["error_code"] = responses::as_integer(responses::deployment_error);
-        data["error"] = std::string("HIL DEPLOYMENT ERROR:\n") + e.what();
+        data["error"] = std::string("HIL DEPLOYMENT ERROR:\n") + outcome.error().what();
         data["duplicates"] = std::vector<std::string>();
         resp["data"] = data;
     }
@@ -127,7 +124,10 @@ nlohmann::json cores_endpoints::process_hil_select_out(const nlohmann::json &arg
         out.core_name = arguments["output"]["core"];
         out.source_output = arguments["output"]["name"];
         out.channel = arguments["output"]["channel"];
-        hil.select_output(arguments["channel"], out);
+        if(auto selected = hil.select_output(arguments["channel"], out); !selected){
+            resp["response_code"] = responses::as_integer(responses::invalid_arg);
+            resp["data"] = "DRIVER ERROR: " + selected.error().what() + "\n";
+        }
     } else{
         spdlog::trace("Received empty argument request for output_select call");
     }
@@ -178,15 +178,16 @@ nlohmann::json cores_endpoints::process_compile_program(const nlohmann::json &ar
         return resp;
     }
     nlohmann::json compilation_result;
-    try{
-        std::string content = arguments["content"];
-        auto headers = arguments["headers"];
-        auto io = arguments["io"];
+    std::string content = arguments["content"];
+    auto headers = arguments["headers"];
+    auto io = arguments["io"];
+    auto hex = toolchain.compile(content,headers, io);
+    if(hex){
         compilation_result["status"] = "ok";
-        compilation_result["hex"] = toolchain.compile(content,headers, io);
-    } catch (std::runtime_error &e){
+        compilation_result["hex"] = *hex;
+    } else {
         compilation_result["status"] = "error";
-        compilation_result["error"] = e.what();
+        compilation_result["error"] = hex.error().what();
     }
     resp["data"] = compilation_result;
     resp["response_code"] = responses::as_integer(responses::ok);
@@ -197,8 +198,14 @@ nlohmann::json cores_endpoints::process_hil_disassemble(const nlohmann::json &ar
     std::vector<std::string> results;
     nlohmann::json resp;
 
-    resp["data"] = emulator.disassemble(arguments);
-    resp["response_code"] = responses::as_integer(responses::ok);
+    auto disassembly = emulator.disassemble(arguments);
+    if(disassembly){
+        resp["data"] = *disassembly;
+        resp["response_code"] = responses::as_integer(responses::ok);
+    } else {
+        resp["data"] = "DRIVER ERROR: " + disassembly.error().what() + "\n";
+        resp["response_code"] = responses::as_integer(responses::emulation_error);
+    }
     return resp;
 }
 
@@ -207,8 +214,14 @@ nlohmann::json cores_endpoints::process_hil_hardware_sim(const nlohmann::json &a
     nlohmann::json resp;
 
 
-    resp["data"] = hil.get_hardware_sim_data(arguments);
-    resp["response_code"] = responses::as_integer(responses::ok);
+    auto sim_data = hil.get_hardware_sim_data(arguments);
+    if(sim_data){
+        resp["data"] = *sim_data;
+        resp["response_code"] = responses::as_integer(responses::ok);
+    } else {
+        resp["data"] = "DRIVER ERROR: " + sim_data.error().what() + "\n";
+        resp["response_code"] = responses::as_integer(responses::deployment_error);
+    }
     return resp;
 }
 
@@ -299,8 +312,11 @@ nlohmann::json cores_endpoints::process_hil_debug(const nlohmann::json &argument
         return resp;
     }
     if(command=="add_breakpoint"){
-        if(!arguments["arguments"].contains("id") ) throw std::runtime_error("Missing core id argument for add_breakpoint command");
-        if(!arguments["arguments"]["id"].is_string()) throw std::runtime_error("Core id must be a string");
+        if(!arguments["arguments"].contains("id") || !arguments["arguments"]["id"].is_string()){
+            resp["response_code"] = responses::as_integer(responses::invalid_arg);
+            resp["data"] = "DRIVER ERROR: The add_breakpoint command needs the core id as a string\n";
+            return resp;
+        }
         c.id = arguments["arguments"]["id"];
         c.type = command_add_breakpoint;
         c.target_instruction = arguments["arguments"]["line"];
@@ -322,7 +338,13 @@ nlohmann::json cores_endpoints::process_hil_debug(const nlohmann::json &argument
         c.id = arguments["arguments"]["id"];
     }
 
-    resp["data"] = emulator.run_command(c);
-    resp["response_code"] = responses::as_integer(responses::ok);
+    auto outcome = emulator.run_command(c);
+    if(outcome){
+        resp["data"] = *outcome;
+        resp["response_code"] = responses::as_integer(responses::ok);
+    } else {
+        resp["data"] = "DRIVER ERROR: " + outcome.error().what() + "\n";
+        resp["response_code"] = responses::as_integer(responses::emulation_error);
+    }
     return resp;
 }

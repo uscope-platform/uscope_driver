@@ -381,7 +381,7 @@ TEST(custom_deployer, deployment) {
     d.set_accessor(ba);
     auto addr_map = custom_deployer_get_addr_map();
     d.set_layout_map(addr_map);
-    d.deploy(spec_json);
+    ASSERT_TRUE(d.deploy(spec_json));
 
     auto ops = ba->get_operations();
 

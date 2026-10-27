@@ -15,7 +15,6 @@
 //  limitations under the License.
 
 #include "deployment/hil_deployer.hpp"
-#include "hw_interface/fcore_result.hpp"
 
 
 hil_deployer::hil_deployer() {
@@ -34,7 +33,11 @@ void hil_deployer::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
     deployer_base::set_accessor(ba);
 }
 
-responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
+fcore::result<responses::response_code> hil_deployer::deploy(const nlohmann::json &arguments) {
+    return fcore::catching([&]{ return run_deployment(arguments); });
+}
+
+fcore::result<responses::response_code> hil_deployer::run_deployment(const nlohmann::json &arguments) {
     deployed_hash = std::hash<nlohmann::json>{}(arguments);
     min_timebase = 0;
     active_waveforms = 0;
@@ -43,25 +46,32 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
     bus_labels.clear();
     hw.clear_operations_vector();
 
-    if(runtime_config.debug_hil) unwrap(dispatcher.enable_debug_mode());
-    unwrap(dispatcher.set_specs(arguments));
-    auto programs = unwrap(dispatcher.get_programs());
+    if(runtime_config.debug_hil) {
+        auto debug = dispatcher.enable_debug_mode();
+        if(!debug) return fcore::fail(std::move(debug).error());
+    }
+    auto specs = dispatcher.set_specs(arguments);
+    if(!specs) return fcore::fail(std::move(specs).error());
+    auto programs = dispatcher.get_programs();
+    if(!programs) return fcore::fail(std::move(programs).error());
 
     bus_map.clear();
 
-    bus_map.set_map(unwrap(dispatcher.get_interconnect_slots()));
+    auto slots = dispatcher.get_interconnect_slots();
+    if(!slots) return fcore::fail(std::move(slots).error());
+    bus_map.set_map(*slots);
 
 
-    if(programs.size()>32){
+    if(programs->size()>32){
         auto msg = "The HIL SYSTEM ONLY SUPPORTS UP TO 32 CORES AT ONCE";
         spdlog::critical(msg);
-        throw std::runtime_error(msg);
+        return fcore::fail(fcore::error_code::spec_error, msg);
     }
 
     std::vector<uint32_t> frequencies;
 
     spdlog::info("------------------------------------------------------------------");
-    for(auto &p: programs){
+    for(auto &p: *programs){
         auto core_address = this->addresses.bases.cores_rom + p.index * this->addresses.offsets.cores_rom;
         spdlog::info("SETUP PROGRAM FOR CORE: {0} AT ADDRESS: 0x{1:x}", p.name, core_address);
         cores_idx[p.name] = p.index;
@@ -75,36 +85,39 @@ responses::response_code hil_deployer::deploy(const nlohmann::json &arguments) {
         return std::lcm(a,b);
     });
 
-    auto dividers = calculate_timebase_divider();
-    auto shifts = calculate_timebase_shift();
+    auto dividers = calculate_timebase_divider(*programs);
+    auto shifts = calculate_timebase_shift(*programs);
 
     spdlog::info("------------------------------------------------------------------");
 
-    setup_interconnect_iv(programs);
+    setup_interconnect_iv(*slots, *programs);
 
     uint16_t max_transfers = 0;
-    for(auto &p:programs){
+    for(auto &p:*programs){
         uint64_t complex_base_addr = this->addresses.bases.cores_control + this->addresses.offsets.cores_control*cores_idx[p.name];
         auto  dma_address = complex_base_addr + this->addresses.offsets.dma;
         auto n_transfers = this->setup_output_dma(dma_address, p.name, p.n_channels);
-        if(n_transfers > max_transfers) max_transfers = n_transfers;
+        if(!n_transfers) return fcore::fail(std::move(n_transfers).error().with_context("setting up the output DMA of core " + p.name));
+        if(*n_transfers > max_transfers) max_transfers = *n_transfers;
     }
 
-    auto memories = unwrap(dispatcher.get_memory_initializations());
+    auto memories = dispatcher.get_memory_initializations();
+    if(!memories) return fcore::fail(std::move(memories).error());
 
 
-    for(auto &p:programs) {
-        auto initializations = memories[p.name];
+    for(auto &p:*programs) {
+        auto initializations = (*memories)[p.name];
         spdlog::info("SETUP INITIAL STATE FOR CORE: {0}", p.name);
 
         auto control_address = this->addresses.bases.cores_control + cores_idx[p.name] * this->addresses.offsets.cores_control;
         this->setup_memories(control_address, initializations, p.n_channels);
     }
 
-    setup_inputs(programs);
+    auto inputs = setup_inputs(*programs);
+    if(!inputs) return fcore::fail(std::move(inputs).error());
 
-    setup_sequencer(programs.size(), dividers, shifts);
-    setup_cores(programs);
+    setup_sequencer(programs->size(), dividers, shifts);
+    setup_cores(*programs);
 
     return responses::ok;
 }
@@ -169,18 +182,20 @@ uint32_t hil_deployer::check_reciprocal(const std::vector<uint32_t> &program) {
     }
 }
 
-void hil_deployer::select_output(uint32_t channel, const output_specs_t& output) {
+fcore::result<void> hil_deployer::select_output(uint32_t channel, const output_specs_t& output) {
 
     auto data = this->get_bus_address(output);
+    if(!data) return fcore::fail(std::move(data).error());
     spdlog::info("HIL SELECT OUTPUT: selected output {0}({1},{2}) from core {3} for scope channel {4}",
                  output.source_output,
-                 data.address,
+                 data->address,
                  output.channel,
                  output.core_name,
                  channel);
 
-    auto selector = data.address | (data.channel <<16);
+    auto selector = data->address | (data->channel <<16);
     this->write_register(this->addresses.bases.scope_mux + 4*channel+ 4, selector);
+    return {};
 }
 
 void hil_deployer::set_input(const std::string &core,  const std::string &name, uint16_t channel, double value) {
@@ -201,13 +216,14 @@ float hil_deployer::get_sampling_frequency() const {
     return timebase_frequency == 0 ? timebase_frequency : timebase_frequency;
 }
 
-hardware_sim_data_t hil_deployer::get_hardware_sim_data(const nlohmann::json &specs) {
+fcore::result<hardware_sim_data_t> hil_deployer::get_hardware_sim_data(const nlohmann::json &specs) {
     hardware_sim_data_t sim_data;
     if(deployed_hash != std::hash<nlohmann::json>{}(specs)) {
         hw.disable_bus_access();
-        deploy(specs);
-        start();
+        auto deployment = deploy(specs);
+        if(deployment) start();
         hw.enable_bus_access();
+        if(!deployment) return fcore::fail(std::move(deployment).error());
     }
 
     auto [rom, control] = hw.get_hardware_simulation_data();
@@ -233,11 +249,11 @@ hardware_sim_data_t hil_deployer::get_hardware_sim_data(const nlohmann::json &sp
     return sim_data;
 }
 
-void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_program> &programs) {
+void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployer_interconnect_slot> &slots, const std::vector<fcore::deployed_program> &programs) {
     spdlog::info("------------------------------------------------------------------");
     spdlog::info("SETUP INTERCONNECTS INITIAL VALUES");
     spdlog::info("------------------------------------------------------------------");
-    for(auto &slot:unwrap(dispatcher.get_interconnect_slots())) {
+    for(auto &slot:slots) {
         for(auto &p:programs) {
             if(p.name == slot.destination_id) {
                 for(auto &in:p.inputs) {
@@ -274,9 +290,11 @@ void hil_deployer::setup_interconnect_iv(const std::vector<fcore::deployed_progr
     }
 }
 
-void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) {
+fcore::result<void> hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) {
     for(auto &p:programs){
-        auto inputs = unwrap(dispatcher.get_inputs(p.name));
+        auto core_inputs = dispatcher.get_inputs(p.name);
+        if(!core_inputs) return fcore::fail(std::move(core_inputs).error());
+        auto &inputs = *core_inputs;
         spdlog::info("SETUP INPUTS FOR CORE: {0}", p.name);
         spdlog::info("------------------------------------------------------------------");
         int input_progressive = 0;
@@ -299,14 +317,14 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                     // TODO: test if this support deploying multiple disjointed constants
                     for(int j = 0; j<input.data.size(); j++) {
                         core_name = p.name + "[" + std::to_string(j)  + "]";
-                        this->setup_input(
+                        if(auto r = this->setup_input(
                             in,
                             ip_addr,
                             input_progressive,
                             j,
                             p.name,
                             true
-                        );
+                        ); !r) return fcore::fail(std::move(r).error());
                         if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
                         in.data.erase(in.data.begin());
@@ -315,41 +333,41 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
                     if(in.source_type == fcore::random_input || in.source_type == fcore::waveform_input) {
                         for(int j = 0; j<p.n_channels; j++) {
                             core_name = p.name + "[" + std::to_string(j)  + "]";
-                            this->setup_input(
+                            if(auto r = this->setup_input(
                                 in,
                                 ip_addr,
                                 input_progressive,
                                 j,
                                 p.name,
                                 true
-                            );
+                            ); !r) return fcore::fail(std::move(r).error());
                         }
                     }  else if(in.source_type == fcore::constant_input || in.source_type == fcore::time_series_input) {
                         if(input.data.size() == 1) {
                             for(int j = 0; j<p.n_channels; j++) {
                                 core_name = p.name + "[" + std::to_string(j)  + "]";
-                                this->setup_input(
+                                if(auto r = this->setup_input(
                                     in,
                                     ip_addr,
                                     input_progressive,
                                     j,
                                     p.name,
                                     true
-                                );
+                                ); !r) return fcore::fail(std::move(r).error());
                                 if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
                             }
                         } else {
                             for(int j = 0; j<input.data.size(); j++) {
                                 core_name = p.name + "[" + std::to_string(j)  + "]";
-                                this->setup_input(
+                                if(auto r = this->setup_input(
                                     in,
                                     ip_addr,
                                     input_progressive,
                                     j,
                                     p.name,
                                     true
-                                );
+                                ); !r) return fcore::fail(std::move(r).error());
                                 if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
 
                                 in.data.erase(in.data.begin());
@@ -361,14 +379,14 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
 
             } else {
                 core_name = p.name;
-                this->setup_input(
+                if(auto r = this->setup_input(
                         in,
                         ip_addr,
                         input_progressive,
                         0,
                         p.name,
                         false
-                );
+                ); !r) return fcore::fail(std::move(r).error());
             }
             if(inputs_labels.contains(core_name + "." + in.name)) inputs_labels[core_name + "." + in.name].core_idx = p.index;
             if(in.source_type==fcore::constant_input || in.source_type == fcore::time_series_input) input_progressive++;
@@ -380,11 +398,11 @@ void hil_deployer::setup_inputs(std::vector<fcore::deployed_program> &programs) 
         spdlog::info("------------------------------------------------------------------");
     }
 
+    return {};
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
+std::vector<uint32_t> hil_deployer::calculate_timebase_divider(const std::vector<fcore::deployed_program> &programs) {
     std::vector<uint32_t>core_dividers;
-    auto programs = unwrap(dispatcher.get_programs());
     for(auto &p: programs){
         if(p.sampling_frequency == 0) {
             core_dividers.push_back(1);
@@ -405,15 +423,13 @@ std::vector<uint32_t> hil_deployer::calculate_timebase_divider() {
 
 }
 
-std::vector<uint32_t> hil_deployer::calculate_timebase_shift() {
+std::vector<uint32_t> hil_deployer::calculate_timebase_shift(const std::vector<fcore::deployed_program> &programs) {
 
     struct shift_calc_data {
         std::string name;
         uint32_t execution_order;
         uint32_t program_length;
     };
-
-    auto programs = unwrap(dispatcher.get_programs());
 
     std::vector<shift_calc_data> calc_data_v;
     for(auto &p :programs ){
