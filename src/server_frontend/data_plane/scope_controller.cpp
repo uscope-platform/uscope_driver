@@ -13,6 +13,7 @@
 //  limitations under the License.
 
 #include "server_frontend/data_plane/scope_controller.hpp"
+#include "emulation/emulation_context.hpp"
 #include "deployment/deployment_utilities.hpp"
 
 #include <algorithm>
@@ -73,6 +74,14 @@ nlohmann::json scope_controller::handle(const std::string &cmd, const nlohmann::
     reply["ok"] = true;
     // the arguments are read with the json library, which reports the ones of the wrong type with exceptions
     auto outcome = fcore::catching([&]() -> fcore::result<void> {
+        // the emulator has no scope registers to set up, the data it produces is scaled the same as the one of the board
+        const bool board_command = cmd == "set_acquisition" || cmd == "get_acquisition_status" || cmd == "set_scope_address" || cmd == "disable_scope_dma";
+        if (board_command && emulation_context::instance().emulator_selected()) {
+            if (cmd == "get_acquisition_status") reply["data"] = "not present";
+            // the first request to disable the DMA is the one issued while loading, the ones of the emulator are not
+            if (cmd == "disable_scope_dma") first_load = false;
+            return {};
+        }
         if (cmd == "set_scaling_factors") {
             return set_scaling_factors(args);
         } else if (cmd == "set_acquisition") {
