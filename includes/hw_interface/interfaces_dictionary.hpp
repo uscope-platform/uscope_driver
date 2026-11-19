@@ -56,7 +56,6 @@ public:
         if(clock_number >3) return fcore::fail(fcore::error_code::invalid_argument, "The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
         auto base = lookup(clock_if, "configuration");
         if(!base) return base;
-        if(arch=="zynqmp")  return base.value() + std::to_string(clock_number)+ "/set_rate";
         return base.value() + std::to_string(clock_number);
     };
 
