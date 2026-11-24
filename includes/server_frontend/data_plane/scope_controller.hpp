@@ -46,6 +46,7 @@ private:
     fcore::result<std::string> get_acquisition_status();
     fcore::result<void> set_scope_address(const nlohmann::json &args);
     fcore::result<void> disable_dma(const nlohmann::json &args);
+    fcore::result<std::string> capture_frame(const nlohmann::json &args);
 
     // only accessed from the command thread
     uint64_t scope_base_address = 0;

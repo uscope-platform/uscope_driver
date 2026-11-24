@@ -17,8 +17,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <vector>
 #include <stdexcept>
 #include <unistd.h>
+#include "hw_interface/bus/scope_accessor.hpp"
 #include <spdlog/spdlog.h>
 
 namespace asio = boost::asio;
@@ -86,6 +89,11 @@ nlohmann::json scope_controller::handle(const std::string &cmd, const nlohmann::
             return set_scope_address(args);
         } else if (cmd == "disable_scope_dma") {
             return disable_dma(args);
+        } else if (cmd == "capture_scope_frame") {
+            auto csv = capture_frame(args);
+            if (!csv) return fcore::fail(std::move(csv).error());
+            reply["data"] = csv.value();
+            return {};
         }
         return fcore::fail(fcore::error_code::invalid_argument, "unknown scope command " + cmd);
     });
@@ -224,4 +232,54 @@ fcore::result<void> scope_controller::disable_dma(const nlohmann::json &args) {
         usleep(50'000);
     }
     return {};
+}
+
+/// Debug command: opens the data device and reads one raw buffer straight from the kernel module (no scaling or interpretation) and returns it
+/// as csv text. It does not coordinate with the reader thread, so it can take a buffer away from the live stream.
+/// Arguments: {"mode": "raw" | "columns"}, raw (the default) is one row per word, columns is one column per channel
+fcore::result<std::string> scope_controller::capture_frame(const nlohmann::json &args) {
+    std::string mode = "raw";
+    if (args.is_object() && args.contains("mode")) mode = args["mode"].get<std::string>();
+    if (mode != "raw" && mode != "columns") {
+        return fcore::fail(fcore::error_code::invalid_argument, "the capture mode must be either raw or columns");
+    }
+
+    // debug only: opens the data device on its own instead of sharing the reader's one
+    auto accessor = scope_accessor::create();
+    if (!accessor) return fcore::fail(std::move(accessor).error());
+    auto frame = accessor.value()->get_scope_data();
+    if (!frame) return fcore::fail(std::move(frame).error());
+    const auto &words = frame.value();
+
+    std::string out;
+    if (mode == "columns") {
+        constexpr size_t n_channels = scope_accessor::n_channels;
+        std::vector<uint32_t> ch[n_channels];
+        for (uint64_t w : words) {
+            size_t c = (w >> 32) & 0xffff;
+            if (c < n_channels) ch[c].push_back(static_cast<uint32_t>(w));
+        }
+        size_t rows = 0;
+        for (auto &v : ch) rows = std::max(rows, v.size());
+        out += "ch0,ch1,ch2,ch3,ch4,ch5\n";
+        for (size_t r = 0; r < rows; r++) {
+            for (size_t c = 0; c < n_channels; c++) {
+                if (c) out += ',';
+                if (r < ch[c].size()) out += std::to_string(ch[c][r]);
+            }
+            out += '\n';
+        }
+    } else {
+        char line[128];
+        out += "index,raw_word_hex,metadata_hex,channel,value_hex,value_u32,value_i32\n";
+        for (size_t i = 0; i < words.size(); i++) {
+            uint64_t w = words[i];
+            uint32_t v = static_cast<uint32_t>(w);
+            snprintf(line, sizeof(line), "%zu,0x%016llx,0x%04x,%u,0x%08x,%u,%d\n", i,
+                     static_cast<unsigned long long>(w), static_cast<unsigned>(w >> 48),
+                     static_cast<unsigned>((w >> 32) & 0xffff), v, v, static_cast<int32_t>(v));
+            out += line;
+        }
+    }
+    return out;
 }
