@@ -173,14 +173,19 @@ fcore::result<void> scope_controller::set_acquisition(const nlohmann::json &args
         {scope_internal_addr + am.scope_int.trg_point, static_cast<uint32_t>(trigger_point)}
     });
     if (!written) return written;
-    if (prescaler > 2) {
+    // the timebase generator decimates by any period of 2 or more, a period of 0 or 1 bypasses it: the prescaler is always
+    // written, otherwise a previous decimation would stay in place when it is lowered
+    if (prescaler >= 2) {
         return write_registers(hw, {
             {scope_base_address + am.tb_base + am.tb.ctrl, 1},
             {scope_base_address + am.tb_base + am.tb.period, static_cast<uint32_t>(prescaler)},
             {scope_base_address + am.tb_base + am.tb.threshold, 1}
         });
     }
-    return {};
+    return write_registers(hw, {
+        {scope_base_address + am.tb_base + am.tb.ctrl, 0},
+        {scope_base_address + am.tb_base + am.tb.period, 1}
+    });
 }
 
 fcore::result<std::string> scope_controller::get_acquisition_status() {
