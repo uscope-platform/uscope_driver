@@ -22,10 +22,12 @@
 
 #define N_CHANNELS 6
 #define KERNEL_BUFFER_LENGTH 1024
-#define KERNEL_BUFFER_SIZE KERNEL_BUFFER_LENGTH*N_CHANNELS*8
-#define BITSTREAM_SIZE  44549344>>3
+#define KERNEL_BUFFER_SIZE (KERNEL_BUFFER_LENGTH*N_CHANNELS*8)
+#define BITSTREAM_SIZE 32000000
 
 #define IOCTL_NEW_DATA_AVAILABLE 1
+#define IOCTL_GET_BUFFER_ADDRESS 2
+#define IOCTL_PROGRAM_FPGA 3
 
 
 
@@ -69,7 +71,15 @@ static char *ucube_devnode(const struct device *dev, umode_t *mode)
     return NULL;
 }
 static struct scope_device_data *dev_data;
-static struct platform_device *fclk_devs[4];
+#define N_FCLK 4
+static struct device_attribute fclk_attrs[N_FCLK];
+static struct device_attribute fclk_en_attrs[N_FCLK];
+static const char * const fclk_names[N_FCLK] = { "fclk_0", "fclk_1", "fclk_2", "fclk_3" };
+static const char * const fclk_en_names[N_FCLK] = { "fclk_0_en", "fclk_1_en", "fclk_2_en", "fclk_3_en" };
+static bool fclk_on[N_FCLK] = { true, true, true, true };
+static unsigned long fclk_rates[N_FCLK] = {
+    FCLK_0_DEFAULT_FREQ, FCLK_1_DEFAULT_FREQ, FCLK_2_DEFAULT_FREQ, FCLK_3_DEFAULT_FREQ
+};
 /* the platform device that exposes the physical address of the dma buffer, where the real uScope device has it */
 static struct platform_device *scope_dev;
 static u64 mock_dma_addr;
@@ -79,6 +89,8 @@ struct scope_device_data {
     struct device devs[N_MINOR_NUMBERS];
     struct cdev cdevs[N_MINOR_NUMBERS];
     u32 *read_data_buffer;
+    u32 dma_buf_size;
+    size_t bitstream_len;
     dma_addr_t physaddr;
     wait_queue_head_t poll_queue;
     int new_data_available;
@@ -110,16 +122,52 @@ static const struct vm_operations_struct mock_vm_ops = {
 };
 
 
-static ssize_t fclk_show(struct device *dev, struct device_attribute *mattr, char *data) {
-    unsigned long freq = 1e6;
-    return sprintf(data, "%lu\n", freq);
+/* the attribute tells us which clock it is: fclk_attrs[i] belongs to fclk_<i> */
+static ssize_t fclk_show(struct device *dev, struct device_attribute *attr, char *data) {
+    int idx = attr - fclk_attrs;
+    return sprintf(data, "%lu\n", fclk_rates[idx]);
 }
 
 static ssize_t fclk_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t len) {
+    int idx = attr - fclk_attrs;
+    if (kstrtoul(buf, 0, &fclk_rates[idx]))
+        return -EINVAL;
     return len;
 }
 
-static DEVICE_ATTR(set_rate, S_IRUGO|S_IWUSR, fclk_show, fclk_store);
+static ssize_t fclk_en_show(struct device *dev, struct device_attribute *attr, char *data) {
+    int idx = attr - fclk_en_attrs;
+    return sprintf(data, "%d\n", fclk_on[idx]);
+}
+
+static ssize_t fclk_en_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t len) {
+    int idx = attr - fclk_en_attrs;
+    bool on;
+    int rc = kstrtobool(buf, &on);
+    if (rc)
+        return rc;
+    fclk_on[idx] = on;
+    return len;
+}
+
+static ssize_t dma_buf_size_show(struct device *dev, struct device_attribute *mattr, char *data) {
+    return sprintf(data, "%u\n", dev_data->dma_buf_size);
+}
+
+/* like the real device the read buffer is reallocated (and its content lost) when the size changes */
+static ssize_t dma_buf_size_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t len) {
+    unsigned long size;
+    u32 *new_buf;
+    if (kstrtoul(buf, 0, &size) || !size || size > U32_MAX)
+        return -EINVAL;
+    new_buf = vzalloc(size);
+    if (!new_buf)
+        return -ENOMEM;
+    vfree(dev_data->read_data_buffer);
+    dev_data->read_data_buffer = new_buf;
+    dev_data->dma_buf_size = size;
+    return len;
+}
 
 static ssize_t dma_addr_show(struct device *dev, struct device_attribute *mattr, char *data) {
     return sprintf(data, "%llu\n", mock_dma_addr);
@@ -134,6 +182,7 @@ static ssize_t dma_addr_store(struct device *dev, struct device_attribute *attr,
 }
 
 static DEVICE_ATTR(dma_addr, S_IRUGO|S_IWUSR, dma_addr_show, dma_addr_store);
+static DEVICE_ATTR(dma_buf_size, S_IRUGO|S_IWUSR, dma_buf_size_show, dma_buf_size_store);
 
 
 static __poll_t ucube_lkm_poll(struct file *flip , struct poll_table_struct * poll_struct){
@@ -171,6 +220,16 @@ static long ucube_lkm_ioctl(struct file *filp, unsigned int cmd, unsigned long a
             break;
         }
         return 0;
+    } else if(minor == 3){
+        switch (cmd){
+        case IOCTL_PROGRAM_FPGA:
+            pr_info("%s: FPGA BITSTREAM LENGTH: %zu\n", __func__, dev_data->bitstream_len);
+            fpga_loaded = true;
+            break;
+        default:
+            return -EINVAL;
+        }
+        return 0;
     } else{
         return 0;
     }
@@ -193,7 +252,7 @@ static int ucube_lkm_release(struct inode *inode, struct file *file) {
 static ssize_t ucube_lkm_read(struct file *flip, char *buffer, size_t count, loff_t *offset) {
     int minor = iminor(flip->f_inode);
     if(minor == 0){
-        size_t datalen = KERNEL_BUFFER_SIZE;
+        size_t datalen = dev_data->dma_buf_size;
 
         if (count > datalen) {
             count = datalen;
@@ -217,8 +276,8 @@ static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len
     int minor = iminor(flip->f_inode);
     size_t to_copy;
 	if(minor == 0){
- 		if (len > KERNEL_BUFFER_SIZE)
-        	len = KERNEL_BUFFER_SIZE;
+ 		if (len > dev_data->dma_buf_size)
+			len = dev_data->dma_buf_size;
 
     	to_copy = len;
 
@@ -229,9 +288,15 @@ static ssize_t ucube_lkm_write(struct file *flip, const char *buffer, size_t len
 	    wake_up_interruptible(&dev_data->poll_queue);
     	return to_copy;
 	}else if(minor ==3){
-		pr_info("%s: Receiving bitstream\n", __func__);
-	    fpga_loaded = true;
-	    return len;
+		size_t needed = *offset + len;
+			if (needed > BITSTREAM_SIZE)
+				return -EINVAL;
+			if (copy_from_user(bitstream_buffer + *offset, buffer, len))
+				return -EFAULT;
+			*offset += len;
+			if (dev_data->bitstream_len < *offset)
+				dev_data->bitstream_len = *offset;
+			return len;
 	} else {
 		return len;
 	}
@@ -296,6 +361,7 @@ static int __init ucube_lkm_init(void)
     dev_data = kzalloc(sizeof(*dev_data), GFP_KERNEL);
     init_waitqueue_head(&dev_data->poll_queue);
     dev_data->new_data_available = 0;
+    dev_data->dma_buf_size = KERNEL_BUFFER_SIZE;
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
         dev_data->devs[i].devt =  devices[i];
@@ -313,32 +379,6 @@ static int __init ucube_lkm_init(void)
             device_create(uCube_class, NULL, devices[i], NULL, device_names[i]);
         }
         pr_info("%s: finished setup for endpoint: %s\n", __func__, device_names[i]);
-        pr_info("%s: finished setup for endpoint: %s\n", __func__, device_names[i]);
-    }
-
-    char name[16];
-
-    for(int i = 0; i< 4; i++){
-        snprintf(name, sizeof(name), "fclk%d", i);
-        fclk_devs[i] = platform_device_register_simple(name, -1, NULL, 0);
-        if (IS_ERR(fclk_devs[0])) {
-            int rc = PTR_ERR(fclk_devs[0]);
-            class_destroy(uCube_class);
-            unregister_chrdev_region(device_number, N_MINOR_NUMBERS);
-            return rc;
-        }
-
-        int rc = device_create_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
-        if (rc) {
-            pr_err("%s: Failed to create fclk interface\nError:%d\n", __func__, rc);
-            return dev_rc;
-        }
-        /* the macros refuse world writable attributes, so like the device nodes the files are opened up here, to
-           let the driver set the clocks without being root */
-        rc = sysfs_chmod_file(&fclk_devs[i]->dev.kobj, &dev_attr_set_rate.attr, 0666);
-        if (rc) {
-            pr_err("%s: Failed to open up the permissions of fclk%d\nError:%d\n", __func__, i, rc);
-        }
     }
 
     scope_dev = platform_device_register_simple("fffc000000008000.uScope", -1, NULL, 0);
@@ -349,20 +389,63 @@ static int __init ucube_lkm_init(void)
         return rc;
     }
     int scope_rc = device_create_file(&scope_dev->dev, &dev_attr_dma_addr);
+    if (!scope_rc)
+        scope_rc = device_create_file(&scope_dev->dev, &dev_attr_dma_buf_size);
     if (scope_rc) {
         pr_err("%s: Failed to create the dma_addr interface\nError:%d\n", __func__, scope_rc);
+        device_remove_file(&scope_dev->dev, &dev_attr_dma_addr);
+        device_remove_file(&scope_dev->dev, &dev_attr_dma_buf_size);
         platform_device_unregister(scope_dev);
         scope_dev = NULL;
         return scope_rc;
     }
     /* like the clock files, opened up to let the driver and the tests use it without being root */
+    scope_rc = sysfs_chmod_file(&scope_dev->dev.kobj, &dev_attr_dma_buf_size.attr, 0666);
+    if (scope_rc)
+        pr_err("%s: Failed to open up the permissions of dma_buf_size\nError:%d\n", __func__, scope_rc);
     scope_rc = sysfs_chmod_file(&scope_dev->dev.kobj, &dev_attr_dma_addr.attr, 0666);
     if (scope_rc) {
         pr_err("%s: Failed to open up the permissions of dma_addr\nError:%d\n", __func__, scope_rc);
     }
 
+    /* the clock files live on the scope device, as fclk_<i> (rate) and fclk_<i>_en (enable), like on the real uScope device */
+    for (int i = 0; i < N_FCLK; i++) {
+        sysfs_attr_init(&fclk_attrs[i].attr);
+        fclk_attrs[i].attr.name = fclk_names[i];
+        fclk_attrs[i].attr.mode = S_IRUGO | S_IWUSR;
+        fclk_attrs[i].show = fclk_show;
+        fclk_attrs[i].store = fclk_store;
+        sysfs_attr_init(&fclk_en_attrs[i].attr);
+        fclk_en_attrs[i].attr.name = fclk_en_names[i];
+        fclk_en_attrs[i].attr.mode = S_IRUGO | S_IWUSR;
+        fclk_en_attrs[i].show = fclk_en_show;
+        fclk_en_attrs[i].store = fclk_en_store;
+        scope_rc = device_create_file(&scope_dev->dev, &fclk_attrs[i]);
+        if (!scope_rc) {
+            scope_rc = device_create_file(&scope_dev->dev, &fclk_en_attrs[i]);
+            if (scope_rc)
+                device_remove_file(&scope_dev->dev, &fclk_attrs[i]);
+        }
+        if (scope_rc) {
+            pr_err("%s: Failed to create %s\nError:%d\n", __func__, fclk_names[i], scope_rc);
+            while (--i >= 0) {
+                device_remove_file(&scope_dev->dev, &fclk_attrs[i]);
+                device_remove_file(&scope_dev->dev, &fclk_en_attrs[i]);
+            }
+            device_remove_file(&scope_dev->dev, &dev_attr_dma_buf_size);
+            device_remove_file(&scope_dev->dev, &dev_attr_dma_addr);
+            platform_device_unregister(scope_dev);
+            scope_dev = NULL;
+            return scope_rc;
+        }
+        /* world writable, so the driver can set the clocks without being root */
+        if (sysfs_chmod_file(&scope_dev->dev.kobj, &fclk_attrs[i].attr, 0666) ||
+            sysfs_chmod_file(&scope_dev->dev.kobj, &fclk_en_attrs[i].attr, 0666))
+            pr_err("%s: Failed to open up the permissions of %s\n", __func__, fclk_names[i]);
+    }
+
     /*SETUP AND ALLOCATE DMA BUFFER*/
-    dev_data->read_data_buffer = vmalloc(KERNEL_BUFFER_SIZE);
+    dev_data->read_data_buffer = vzalloc(dev_data->dma_buf_size);
     bitstream_buffer = vmalloc(BITSTREAM_SIZE);
     pr_warn("%s: Allocated dma buffer at: %llu\n", __func__, dev_data->physaddr);;
     /*SETUP POLL WAIT QUEUE*/
@@ -378,14 +461,13 @@ static void __exit ucube_lkm_exit(void) {
     vfree(dev_data->read_data_buffer);
 	vfree(bitstream_buffer);
     if (scope_dev) {
+        for (int i = 0; i < N_FCLK; i++) {
+            device_remove_file(&scope_dev->dev, &fclk_attrs[i]);
+            device_remove_file(&scope_dev->dev, &fclk_en_attrs[i]);
+        }
+        device_remove_file(&scope_dev->dev, &dev_attr_dma_buf_size);
         device_remove_file(&scope_dev->dev, &dev_attr_dma_addr);
         platform_device_unregister(scope_dev);
-    }
-    for (int i = 0; i < 4; i++) {
-		device_remove_file(&fclk_devs[i]->dev, &dev_attr_set_rate);
-        if (!IS_ERR_OR_NULL(fclk_devs[i])) {
-            platform_device_unregister(fclk_devs[i]);
-        }
     }
 
     for(int i = 0; i< N_MINOR_NUMBERS; i++){
