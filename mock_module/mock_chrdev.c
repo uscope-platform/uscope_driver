@@ -193,8 +193,13 @@ static ssize_t mock_write(struct file *flip, const char __user *buffer, size_t l
 }
 
 
-/* This structure points to all of the device functions */
+/*
+ * The owner pins the module while any device file is open or mapped (cdev_init takes
+ * it from here): without it rmmod goes through while e.g. the kernel emulator still
+ * writes to /dev/uscope_data, and its next call lands in freed module code.
+ */
 struct file_operations mock_file_ops = {
+    .owner = THIS_MODULE,
     .read = mock_read,
     .write = mock_write,
     .open = mock_open,
