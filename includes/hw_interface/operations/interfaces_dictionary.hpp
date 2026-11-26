@@ -59,6 +59,23 @@ public:
         return lookup(rpu_clock_if, "configuration");
     };
 
+    /// remoteproc directory of an RPU core (core N is remoteprocN), holding the firmware and state files
+    fcore::result<std::string> get_remoteproc_if(uint8_t core) const {
+        if (arch == "zynq")
+            return fcore::fail(fcore::error_code::invalid_argument, "The zynq 7000 series of processors does not have an RPU");
+        if(core > 1) return fcore::fail(fcore::error_code::invalid_argument, "The RPU has only cores 0 and 1, requested core #" + std::to_string(core));
+        auto base = lookup(remoteproc_if, "remoteproc interface");
+        if(!base) return base;
+        return base.value() + std::to_string(core);
+    };
+
+    /// Directory the RPU firmware is staged in, it must be inside the kernel firmware search path
+    fcore::result<std::string> get_rpu_firmware_dir() const {
+        if (arch == "zynq")
+            return fcore::fail(fcore::error_code::invalid_argument, "The zynq 7000 series of processors does not have an RPU");
+        return lookup(rpu_firmware_dir, "rpu firmware directory");
+    };
+
     fcore::result<std::string> get_clock_if(uint8_t clock_number) const {
         if(clock_number >3) return fcore::fail(fcore::error_code::invalid_argument, "The PS<->PL interface has only clocks 0 to 3, requested variation of clock #" + std::to_string(clock_number));
         auto base = lookup(clock_if, "configuration");
@@ -130,6 +147,17 @@ private:
         {"zynq", ""},
         {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/rpu_clk"},
         {"testing", "/tmp/rpu_clock_if_"}
+    };
+    std::unordered_map<std::string, std::string> remoteproc_if = {
+        {"zynq", ""},
+        {"zynqmp", "/sys/class/remoteproc/remoteproc"},
+        {"testing", "/tmp/remoteproc"}
+    };
+    /// the firmware names written to remoteproc are relative to the firmware search path (/lib/firmware)
+    std::unordered_map<std::string, std::string> rpu_firmware_dir = {
+        {"zynq", ""},
+        {"zynqmp", "/lib/firmware/uscope"},
+        {"testing", "/tmp/firmware/uscope"}
     };
     std::unordered_map<std::string, std::string> buffer_address_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/dma_addr"},

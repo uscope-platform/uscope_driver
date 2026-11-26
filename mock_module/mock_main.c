@@ -56,8 +56,13 @@ static int mock_scope_dev_init(void)
     rc = mock_rpu_init(dev);
     if (rc)
         goto err_clk;
+    rc = mock_rproc_init(dev);
+    if (rc)
+        goto err_rpu;
     return 0;
 
+err_rpu:
+    mock_rpu_free(dev);
 err_clk:
     mock_clk_remove_files(dev);
 err_dma:
@@ -72,6 +77,7 @@ static void mock_scope_dev_free(void)
 {
     if (!scope_dev)
         return;
+    mock_rproc_free(&scope_dev->dev);
     mock_rpu_free(&scope_dev->dev);
     mock_clk_remove_files(&scope_dev->dev);
     mock_dma_free(&scope_dev->dev);

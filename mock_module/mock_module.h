@@ -117,4 +117,8 @@ void mock_rpu_free(struct device *dev);
 int mock_shm_mmap(struct mock_rpu *r, struct vm_area_struct *vma);
 int mock_ipi_ring(struct mock_rpu *r);
 
+/* Fake R5 cores in the remoteproc framework (mock_rproc.c) */
+int mock_rproc_init(struct device *dev);
+void mock_rproc_free(struct device *dev);
+
 #endif /* MOCK_MODULE_H */

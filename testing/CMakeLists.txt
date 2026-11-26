@@ -7,6 +7,7 @@ set(TEST_SOURCES
         endpoints/cores_endpoints.cpp
         endpoints/control_endpoints.cpp
         endpoints/server_connector.cpp
+        endpoints/rpu_endpoints.cpp
         )
 
 set(DRIVER_SOURCES "${DRIVER_SOURCES}" PARENT_SCOPE)

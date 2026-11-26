@@ -26,6 +26,7 @@
 #include "server_frontend/endpoints/cores_endpoints.hpp"
 #include "server_frontend/data_plane/scope_tickets.hpp"
 #include "server_frontend/endpoints/platform_endpoints.hpp"
+#include "server_frontend/endpoints/rpu_endpoints.hpp"
 
 class command_processor {
 public:
@@ -43,6 +44,7 @@ private:
     cores_endpoints cores_ep;
     std::shared_ptr<scope_tickets> tickets;
     platform_endpoints platform_ep;
+    rpu_endpoints rpu_ep;
 
 
     bool logging_enabled;

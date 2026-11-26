@@ -1,5 +1,5 @@
 obj-m += mock_module.o
-mock_module-y := mock_main.o mock_chrdev.o mock_dma.o mock_fclk.o mock_fpga.o mock_rpu.o
+mock_module-y := mock_main.o mock_chrdev.o mock_dma.o mock_fclk.o mock_fpga.o mock_rpu.o mock_rproc.o
 ccflags-y := -std=gnu99
 
 SRC := $(shell pwd)

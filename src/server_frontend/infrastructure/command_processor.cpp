@@ -32,6 +32,8 @@ nlohmann::json command_processor::process_command(std::string command_string, nl
         response_obj["body"] = cores_ep.process_command(command_string, arguments);
     } else if(commands::platform_commands.contains(command_string)){
         response_obj["body"] = platform_ep.process_command(command_string, arguments);
+    } else if(commands::rpu_commands.contains(command_string)){
+        response_obj["body"] = rpu_ep.process_command(command_string, arguments);
     } else if(commands::infrastructure_commands.contains(command_string)){
         if(command_string == "null"){
             response_obj["body"] = process_null();

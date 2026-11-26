@@ -38,6 +38,8 @@ namespace commands {
     static std::set<std::string> platform_commands = {"set_rpu_clock","get_rpu_clock","set_pl_clock", "get_clock", "get_version", "set_debug_level",
                                                       "get_debug_level"};
 
+    static std::set<std::string> rpu_commands = {"rpu_load_program", "rpu_stop", "rpu_status"};
+
 
     static nlohmann::json command = R"(
     {

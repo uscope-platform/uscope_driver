@@ -52,6 +52,7 @@ set(DRIVER_SOURCES /
         src/server_frontend/endpoints/cores_endpoints.cpp
         src/server_frontend/endpoints/control_endpoints.cpp
         src/server_frontend/endpoints/platform_endpoints.cpp
+        src/server_frontend/endpoints/rpu_endpoints.cpp
         src/hw_interface/operations/toolchain_manager.cpp
         src/hw_interface/operations/fpga_bridge.cpp
         src/hw_interface/scope/channel_metadata.cpp
@@ -64,6 +65,7 @@ set(DRIVER_SOURCES /
         src/deployment/custom_deployer.cpp
         src/hw_interface/operations/bus_accessor.cpp
         src/hw_interface/rpu/rpu_accessor.cpp
+        src/hw_interface/rpu/rpu_manager.cpp
         src/hw_interface/scope/scope_accessor.cpp
         src/server_frontend/data_plane/scope_server.cpp
         src/server_frontend/data_plane/scope_controller.cpp
