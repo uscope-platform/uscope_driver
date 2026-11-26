@@ -157,13 +157,21 @@ set(MODULE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/module_build)
 
 file(MAKE_DIRECTORY ${MODULE_BUILD_DIR})
 
-# Copy mock_module.c with dependency tracking
-add_custom_command(
-        OUTPUT ${MODULE_BUILD_DIR}/mock_module.c
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/mock_module.c ${MODULE_BUILD_DIR}/mock_module.c
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/mock_module.c
-        COMMENT "Copying mock_module.c to build folder"
-)
+# Copy the mock module sources with dependency tracking
+file(GLOB MOCK_MODULE_SOURCES CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/mock_module/*.h)
+set(MOCK_MODULE_BUILD_SOURCES "")
+foreach (src ${MOCK_MODULE_SOURCES})
+    get_filename_component(src_name ${src} NAME)
+    add_custom_command(
+            OUTPUT ${MODULE_BUILD_DIR}/${src_name}
+            COMMAND ${CMAKE_COMMAND} -E copy ${src} ${MODULE_BUILD_DIR}/${src_name}
+            DEPENDS ${src}
+            COMMENT "Copying ${src_name} to build folder"
+    )
+    list(APPEND MOCK_MODULE_BUILD_SOURCES ${MODULE_BUILD_DIR}/${src_name})
+endforeach ()
 
 # Copy Makefile with dependency tracking (if needed)
 add_custom_command(
@@ -175,7 +183,7 @@ add_custom_command(
 
 # Dummy target so CLion sees the sources
 add_custom_target(mock_dev_sources ALL
-        DEPENDS ${MODULE_BUILD_DIR}/mock_module.c ${MODULE_BUILD_DIR}/Makefile
+        DEPENDS ${MOCK_MODULE_BUILD_SOURCES} ${MODULE_BUILD_DIR}/Makefile
         COMMENT "Adding mock_module sources to a target for CLion"
 )
 
