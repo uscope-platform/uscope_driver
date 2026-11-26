@@ -16,25 +16,29 @@
 
 #include "hw_interface/operations/timing_manager.hpp"
 
-timing_manager::timing_manager(std::shared_ptr<fpga_bridge> &h) {
-    hw = h;
-    ps_pl_clk_f[0] = hw->get_pl_clock(0);
-    ps_pl_clk_f[1] = hw->get_pl_clock(1);
-    ps_pl_clk_f[2] = hw->get_pl_clock(2);
-    ps_pl_clk_f[3] = hw->get_pl_clock(3);
-}
+timing_manager::timing_manager(fpga_bridge &h) : hw(&h) {}
 
 fcore::result<responses::response_code> timing_manager::set_base_clock(uint8_t clk_n, uint64_t clk_f) {
-    auto resp =  hw->set_pl_clock(clk_n, clk_f);
-    if(resp && resp.value() == responses::ok){
-        ps_pl_clk_f[clk_n] = clk_f;
-    }
-    return resp;
+    return hw->set_pl_clock(clk_n, clk_f);
 }
 
-uint64_t timing_manager::get_base_clock(uint8_t clk_n) {
-    return ps_pl_clk_f[clk_n];
+/// The clocks are read back from the kernel module, which reports the rate actually set (after any rounding)
+fcore::result<uint64_t> timing_manager::get_base_clock(uint8_t clk_n) {
+    auto f = hw->get_pl_clock(clk_n);
+    if(!f) return fcore::fail(std::move(f).error());
+    return f.value();
 }
+
+fcore::result<responses::response_code> timing_manager::set_rpu_clock(uint64_t clk_f) {
+    return hw->set_rpu_clock(clk_f);
+}
+
+fcore::result<uint64_t> timing_manager::get_rpu_clock() {
+    auto f = hw->get_rpu_clock();
+    if(!f) return fcore::fail(std::move(f).error());
+    return f.value();
+}
+
 
 void timing_manager::add_generated_clock(std::string clock_name, const clock_definition &c) {
     generated_clocks[clock_name] = c;
@@ -55,11 +59,19 @@ fcore::result<responses::response_code>  timing_manager::set_generated_clock(std
     return responses::ok;
 }
 
-uint64_t timing_manager::get_generated_clock(const std::string& clock_name) {
-    auto clk_def = generated_clocks[clock_name];
-    auto base_freq = ps_pl_clk_f[clk_def.base_clock];
+fcore::result<uint64_t> timing_manager::get_generated_clock(const std::string& clock_name) {
+    auto it = generated_clocks.find(clock_name);
+    if(it == generated_clocks.end()) {
+        return fcore::fail(fcore::error_code::invalid_argument, "Unknown generated clock '" + clock_name + "'");
+    }
+    const auto &clk_def = it->second;
+    if(clk_def.divider == 0) {
+        return fcore::fail(fcore::error_code::invalid_argument, "The generated clock '" + clock_name + "' has a zero divider");
+    }
+    auto base_freq = get_base_clock(clk_def.base_clock);
+    if(!base_freq) return base_freq;
 
-    return base_freq * clk_def.multiplier/clk_def.divider;
+    return base_freq.value() * clk_def.multiplier/clk_def.divider;
 }
 
 void timing_manager::setup_pll(uint64_t base_address, uint16_t div, uint16_t mult, uint16_t phase) {

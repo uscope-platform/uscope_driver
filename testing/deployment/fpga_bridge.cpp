@@ -182,7 +182,7 @@ TEST(fpga_bridge, set_clock) {
     std::ifstream result_file(if_dict.get_clock_if(2).value());
     std::string res;
     result_file>>res;
-    EXPECT_EQ(res, "1000000");
+    EXPECT_EQ(res, "1200000");
 }
 
 TEST(fpga_bridge, set_clock_file_errorr) {
@@ -196,6 +196,54 @@ TEST(fpga_bridge, set_clock_file_errorr) {
     std::ofstream o(if_dict.get_clock_if(1).value());
     auto resp = bridge.set_pl_clock(2, 1000000);
     EXPECT_EQ(resp, responses::ok);
+}
+
+TEST(fpga_bridge, get_clock) {
+    fpga_bridge bridge(true);
+
+    auto previous = bridge.get_pl_clock(3);
+    ASSERT_TRUE(previous);
+
+    ASSERT_EQ(bridge.set_pl_clock(3, 25'000'000), responses::ok);
+    auto freq = bridge.get_pl_clock(3);
+    ASSERT_TRUE(freq);
+    EXPECT_EQ(freq.value(), 25'000'000);
+
+    ASSERT_EQ(bridge.set_pl_clock(3, previous.value()), responses::ok);
+}
+
+TEST(fpga_bridge, get_clock_invalid) {
+    fpga_bridge bridge(true);
+
+    auto freq = bridge.get_pl_clock(4);
+    ASSERT_FALSE(freq);
+    EXPECT_EQ(freq.error().code, fcore::error_code::invalid_argument);
+}
+
+TEST(fpga_bridge, rpu_clock) {
+    fpga_bridge bridge(true);
+
+    auto previous = bridge.get_rpu_clock();
+    ASSERT_TRUE(previous);
+
+    ASSERT_EQ(bridge.set_rpu_clock(400'000'000), responses::ok);
+    auto freq = bridge.get_rpu_clock();
+    ASSERT_TRUE(freq);
+    EXPECT_EQ(freq.value(), 400'000'000);
+
+    ASSERT_EQ(bridge.set_rpu_clock(previous.value()), responses::ok);
+}
+
+TEST(fpga_bridge, rpu_clock_out_of_range) {
+    fpga_bridge bridge(true);
+
+    auto previous = bridge.get_rpu_clock();
+    ASSERT_TRUE(previous);
+
+    EXPECT_EQ(bridge.set_rpu_clock(600'000'000), responses::driver_write_failed);
+    auto freq = bridge.get_rpu_clock();
+    ASSERT_TRUE(freq);
+    EXPECT_EQ(freq.value(), previous.value());
 }
 
 

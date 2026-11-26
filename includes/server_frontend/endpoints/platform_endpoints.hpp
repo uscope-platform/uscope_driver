@@ -32,13 +32,15 @@ public:
 private:
     nlohmann::json process_set_clock(nlohmann::json &arguments);
     nlohmann::json process_get_clock(nlohmann::json &arguments);
+    nlohmann::json process_set_rpu_clock(nlohmann::json &arguments);
+    nlohmann::json process_get_rpu_clock();
     nlohmann::json process_get_version(nlohmann::json &arguments);
     nlohmann::json process_set_debug_level(nlohmann::json &arguments);
     nlohmann::json process_get_debug_level(nlohmann::json &arguments);
 
 
     fpga_bridge hw;
-    timing_manager tm;
+    timing_manager tm{hw};
 
 };
 

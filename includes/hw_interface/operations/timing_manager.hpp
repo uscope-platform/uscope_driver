@@ -35,19 +35,24 @@ struct clock_definition{
 class timing_manager {
 public:
     timing_manager() = default;
-    explicit timing_manager(std::shared_ptr<fpga_bridge> &hw);
+    explicit timing_manager(fpga_bridge &hw);
+
     [[nodiscard]] fcore::result<responses::response_code>  set_base_clock(uint8_t clk_n, uint64_t clk_f);
-    uint64_t get_base_clock(uint8_t clk_n);
+    [[nodiscard]] fcore::result<uint64_t> get_base_clock(uint8_t clk_n);
+
+    [[nodiscard]] fcore::result<responses::response_code>  set_rpu_clock(uint64_t clk_f);
+    [[nodiscard]] fcore::result<uint64_t> get_rpu_clock();
+
     [[nodiscard]] fcore::result<responses::response_code>  set_generated_clock(std::string clock_name, uint16_t m, uint16_t d, uint16_t p);
     void add_generated_clock(std::string clock_name, const struct  clock_definition &c);
-    uint64_t get_generated_clock(const std::string& clock_name);
+    [[nodiscard]] fcore::result<uint64_t> get_generated_clock(const std::string& clock_name);
 
 private:
     void setup_pll(uint64_t base_address, uint16_t div, uint16_t mult, uint16_t phase);
     fcore::result<void> setup_clock_divider(uint64_t base_address, uint16_t div, uint16_t phase);
 
-    std::shared_ptr<fpga_bridge> hw;
-    std::array<uint64_t, 4> ps_pl_clk_f;
+    /// Not owned: the bridge belongs to whoever owns this timing manager
+    fpga_bridge *hw = nullptr;
     std::map<std::string, clock_definition> generated_clocks;
 };
 

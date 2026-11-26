@@ -21,7 +21,11 @@ void platform_endpoints::set_accessor(const std::shared_ptr<bus_accessor> &ba) {
 }
 
 nlohmann::json platform_endpoints::process_command(const std::string &command_string, nlohmann::json &arguments) {
-    if(command_string == "set_pl_clock") {
+    if(command_string == "set_rpu_clock") {
+        return process_set_rpu_clock(arguments);
+    } else if(command_string=="get_rpu_clock") {
+        return process_get_rpu_clock();
+    } else if(command_string == "set_pl_clock") {
         return process_set_clock(arguments);
     } else if(command_string=="get_clock") {
         return process_get_clock(arguments);
@@ -56,14 +60,36 @@ nlohmann::json platform_endpoints::process_get_clock(nlohmann::json &arguments) 
 
     bool is_primary = arguments["is_primary"];
 
-    if(is_primary){
-        uint8_t clk_n = arguments["id"];
-        resp["data"] = tm.get_base_clock(clk_n);
-    } else {
-        resp["data"] = tm.get_generated_clock(arguments["id"]);
-    }
+    fcore::result<uint64_t> freq = is_primary ? tm.get_base_clock(arguments["id"].get<uint8_t>())
+                                              : tm.get_generated_clock(arguments["id"].get<std::string>());
+    if(!freq) return responses::error_response(freq.error());
+    resp["data"] = freq.value();
     resp["response_code"] = responses::as_integer(responses::ok);
 
+    return resp;
+}
+
+nlohmann::json platform_endpoints::process_set_rpu_clock(nlohmann::json& arguments)  {
+    nlohmann::json resp;
+    if(!arguments.contains("value")){
+        resp["response_code"] = responses::as_integer(responses::invalid_arg);
+        resp["data"] = "DRIVER ERROR: The arguments for the set clock clock command must contain the value key\n";
+        return resp;
+    }
+    fcore::result<responses::response_code> outcome = responses::ok;
+    uint32_t freq = arguments["value"];
+    outcome = tm.set_rpu_clock(freq);
+    if(!outcome) return responses::error_response(outcome.error());
+    resp["response_code"] = responses::as_integer(outcome.value());
+    return resp;
+}
+
+nlohmann::json platform_endpoints::process_get_rpu_clock() {
+    nlohmann::json resp;
+    auto freq = tm.get_rpu_clock();
+    if(!freq) return responses::error_response(freq.error());
+    resp["data"] = freq.value();
+    resp["response_code"] = responses::as_integer(responses::ok);
     return resp;
 }
 

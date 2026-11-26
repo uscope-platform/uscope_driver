@@ -70,8 +70,11 @@ public:
     [[nodiscard]] fcore::result<void> write_proxied(uint64_t proxy_addr, uint32_t target_addr, uint32_t val);
     [[nodiscard]] fcore::result<uint32_t> read_direct(uint64_t address);
 
-    uint32_t get_pl_clock( uint8_t clk_n);
+    [[nodiscard]] fcore::result<uint32_t> get_pl_clock(uint8_t clk_n);
     [[nodiscard]] fcore::result<responses::response_code>  set_pl_clock(uint8_t clk_n, uint32_t freq);
+
+    [[nodiscard]] fcore::result<uint32_t> get_rpu_clock();
+    [[nodiscard]] fcore::result<responses::response_code>  set_rpu_clock(uint32_t freq);
 
     std::vector<bus_op> get_bus_operations() const;
 

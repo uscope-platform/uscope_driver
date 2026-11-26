@@ -169,8 +169,23 @@ fcore::result<uint32_t> fpga_bridge::read_direct(uint64_t address) {
     return busses->read_register(a);
 }
 
-uint32_t fpga_bridge::get_pl_clock( uint8_t clk_n) {
-    return 99'999'999;
+/// Reads a frequency in Hz from one of the kernel module clock files
+static fcore::result<uint32_t> read_clock_file(const std::string &file) {
+    std::ifstream ifs(file);
+    if(!ifs) {
+        return fcore::fail(fcore::error_code::io_error, "Failed to open the clock file " + file + ": " + std::strerror(errno));
+    }
+    uint64_t freq;
+    if(!(ifs >> freq) || freq > UINT32_MAX) {
+        return fcore::fail(fcore::error_code::io_error, "Unable to read a valid frequency from the clock file " + file);
+    }
+    return static_cast<uint32_t>(freq);
+}
+
+fcore::result<uint32_t> fpga_bridge::get_pl_clock(uint8_t clk_n) {
+    auto clock_if = if_dict.get_clock_if(clk_n);
+    if(!clock_if) return fcore::fail(std::move(clock_if).error());
+    return read_clock_file(clock_if.value());
 }
 
 fcore::result<responses::response_code> fpga_bridge::set_pl_clock(uint8_t clk_n, uint32_t freq) {
@@ -196,6 +211,42 @@ fcore::result<responses::response_code> fpga_bridge::set_pl_clock(uint8_t clk_n,
         spdlog::critical("WRITE FAILURE: Clock setting operation unsuccessful: {0}", std::strerror(errno));
         return responses::driver_write_failed;
     }
+    close(fd);
+    return responses::ok;
+}
+
+/// The kernel module file holds the R5 frequency (RPLL / 2), not the RPLL one
+fcore::result<uint32_t> fpga_bridge::get_rpu_clock() {
+    auto clock_if = if_dict.get_rpu_clock_if();
+    if(!clock_if) return fcore::fail(std::move(clock_if).error());
+    return read_clock_file(clock_if.value());
+}
+
+
+fcore::result<responses::response_code> fpga_bridge::set_rpu_clock(uint32_t freq) {
+    std::string command;
+
+    spdlog::info("SET_RPU_CLOCK_FREQUENCY: {}Hz", freq);
+
+    auto clock_if = if_dict.get_rpu_clock_if();
+    if(!clock_if) return fcore::fail(std::move(clock_if).error());
+    std::string file = clock_if.value();
+    auto fd = open(file.c_str(), O_RDWR | O_SYNC);
+    if(fd<0){
+        spdlog::critical("Failed to open the clock setting file: {0}", file);
+        spdlog::critical("Clock setting operation unsuccessful: {0}", std::strerror(errno));
+        return responses::driver_file_not_found;
+    }
+
+    std::string f_str = std::to_string(freq);
+    auto f_cstr = f_str.c_str();
+    ssize_t write_size = f_str.size();
+    auto res = write(fd,f_cstr, write_size);
+    if(res<0){
+        spdlog::critical("WRITE FAILURE: Clock setting operation unsuccessful: {0}", std::strerror(errno));
+        return responses::driver_write_failed;
+    }
+    close(fd);
     return responses::ok;
 }
 

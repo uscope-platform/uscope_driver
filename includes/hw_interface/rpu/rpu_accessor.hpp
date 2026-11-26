@@ -18,7 +18,15 @@
 #define USCOPE_DRIVER_RPU_ACCESSOR_HPP
 
 
+#include <memory>
+#include "errors/result.hpp"
+
 class rpu_accessor {
+public:
+
+    fcore::result<std::shared_ptr<rpu_accessor>> create();
+private:
+    fcore::result<void> map_buses();
 };
 
 

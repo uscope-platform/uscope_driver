@@ -48,8 +48,15 @@ public:
     fcore::result<std::string> get_cores_bus() const{
         return lookup(cores_bus_if, "cores bus");
     };
+
     fcore::result<std::string> get_data_bus() const {
         return lookup(data_bus_if, "data bus");
+    };
+
+    fcore::result<std::string> get_rpu_clock_if() const {
+        if (arch == "zynq" )
+            return fcore::fail(fcore::error_code::invalid_argument, "The zynq 7000 series of processors does not have an RPU");
+        return lookup(rpu_clock_if, "configuration");
     };
 
     fcore::result<std::string> get_clock_if(uint8_t clock_number) const {
@@ -59,8 +66,9 @@ public:
         return base.value() + std::to_string(clock_number);
     };
 
+
     fcore::result<std::string> get_buffer_address_if() const {
-        return lookup(buffer_addres_if, "configuration");
+        return lookup(buffer_address_if, "configuration");
     };
 
     fcore::result<std::string> get_fpga_flags_if() const {
@@ -112,16 +120,21 @@ private:
             {"zynqmp", "/dev/uscope_data"},
             {"testing", "/tmp/data_bus_if"}
     };
-
     std::unordered_map<std::string, std::string> clock_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/fclk_"},
             {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/fclk_"},
             {"testing", "/tmp/clock_if_"}
     };
-    std::unordered_map<std::string, std::string> buffer_addres_if = {
+
+    std::unordered_map<std::string, std::string> rpu_clock_if = {
+        {"zynq", ""},
+        {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/rpu_clk"},
+        {"testing", "/tmp/rpu_clock_if_"}
+    };
+    std::unordered_map<std::string, std::string> buffer_address_if = {
             {"zynq", "/sys/devices/soc0/fffc0000.uScope/dma_addr"},
             {"zynqmp", "/sys/devices/platform/fffc000000008000.uScope/dma_addr"},
-            {"testing", "/tmp/buffer_addres_if"}
+            {"testing", "/tmp/buffer_address_if"}
     };
     std::string arch = "trap";
 

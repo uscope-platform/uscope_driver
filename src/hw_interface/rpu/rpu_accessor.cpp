@@ -15,3 +15,10 @@
 //  limitations under the License.
 
 #include "hw_interface/rpu/rpu_accessor.hpp"
+
+fcore::result<std::shared_ptr<rpu_accessor>> rpu_accessor::create() {
+}
+
+fcore::result<void> rpu_accessor::map_buses() {
+
+}
