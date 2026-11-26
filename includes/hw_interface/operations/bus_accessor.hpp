@@ -29,7 +29,7 @@
 
 #include "errors/result.hpp"
 
-#include "hw_interface/interfaces_dictionary.hpp"
+#include "hw_interface/operations/interfaces_dictionary.hpp"
 
 #define ZYNQ_REGISTERS_BASE_ADDR 0x43c00000
 #define ZYNQ_FCORE_BASE_ADDR 0x83c00000

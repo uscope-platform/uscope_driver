@@ -21,7 +21,7 @@
 #include <vector>
 #include <stdexcept>
 #include <unistd.h>
-#include "hw_interface/bus/scope_accessor.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
 #include <spdlog/spdlog.h>
 
 namespace asio = boost::asio;

@@ -21,7 +21,7 @@
 #include <array>
 #include <memory>
 #include "errors/result.hpp"
-#include "hw_interface/interfaces_dictionary.hpp"
+#include "hw_interface/operations/interfaces_dictionary.hpp"
 
 class scope_accessor {
 public:

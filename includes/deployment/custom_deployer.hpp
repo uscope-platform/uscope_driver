@@ -21,7 +21,7 @@
 #include <nlohmann/json.hpp>
 #include <memory>
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 #include "deployment/deployer_base.hpp"
 
 class custom_deployer : public deployer_base{

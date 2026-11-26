@@ -14,7 +14,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "hw_interface/toolchain_manager.hpp"
+#include "hw_interface/operations/toolchain_manager.hpp"
 
 
 fcore::result<std::vector<uint32_t>>

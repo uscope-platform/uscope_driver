@@ -16,7 +16,7 @@
 #include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 
 
 TEST(fpga_bridge, single_write_register_direct) {

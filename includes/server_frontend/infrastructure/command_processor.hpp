@@ -17,7 +17,7 @@
 #include <sstream>
 #include <thread>
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 #include "response.hpp"
 #include "command.hpp"
 #include "configuration.hpp"

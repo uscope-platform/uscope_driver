@@ -19,7 +19,7 @@
 #include <atomic>
 #include <vector>
 
-#include "hw_interface/bus/scope_accessor.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
 
 /// Scaling factor of each scope channel. It is written by the command handlers and read by the scope data reader,
 /// which run on different threads.

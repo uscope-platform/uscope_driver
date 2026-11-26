@@ -21,8 +21,8 @@
 
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
-#include "hw_interface/fpga_bridge.hpp"
-#include "hw_interface/toolchain_manager.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
+#include "hw_interface/operations/toolchain_manager.hpp"
 #include "deployment/hil_emulator.hpp"
 
 #include "deployment/hil_deployer.hpp"

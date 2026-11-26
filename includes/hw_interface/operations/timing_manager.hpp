@@ -20,7 +20,7 @@
 
 #include <cstdint>
 #include <memory>
-#include "fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 
 struct clock_definition{
     uint16_t multiplier;

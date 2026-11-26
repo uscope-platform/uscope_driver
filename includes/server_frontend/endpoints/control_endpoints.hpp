@@ -22,7 +22,7 @@
 
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 
 class control_endpoints {
 public:

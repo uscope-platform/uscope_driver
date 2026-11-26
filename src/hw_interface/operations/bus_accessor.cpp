@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-#include "hw_interface/bus/bus_accessor.hpp"
+#include "hw_interface/operations/bus_accessor.hpp"
 
 #include <charconv>
 #include <cstdlib>

@@ -14,7 +14,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "../../includes/hw_interface/timing_manager.hpp"
+#include "hw_interface/operations/timing_manager.hpp"
 
 timing_manager::timing_manager(std::shared_ptr<fpga_bridge> &h) {
     hw = h;

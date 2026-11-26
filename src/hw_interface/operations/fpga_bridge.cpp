@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 
 
 using namespace std::chrono_literals;

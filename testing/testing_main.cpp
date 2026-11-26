@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "configuration.hpp"
-#include "hw_interface/interfaces_dictionary.hpp"
+#include "hw_interface/operations/interfaces_dictionary.hpp"
 
 interfaces_dictionary if_dict;
 configuration runtime_config;

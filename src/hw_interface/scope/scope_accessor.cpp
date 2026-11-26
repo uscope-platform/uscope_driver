@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "hw_interface/bus/scope_accessor.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
 
 #include <poll.h>
 #include <thread>

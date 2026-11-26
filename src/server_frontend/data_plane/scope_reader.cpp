@@ -15,8 +15,8 @@
 
 #include "server_frontend/data_plane/scope_reader.hpp"
 #include "server_frontend/data_plane/scope_frame.hpp"
-#include "hw_interface/channel_metadata.hpp"
-#include "hw_interface/sample_scaling.hpp"
+#include "hw_interface/scope/channel_metadata.hpp"
+#include "hw_interface/scope/sample_scaling.hpp"
 
 #include <algorithm>
 #include <array>

@@ -20,7 +20,7 @@
 #include <spdlog/spdlog.h>
 #include <bitset>
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 #include "emulator/emulator_dispatcher.hpp"
 #include "fCore_isa.hpp"
 

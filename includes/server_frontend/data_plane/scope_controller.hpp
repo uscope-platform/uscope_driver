@@ -22,10 +22,10 @@
 #include <nlohmann/json.hpp>
 
 #include "errors/result.hpp"
-#include "hw_interface/bus/bus_accessor.hpp"
-#include "hw_interface/fpga_bridge.hpp"
-#include "hw_interface/hw_address_maps.hpp"
-#include "hw_interface/scope_scaling.hpp"
+#include "hw_interface/operations/bus_accessor.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
+#include "hw_interface/scope/hw_address_maps.hpp"
+#include "hw_interface/scope/scope_scaling.hpp"
 
 /// Executes the scope commands received through the websocket (scaling, acquisition setup, scope address, DMA).
 /// The commands touch the hardware and can block, so they are executed one at a time on a thread of their own, in the

@@ -30,11 +30,11 @@
 
 #include <spdlog/spdlog.h>
 
-#include "hw_interface/bus/scope_accessor.hpp"
-#include "hw_interface/bus/bus_accessor.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
+#include "hw_interface/operations/bus_accessor.hpp"
 
 #include "server_frontend/infrastructure/server_connector.hpp"
-#include "hw_interface/interfaces_dictionary.hpp"
+#include "hw_interface/operations/interfaces_dictionary.hpp"
 
 
 

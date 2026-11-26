@@ -28,8 +28,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 
-#include "hw_interface/bus/scope_accessor.hpp"
- #include "hw_interface/scope_scaling.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
+ #include "hw_interface/scope/scope_scaling.hpp"
 #include "server_frontend/data_plane/scope_controller.hpp"
 #include "server_frontend/data_plane/scope_tickets.hpp"
 #include "server_frontend/data_plane/scope_frame.hpp"

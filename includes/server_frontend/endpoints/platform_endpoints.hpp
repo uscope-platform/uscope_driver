@@ -20,8 +20,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "hw_interface/fpga_bridge.hpp"
-#include "hw_interface/timing_manager.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
+#include "hw_interface/operations/timing_manager.hpp"
 #include "driver_version.h"
 
 class platform_endpoints {

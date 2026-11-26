@@ -22,8 +22,8 @@
 #include <thread>
 #include <vector>
 
-#include "hw_interface/bus/scope_accessor.hpp"
-#include "hw_interface/scope_scaling.hpp"
+#include "hw_interface/scope/scope_accessor.hpp"
+#include "hw_interface/scope/scope_scaling.hpp"
 #include "server_frontend/data_plane/scope_frame.hpp"
 
 /// Reads the scope data from the board on its own thread and publishes it as ready to send frames

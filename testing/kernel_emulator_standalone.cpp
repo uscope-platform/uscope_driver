@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "hw_interface/channel_metadata.hpp"
+#include "hw_interface/scope/channel_metadata.hpp"
 
 std::vector<int32_t> generate_white_noise(int32_t size, int32_t average_value, int32_t noise_ampl);
 std::vector<int32_t> generate_sinusoid(uint32_t size, uint32_t amplitude, float frequency, uint32_t offset, uint32_t phase);

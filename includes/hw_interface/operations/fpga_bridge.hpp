@@ -37,12 +37,12 @@
 
 #include "server_frontend/infrastructure/command.hpp"
 #include "server_frontend/infrastructure/response.hpp"
-#include "hw_interface/interfaces_dictionary.hpp"
+#include "hw_interface/operations/interfaces_dictionary.hpp"
 #include "configuration.hpp"
 #include "errors/result.hpp"
 
 
-#include "bus/bus_accessor.hpp"
+#include "hw_interface/operations/bus_accessor.hpp"
 
 void sigsegv_handler(int dummy);
 void sigbus_handler(int dummy);

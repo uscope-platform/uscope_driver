@@ -23,7 +23,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "hw_interface/fpga_bridge.hpp"
+#include "hw_interface/operations/fpga_bridge.hpp"
 #include "deployment/hil_bus_map.hpp"
 #include "deployment/deployment_utilities.hpp"
 
