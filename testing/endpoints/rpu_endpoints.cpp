@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 // These tests drive the fake R5 cores of the mock module through the real remoteproc
-// interface, they need /lib/firmware/uscope to exist and be writable by the test user.
+// interface, the firmware staging folder is created on demand so its parent must be writable by the test user.
 
 #include <filesystem>
 #include <fstream>

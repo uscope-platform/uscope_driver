@@ -121,6 +121,13 @@ fcore::result<void> rpu_manager::load_program(uint8_t core, const std::vector<ui
     if(auto stopped = stop(core); !stopped) return stopped;
 
     spdlog::info("RPU: loading a {0} bytes program on core {1}", program.size(), core);
+    // the staging directory is not part of a stock image, so it is made on first use
+    std::error_code dir_ec;
+    std::filesystem::create_directories(dir.value(), dir_ec);
+    if(dir_ec) {
+        return fcore::fail(fcore::error_code::io_error, "Failed to create the firmware directory " + dir.value() + ": " + dir_ec.message());
+    }
+
     const auto staged = std::filesystem::path(dir.value()) / firmware_name(core);
     {
         std::ofstream ofs(staged, std::ios::binary | std::ios::trunc);
